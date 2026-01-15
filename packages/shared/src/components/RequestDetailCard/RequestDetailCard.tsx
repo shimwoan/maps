@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, XStack, YStack } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { Request } from '../../hooks/useRequests';
@@ -56,6 +57,7 @@ export function RequestDetailCard({ request, onClose }: RequestDetailCardProps) 
       animation="quick"
       enterStyle={{ y: 300, opacity: 0 }}
       exitStyle={{ y: 300, opacity: 0 }}
+      onTouchMove={(e: React.TouchEvent) => e.stopPropagation()}
     >
       {/* 닫기 핸들 */}
       <View
@@ -80,7 +82,7 @@ export function RequestDetailCard({ request, onClose }: RequestDetailCardProps) 
               {request.visit_type}
             </Text>
           </View>
-          <Text fontSize={14} color="#666">{request.equipment_type}</Text>
+          <Text fontSize={14} color="#666">{request.as_type}</Text>
         </XStack>
 
         {/* 제목 + 금액 */}

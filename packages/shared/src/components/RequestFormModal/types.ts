@@ -1,10 +1,10 @@
 export type VisitType = '방문' | '원격';
 
-export type EquipmentType = '복합기/OA' | '프린터' | '컴퓨터' | '파쇄기' | '기타';
+export type AsType = '복합기/OA' | '프린터' | '컴퓨터' | '파쇄기' | '기타';
 
 export interface RequestFormData {
   visitType: VisitType;
-  equipmentType: EquipmentType;
+  asType: AsType;
   title: string;
   address: string;
   addressDetail: string;

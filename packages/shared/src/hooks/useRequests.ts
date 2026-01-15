@@ -5,7 +5,7 @@ export interface Request {
   id: string;
   user_id: string;
   visit_type: string;
-  equipment_type: string;
+  as_type: string;
   title: string;
   address: string;
   address_detail: string | null;

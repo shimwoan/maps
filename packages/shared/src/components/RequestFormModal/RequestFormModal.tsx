@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { AddressSearch } from '../AddressSearch';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
-import type { RequestFormData, RequestFormModalProps, VisitType, EquipmentType } from './types';
+import type { RequestFormData, RequestFormModalProps, VisitType, AsType } from './types';
 
 // 성공 팝업 컴포넌트
 function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -71,7 +71,7 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
               </Text>
               <Text fontSize={14} color="#666" textAlign="center" lineHeight={22}>
                 전문가가 의뢰를 신청하면{'\n'}
-                등록된 연락처로 문자를 발송해 드립니다.
+                <Text color={brandColors.primary} fontWeight="600">등록된 연락처로 문자를 발송해 드립니다.</Text>
               </Text>
             </YStack>
 
@@ -96,7 +96,7 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 const VISIT_TYPES: VisitType[] = ['방문', '원격'];
-const EQUIPMENT_TYPES: EquipmentType[] = ['복합기/OA', '프린터', '컴퓨터', '파쇄기', '기타'];
+const AS_TYPES: AsType[] = ['복합기/OA', '프린터', '컴퓨터', '파쇄기', '기타'];
 const DURATION_OPTIONS = ['30분', '1시간', '2시간', '3시간', '4시간', '반나절', '하루'];
 const PERSONNEL_OPTIONS = [1, 2, 3, 4, 5];
 
@@ -118,7 +118,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<RequestFormData>({
     defaultValues: {
       visitType: '방문',
-      equipmentType: '복합기/OA',
+      asType: '복합기/OA',
       title: '',
       address: defaultAddress,
       addressDetail: '',
@@ -141,7 +141,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       const { error } = await supabase.from('requests').insert({
         user_id: user.id,
         visit_type: data.visitType,
-        equipment_type: data.equipmentType,
+        as_type: data.asType,
         title: data.title,
         address: data.address,
         address_detail: data.addressDetail,
@@ -247,15 +247,15 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               />
             </YStack>
 
-            {/* 장비 종류 선택 */}
+            {/* AS 종류 선택 */}
             <YStack gap="$2">
-              <Text fontSize={14} fontWeight="600" color="#333">장비 종류</Text>
+              <Text fontSize={14} fontWeight="600" color="#333">AS 종류</Text>
               <Controller
                 control={control}
-                name="equipmentType"
+                name="asType"
                 render={({ field: { onChange, value } }) => (
                   <XStack flexWrap="wrap" gap="$2">
-                    {EQUIPMENT_TYPES.map((type) => (
+                    {AS_TYPES.map((type) => (
                       <Button
                         key={type}
                         size="$3"
