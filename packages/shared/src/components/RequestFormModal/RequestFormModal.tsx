@@ -350,7 +350,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                       size="$4"
                       placeholder="50000"
                       value={value?.toString() || ''}
-                      onChangeText={(text) => onChange(parseInt(text.replace(/[^0-9]/g, '')) || 0)}
+                      onChangeText={(text: string) => onChange(parseInt(text.replace(/[^0-9]/g, '')) || 0)}
                       keyboardType="numeric"
                       backgroundColor="#f9f9f9"
                       borderColor={errors.expectedFee ? '#ff4444' : '#eee'}
