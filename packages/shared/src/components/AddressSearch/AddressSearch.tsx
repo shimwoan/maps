@@ -158,10 +158,11 @@ export function AddressSearch({
         size="$4"
         placeholder={placeholder}
         value={value}
-        onChangeText={onChange}
-        backgroundColor="#f9f9f9"
+        readOnly
+        backgroundColor="#f5f5f5"
         borderColor={hasError ? '#ff4444' : '#eee'}
         color="#000"
+        cursor="default"
       />
       <View
         paddingHorizontal="$3"
