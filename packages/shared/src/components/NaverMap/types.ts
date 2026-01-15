@@ -1,3 +1,13 @@
+export interface RequestMarker {
+  id: string;
+  latitude: number;
+  longitude: number;
+  title: string;
+  price: number;
+  visitType: string;
+  equipmentType: string;
+}
+
 export interface NaverMapProps {
   clientId?: string;
   latitude: number;
@@ -13,6 +23,9 @@ export interface NaverMapProps {
   showCurrentLocation?: boolean;
   currentLocationLat?: number;
   currentLocationLng?: number;
+  markers?: RequestMarker[];
+  selectedMarkerId?: string | null;
+  onMarkerClick?: (markerId: string) => void;
 }
 
 export interface MapCoordinate {

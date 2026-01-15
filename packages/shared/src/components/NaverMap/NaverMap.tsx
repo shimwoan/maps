@@ -1,5 +1,5 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import type { NaverMapProps } from './types';
+import type { NaverMapProps, RequestMarker } from './types';
 
 declare global {
   interface Window {
@@ -13,11 +13,48 @@ export interface NaverMapRef {
   zoomOut: () => void;
 }
 
-// 펄스 애니메이션 CSS 삽입
-const injectPulseAnimation = () => {
-  if (document.getElementById('current-location-pulse-style')) return;
+// 금액 포맷팅
+const formatPrice = (price: number): string => {
+  if (price >= 10000) {
+    const man = Math.floor(price / 10000);
+    const rest = price % 10000;
+    if (rest === 0) return `${man}만`;
+    return `${man}만 ${rest.toLocaleString()}`;
+  }
+  return price.toLocaleString();
+};
+
+// 마커 HTML 생성
+const createMarkerContent = (marker: RequestMarker, isSelected: boolean): string => {
+  const bgColor = isSelected ? '#ffffff' : '#6B7CFF';
+  const textColor = isSelected ? '#6B7CFF' : '#ffffff';
+  const borderColor = '#6B7CFF';
+
+  return `
+    <div style="
+      background: ${bgColor};
+      color: ${textColor};
+      border: 2px solid ${borderColor};
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    ">
+      <div style="font-size: 11px; opacity: 0.9;">${marker.title}</div>
+      <div style="font-size: 13px; font-weight: 700;">${formatPrice(marker.price)}원</div>
+    </div>
+  `;
+};
+
+// CSS 삽입
+const injectStyles = () => {
+  if (document.getElementById('naver-map-custom-styles')) return;
   const style = document.createElement('style');
-  style.id = 'current-location-pulse-style';
+  style.id = 'naver-map-custom-styles';
   style.textContent = `
     @keyframes pulse {
       0% {
@@ -72,12 +109,17 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   showCurrentLocation = false,
   currentLocationLat,
   currentLocationLng,
+  markers = [],
+  selectedMarkerId = null,
+  onMarkerClick,
 }, ref) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<naver.maps.Map | null>(null);
   const currentLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
+  const requestMarkersRef = useRef<Map<string, naver.maps.Marker>>(new Map());
   const initialCoordsRef = useRef({ latitude, longitude, zoom });
   const onCameraChangeRef = useRef(onCameraChange);
+  const onMarkerClickRef = useRef(onMarkerClick);
 
   useImperativeHandle(ref, () => ({
     moveTo: (lat: number, lng: number, z?: number) => {
@@ -109,6 +151,10 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   useEffect(() => {
     onCameraChangeRef.current = onCameraChange;
   }, [onCameraChange]);
+
+  useEffect(() => {
+    onMarkerClickRef.current = onMarkerClick;
+  }, [onMarkerClick]);
 
   // 지도 초기화 (한 번만 실행)
   useEffect(() => {
@@ -169,7 +215,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
 
     if (!mapInstanceRef.current || !window.naver?.maps) return;
 
-    injectPulseAnimation();
+    injectStyles();
 
     const markerContent = `
       <div class="current-location-marker">
@@ -193,6 +239,54 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       });
     }
   }, [showCurrentLocation, currentLocationLat, currentLocationLng]);
+
+  // 의뢰 마커 표시
+  useEffect(() => {
+    if (!mapInstanceRef.current || !window.naver?.maps) return;
+
+    const currentMarkerIds = new Set(markers.map(m => m.id));
+    const existingMarkerIds = new Set(requestMarkersRef.current.keys());
+
+    // 삭제된 마커 제거
+    existingMarkerIds.forEach(id => {
+      if (!currentMarkerIds.has(id)) {
+        const marker = requestMarkersRef.current.get(id);
+        marker?.setMap(null);
+        requestMarkersRef.current.delete(id);
+      }
+    });
+
+    // 마커 추가/업데이트
+    markers.forEach(markerData => {
+      const isSelected = markerData.id === selectedMarkerId;
+      const existingMarker = requestMarkersRef.current.get(markerData.id);
+
+      if (existingMarker) {
+        // 기존 마커 업데이트 (선택 상태 변경 시)
+        existingMarker.setIcon({
+          content: createMarkerContent(markerData, isSelected),
+          anchor: new window.naver.maps.Point(50, 40),
+        });
+      } else {
+        // 새 마커 생성
+        const newMarker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(markerData.latitude, markerData.longitude),
+          map: mapInstanceRef.current!,
+          icon: {
+            content: createMarkerContent(markerData, isSelected),
+            anchor: new window.naver.maps.Point(50, 40),
+          },
+        });
+
+        // 클릭 이벤트 추가
+        window.naver.maps.Event.addListener(newMarker, 'click', () => {
+          onMarkerClickRef.current?.(markerData.id);
+        });
+
+        requestMarkersRef.current.set(markerData.id, newMarker);
+      }
+    });
+  }, [markers, selectedMarkerId]);
 
   return (
     <div
