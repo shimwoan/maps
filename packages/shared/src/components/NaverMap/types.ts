@@ -5,7 +5,7 @@ export interface RequestMarker {
   title: string;
   price: number;
   visitType: string;
-  equipmentType: string;
+  asType: string;
 }
 
 export interface NaverMapProps {
@@ -26,6 +26,7 @@ export interface NaverMapProps {
   markers?: RequestMarker[];
   selectedMarkerId?: string | null;
   onMarkerClick?: (markerId: string) => void;
+  onMapClick?: () => void;
 }
 
 export interface MapCoordinate {

@@ -32,20 +32,28 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean): string
 
   return `
     <div style="
-      background: ${bgColor};
-      color: ${textColor};
-      border: 2px solid ${borderColor};
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      cursor: pointer;
-      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
     ">
-      <div style="font-size: 11px; opacity: 0.9;">${marker.title}</div>
-      <div style="font-size: 13px; font-weight: 700;">${formatPrice(marker.price)}원</div>
+      <div style="
+        background: ${bgColor};
+        color: ${textColor};
+        border: 2px solid ${borderColor};
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+      ">
+        <div style="font-size: 11px; opacity: 0.9; text-align: center;">${marker.title} | ${marker.asType}</div>
+        <div style="font-size: 13px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
+      </div>
+      <svg width="16" height="8" viewBox="0 0 16 8" style="margin-top: -2px;">
+        <path d="M0,0 L8,8 L16,0" fill="${bgColor}" stroke="${borderColor}" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
     </div>
   `;
 };
@@ -112,6 +120,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   markers = [],
   selectedMarkerId = null,
   onMarkerClick,
+  onMapClick,
 }, ref) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<naver.maps.Map | null>(null);
@@ -120,6 +129,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   const initialCoordsRef = useRef({ latitude, longitude, zoom });
   const onCameraChangeRef = useRef(onCameraChange);
   const onMarkerClickRef = useRef(onMarkerClick);
+  const onMapClickRef = useRef(onMapClick);
 
   useImperativeHandle(ref, () => ({
     moveTo: (lat: number, lng: number, z?: number) => {
@@ -156,6 +166,10 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     onMarkerClickRef.current = onMarkerClick;
   }, [onMarkerClick]);
 
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
   // 지도 초기화 (한 번만 실행)
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -179,6 +193,11 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           const center = map.getCenter();
           const currentZoom = map.getZoom();
           onCameraChangeRef.current?.(center.y, center.x, currentZoom);
+        });
+
+        // 지도 클릭 시 선택 해제
+        window.naver.maps.Event.addListener(map, 'click', () => {
+          onMapClickRef.current?.();
         });
       } else {
         setTimeout(initMap, 100);
@@ -265,7 +284,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         // 기존 마커 업데이트 (선택 상태 변경 시)
         existingMarker.setIcon({
           content: createMarkerContent(markerData, isSelected),
-          anchor: new window.naver.maps.Point(50, 40),
+          anchor: new window.naver.maps.Point(50, 56),
         });
       } else {
         // 새 마커 생성
@@ -274,7 +293,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           map: mapInstanceRef.current!,
           icon: {
             content: createMarkerContent(markerData, isSelected),
-            anchor: new window.naver.maps.Point(50, 40),
+            anchor: new window.naver.maps.Point(50, 56),
           },
         });
 
