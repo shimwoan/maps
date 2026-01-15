@@ -1,11 +1,14 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { View, Text, XStack, Spinner, Popover, YStack, Button } from 'tamagui';
 import { NaverMap, NaverMapRef } from '../components/NaverMap';
+import type { RequestMarker } from '../components/NaverMap';
 import { RegionSelectModal } from '../components/RegionSelectModal';
 import { FloatingActionButton } from '../components/FloatingActionButton';
 import { LoginModal } from '../components/LoginModal';
 import { RequestFormModal } from '../components/RequestFormModal';
+import { RequestDetailCard } from '../components/RequestDetailCard';
 import { useAuth } from '../contexts/AuthContext';
+import { useRequests } from '../hooks/useRequests';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
 interface Location {
@@ -93,9 +96,32 @@ export function HomeScreen() {
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const { user, signOut } = useAuth();
+  const { requests, refetch: refetchRequests } = useRequests();
+
+  // 의뢰를 마커 형식으로 변환
+  const markers: RequestMarker[] = useMemo(() => {
+    return requests
+      .filter(r => r.latitude && r.longitude)
+      .map(r => ({
+        id: r.id,
+        latitude: r.latitude!,
+        longitude: r.longitude!,
+        title: r.title,
+        price: r.expected_fee,
+        visitType: r.visit_type,
+        equipmentType: r.equipment_type,
+      }));
+  }, [requests]);
+
+  // 선택된 의뢰 정보
+  const selectedRequest = useMemo(() => {
+    if (!selectedRequestId) return null;
+    return requests.find(r => r.id === selectedRequestId) || null;
+  }, [requests, selectedRequestId]);
 
   // + 버튼 클릭 핸들러
   const handleFabPress = () => {
@@ -254,6 +280,9 @@ export function HomeScreen() {
         showCurrentLocation={!!currentLocation}
         currentLocationLat={currentLocation?.latitude}
         currentLocationLng={currentLocation?.longitude}
+        markers={markers}
+        selectedMarkerId={selectedRequestId}
+        onMarkerClick={(id) => setSelectedRequestId(id)}
       />
 
       {/* 지도 컨트롤 버튼들 */}
@@ -358,9 +387,20 @@ export function HomeScreen() {
       <RequestFormModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        onSuccess={() => setIsRequestModalOpen(false)}
+        onSuccess={() => {
+          setIsRequestModalOpen(false);
+          refetchRequests();
+        }}
         defaultAddress={address ? `${address.sido} ${address.sigungu} ${address.dong}`.trim() : ''}
       />
+
+      {/* 선택된 의뢰 상세 카드 */}
+      {selectedRequest && (
+        <RequestDetailCard
+          request={selectedRequest}
+          onClose={() => setSelectedRequestId(null)}
+        />
+      )}
     </View>
   );
 }
