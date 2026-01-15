@@ -1,7 +1,11 @@
-import { HomeScreen } from '@monorepo/shared';
+import { HomeScreen, AuthProvider } from '@monorepo/shared';
 
 function App() {
-  return <HomeScreen />;
+  return (
+    <AuthProvider>
+      <HomeScreen />
+    </AuthProvider>
+  );
 }
 
 export default App;
