@@ -6,6 +6,7 @@ import { FloatingActionButton } from '../components/FloatingActionButton';
 import { LoginModal } from '../components/LoginModal';
 import { RequestFormModal } from '../components/RequestFormModal';
 import { useAuth } from '../contexts/AuthContext';
+import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
 interface Location {
   latitude: number;
@@ -195,13 +196,13 @@ export function HomeScreen() {
                   width={36}
                   height={36}
                   borderRadius={18}
-                  backgroundColor="#EEF2FF"
+                  backgroundColor={brandColors.primaryLight}
                   alignItems="center"
                   justifyContent="center"
                   cursor="pointer"
                   style={{ userSelect: 'none' }}
                 >
-                  <Text fontSize={14} fontWeight="700" color="#6B7CFF" style={{ userSelect: 'none' }}>
+                  <Text fontSize={14} fontWeight="700" color={brandColors.primary} style={{ userSelect: 'none' }}>
                     {(user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || '').slice(0, 2)}
                   </Text>
                 </View>

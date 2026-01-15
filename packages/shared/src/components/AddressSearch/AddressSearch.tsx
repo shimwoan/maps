@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { View, Input, XStack } from 'tamagui';
+import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
 declare global {
   interface Window {
@@ -165,13 +166,13 @@ export function AddressSearch({
       <View
         paddingHorizontal="$3"
         paddingVertical="$2.5"
-        backgroundColor="#6B7CFF"
+        backgroundColor={brandColors.primary}
         borderRadius={8}
         cursor="pointer"
         alignItems="center"
         justifyContent="center"
         onPress={handleSearch}
-        hoverStyle={{ backgroundColor: '#5a6be6' }}
+        hoverStyle={{ backgroundColor: brandColors.primaryHover }}
         pressStyle={{ scale: 0.98 }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

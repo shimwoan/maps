@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { AddressSearch } from '../AddressSearch';
+import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { RequestFormData, RequestFormModalProps, VisitType, EquipmentType } from './types';
 
 // 성공 팝업 컴포넌트
@@ -77,12 +78,12 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
             {/* 확인 버튼 */}
             <Button
               size="$4"
-              backgroundColor="#6B7CFF"
+              backgroundColor={brandColors.primary}
               color="white"
               fontWeight="600"
               width="100%"
               onPress={onClose}
-              hoverStyle={{ backgroundColor: '#5a6be6' }}
+              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
               pressStyle={{ scale: 0.98 }}
             >
               확인
@@ -233,7 +234,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         key={type}
                         flex={1}
                         size="$3"
-                        backgroundColor={value === type ? '#6B7CFF' : '#f5f5f5'}
+                        backgroundColor={value === type ? brandColors.primary : '#f5f5f5'}
                         color={value === type ? 'white' : '#666'}
                         borderWidth={0}
                         onPress={() => onChange(type)}
@@ -258,7 +259,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                       <Button
                         key={type}
                         size="$3"
-                        backgroundColor={value === type ? '#6B7CFF' : '#f5f5f5'}
+                        backgroundColor={value === type ? brandColors.primary : '#f5f5f5'}
                         color={value === type ? 'white' : '#666'}
                         borderWidth={0}
                         onPress={() => onChange(type)}
@@ -371,7 +372,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                       <Button
                         key={option}
                         size="$3"
-                        backgroundColor={value === option ? '#6B7CFF' : '#f5f5f5'}
+                        backgroundColor={value === option ? brandColors.primary : '#f5f5f5'}
                         color={value === option ? 'white' : '#666'}
                         borderWidth={0}
                         onPress={() => onChange(option)}
@@ -445,7 +446,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         minWidth={56}
                         paddingHorizontal="$3"
                         size="$3"
-                        backgroundColor={value === num ? '#6B7CFF' : '#f5f5f5'}
+                        backgroundColor={value === num ? brandColors.primary : '#f5f5f5'}
                         color={value === num ? 'white' : '#666'}
                         borderWidth={0}
                         onPress={() => onChange(num)}
@@ -485,7 +486,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
             {/* 등록 버튼 */}
             <Button
               size="$5"
-              backgroundColor="#6B7CFF"
+              backgroundColor={brandColors.primary}
               color="white"
               fontWeight="700"
               marginTop="$2"
@@ -493,8 +494,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
               opacity={isSubmitting ? 0.7 : 1}
-              hoverStyle={{ backgroundColor: '#5a6be6' }}
-              pressStyle={{ backgroundColor: '#4a5bd6', scale: 0.98 }}
+              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+              pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
             >
               {isSubmitting ? '등록 중...' : '의뢰 등록하기'}
             </Button>
