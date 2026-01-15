@@ -10,7 +10,7 @@ import type { RequestFormData, RequestFormModalProps, VisitType, EquipmentType }
 // 성공 팝업 컴포넌트
 function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
-    <Dialog modal open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog modal open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay
           key="overlay"
@@ -179,7 +179,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
     <Sheet
       modal
       open={isOpen}
-      onOpenChange={(open) => !open && handleClose()}
+      onOpenChange={(open: boolean) => !open && handleClose()}
       snapPoints={[90]}
       dismissOnSnapToBottom
       zIndex={100000}
