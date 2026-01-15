@@ -1,6 +1,16 @@
 import { NaverMapView, type Camera } from '@mj-studio/react-native-naver-map';
-import type { DimensionValue } from 'react-native';
+import { Dimensions, type DimensionValue } from 'react-native';
 import type { NaverMapProps } from './types';
+
+const getHeight = (height: string | number | undefined): DimensionValue => {
+  if (height === undefined) return 400;
+  if (typeof height === 'number') return height;
+  if (height.endsWith('vh')) {
+    const vh = parseFloat(height);
+    return (Dimensions.get('window').height * vh) / 100;
+  }
+  return height as DimensionValue;
+};
 
 export function NaverMap({
   latitude,
@@ -18,7 +28,7 @@ export function NaverMap({
     <NaverMapView
       style={{
         width: (style?.width ?? '100%') as DimensionValue,
-        height: (style?.height ?? 400) as DimensionValue,
+        height: getHeight(style?.height),
         flex: style?.flex,
       }}
       initialCamera={{

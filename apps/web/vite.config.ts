@@ -17,6 +17,12 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['@monorepo/ui', '@monorepo/shared'],
+    include: ['@monorepo/ui'],
+    exclude: ['@monorepo/shared'],
+  },
+  server: {
+    watch: {
+      ignored: ['!**/node_modules/@monorepo/shared/**'],
+    },
   },
 });

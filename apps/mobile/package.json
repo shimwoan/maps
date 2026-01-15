@@ -12,7 +12,7 @@
     "clean": "rm -rf node_modules && cd android && ./gradlew clean && cd ../ios && rm -rf build Pods"
   },
   "dependencies": {
-    "@mj-studio/react-native-naver-map": "^1.5.0",
+    "@mj-studio/react-native-naver-map": "^2.7.0",
     "@monorepo/shared": "workspace:*",
     "@monorepo/ui": "workspace:*",
     "@tamagui/config": "^1.144.0",
@@ -31,6 +31,7 @@
     "@babel/preset-env": "^7.26.0",
     "@babel/runtime": "^7.26.0",
     "@monorepo/config": "workspace:*",
+    "@react-native-community/cli": "^20.1.0",
     "@react-native/babel-preset": "0.83.1",
     "@react-native/metro-config": "0.83.1",
     "@react-native/typescript-config": "0.83.1",

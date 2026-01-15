@@ -1,55 +1,61 @@
-import { useState } from 'react';
-import { YStack, XStack, H2, Text } from 'tamagui';
+import { useEffect, useState } from 'react';
 import { NaverMap } from '../components/NaverMap';
 
-interface HomeScreenProps {
-  naverMapClientId: string;
-  containerStyle?: {
-    flex?: number;
-  };
+interface Location {
+  latitude: number;
+  longitude: number;
 }
 
-export function HomeScreen({ naverMapClientId, containerStyle }: HomeScreenProps) {
-  const [mapCenter, setMapCenter] = useState({
-    latitude: 37.5665,
-    longitude: 126.978,
-  });
-  const [isMapReady, setIsMapReady] = useState(false);
+const DEFAULT_LOCATION: Location = {
+  latitude: 37.5665,
+  longitude: 126.978,
+};
 
-  const handleCameraChange = (lat: number, lng: number, zoom: number) => {
-    setMapCenter({ latitude: lat, longitude: lng });
-  };
+function getCurrentLocation(): Promise<Location> {
+  return new Promise((resolve) => {
+
+    if (!navigator.geolocation) {
+      resolve(DEFAULT_LOCATION);
+      return;
+    }
+
+    console.log('Requesting geolocation...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log('Geolocation success:', position.coords);
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        resolve(DEFAULT_LOCATION);
+      },
+      { enableHighAccuracy: false, timeout: 30000, maximumAge: 300000 }
+    );
+  });
+}
+
+export function HomeScreen() {
+  const [location, setLocation] = useState<Location>(DEFAULT_LOCATION);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    console.log('HomeScreen mounted');
+    getCurrentLocation().then((loc) => {
+      console.log('Location received:', loc);
+      setLocation(loc);
+      setIsLoading(false);
+    });
+  }, []);
 
   return (
-    <YStack flex={containerStyle?.flex ?? 1} backgroundColor="$background">
-      <YStack padding="$4" gap="$2">
-        <H2>Home</H2>
-        <Text color="$gray11">네이버 지도</Text>
-      </YStack>
-
-      <YStack flex={1} height="100%">
-        <NaverMap
-          clientId={naverMapClientId}
-          latitude={mapCenter.latitude}
-          longitude={mapCenter.longitude}
-          zoom={14}
-          style={{ width: '100%', height: '100%' }}
-          onMapReady={() => setIsMapReady(true)}
-          onCameraChange={handleCameraChange}
-        />
-      </YStack>
-
-      <XStack padding="$4" justifyContent="space-between" backgroundColor="$gray2">
-        <Text fontSize="$2" color="$gray11">
-          위도: {mapCenter.latitude.toFixed(6)}
-        </Text>
-        <Text fontSize="$2" color="$gray11">
-          경도: {mapCenter.longitude.toFixed(6)}
-        </Text>
-        <Text fontSize="$2" color={isMapReady ? '$green10' : '$red10'}>
-          {isMapReady ? '지도 준비됨' : '로딩 중...'}
-        </Text>
-      </XStack>
-    </YStack>
+    <NaverMap
+      latitude={location.latitude}
+      longitude={location.longitude}
+      zoom={14}
+      style={{ width: '100%', height: '100vh' }}
+    />
   );
 }

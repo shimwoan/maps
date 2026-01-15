@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { NaverMapProps } from './types';
 
 declare global {
@@ -8,7 +8,6 @@ declare global {
 }
 
 export function NaverMap({
-  clientId,
   latitude,
   longitude,
   zoom = 14,
@@ -18,52 +17,32 @@ export function NaverMap({
 }: NaverMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<naver.maps.Map | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (!clientId) {
-      console.error('NaverMap: clientId is required');
-      return;
-    }
+    if (!mapRef.current) return;
 
-    if (typeof window !== 'undefined' && window.naver?.maps) {
-      setIsLoaded(true);
-      return;
-    }
+    const initMap = () => {
+      if (window.naver?.maps && mapRef.current) {
+        const map = new window.naver.maps.Map(mapRef.current, {
+          center: new window.naver.maps.LatLng(latitude, longitude),
+          zoom,
+        });
+        mapInstanceRef.current = map;
+        onMapReady?.();
 
-    const script = document.createElement('script');
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
-    script.async = true;
-    script.onload = () => setIsLoaded(true);
-    document.head.appendChild(script);
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
+        if (onCameraChange) {
+          window.naver.maps.Event.addListener(map, 'center_changed', () => {
+            const center = map.getCenter();
+            const currentZoom = map.getZoom();
+            onCameraChange(center.y, center.x, currentZoom);
+          });
+        }
+      } else {
+        setTimeout(initMap, 100);
       }
     };
-  }, []);
 
-  useEffect(() => {
-    if (!isLoaded || !mapRef.current || !window.naver?.maps) return;
-
-    const mapOptions: naver.maps.MapOptions = {
-      center: new window.naver.maps.LatLng(latitude, longitude),
-      zoom,
-    };
-
-    const map = new window.naver.maps.Map(mapRef.current, mapOptions);
-    mapInstanceRef.current = map;
-
-    onMapReady?.();
-
-    if (onCameraChange) {
-      window.naver.maps.Event.addListener(map, 'center_changed', () => {
-        const center = map.getCenter();
-        const currentZoom = map.getZoom();
-        onCameraChange(center.y, center.x, currentZoom);
-      });
-    }
+    initMap();
 
     return () => {
       if (mapInstanceRef.current) {
@@ -71,16 +50,14 @@ export function NaverMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [isLoaded, latitude, longitude, zoom, onMapReady, onCameraChange]);
+  }, [latitude, longitude, zoom, onMapReady, onCameraChange]);
 
   return (
     <div
       ref={mapRef}
       style={{
         width: style?.width ?? '100%',
-        height: style?.height ?? '100%',
-        flex: style?.flex,
-        minHeight: 400,
+        height: style?.height ?? 500,
       }}
     />
   );
