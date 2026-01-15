@@ -1,0 +1,1 @@
+export { RequestDetailCard } from './RequestDetailCard';
