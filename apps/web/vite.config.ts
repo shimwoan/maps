@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     tamaguiPlugin({
       config: './src/tamagui.config.ts',
-      components: ['tamagui', '@monorepo/ui'],
+      components: ['tamagui'],
     }),
   ],
   resolve: {

@@ -1,3 +1,3 @@
-import { config } from '@monorepo/ui';
+import { config } from '@tamagui/config/v3';
 
 export default config;
