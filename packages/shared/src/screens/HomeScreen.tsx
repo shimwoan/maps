@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { View, Text, XStack, Spinner } from 'tamagui';
-import { NaverMap } from '../components/NaverMap';
+import { View, Text, XStack, Spinner, Popover, YStack, Button } from 'tamagui';
+import { NaverMap, NaverMapRef } from '../components/NaverMap';
 import { RegionSelectModal } from '../components/RegionSelectModal';
+import { FloatingActionButton } from '../components/FloatingActionButton';
+import { LoginModal } from '../components/LoginModal';
+import { RequestFormModal } from '../components/RequestFormModal';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Location {
   latitude: number;
@@ -19,24 +23,31 @@ const DEFAULT_LOCATION: Location = {
   longitude: 126.978,
 };
 
-function getCurrentLocation(): Promise<Location> {
+// 위치 권한 요청 및 위치 가져오기
+function requestAndGetLocation(): Promise<{ location: Location; granted: boolean }> {
+  console.log('requestAndGetLocation called');
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      resolve(DEFAULT_LOCATION);
+      console.log('Geolocation not supported');
+      resolve({ location: DEFAULT_LOCATION, granted: false });
       return;
     }
 
+    console.log('Calling getCurrentPosition...');
     navigator.geolocation.getCurrentPosition(
       (position) => {
         resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
+          location: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          },
+          granted: true,
         });
       },
       () => {
-        resolve(DEFAULT_LOCATION);
+        resolve({ location: DEFAULT_LOCATION, granted: false });
       },
-      { enableHighAccuracy: false, timeout: 30000, maximumAge: 300000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   });
 }
@@ -75,14 +86,35 @@ const MIN_ZOOM_FOR_ADDRESS = 14;
 
 export function HomeScreen() {
   const [location, setLocation] = useState<Location>(DEFAULT_LOCATION);
+  const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [address, setAddress] = useState<Address | null>(null);
   const [zoom, setZoom] = useState(14);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const skipAddressUpdateRef = useRef(false);
+  const naverMapRef = useRef<NaverMapRef>(null);
+  const { user, signOut } = useAuth();
+
+  // + 버튼 클릭 핸들러
+  const handleFabPress = () => {
+    if (!user) {
+      // 로그인 안됨 -> 로그인 모달
+      setIsLoginModalOpen(true);
+    } else {
+      // 로그인됨 -> 의뢰 등록 모달
+      setIsRequestModalOpen(true);
+    }
+  };
 
   useEffect(() => {
-    getCurrentLocation().then((loc) => {
+    // 사이트 접속 시 위치 권한 요청
+    requestAndGetLocation().then(({ location: loc, granted }) => {
       setLocation(loc);
+      if (granted) {
+        setCurrentLocation(loc);
+        setZoom(16);
+      }
       getAddressFromCoords(loc.latitude, loc.longitude).then(setAddress);
     });
   }, []);
@@ -129,40 +161,179 @@ export function HomeScreen() {
         right={0}
         zIndex={100}
         backgroundColor="white"
-        paddingVertical="$3"
-        paddingHorizontal="$4"
+        paddingVertical="$2.5"
+        paddingHorizontal="$3"
         borderBottomWidth={1}
         borderBottomColor="#eee"
       >
-        <XStack
-          alignItems="center"
-          gap="$1.5"
-          cursor="pointer"
-          onPress={() => setIsRegionModalOpen(true)}
-        >
-          {address ? (
-            <>
-              <Text fontSize={20} fontWeight="700" color="#000000">
-                {zoom >= MIN_ZOOM_FOR_ADDRESS ? `${address.sigungu} ${address.dong}` : '지역 선택'}
-              </Text>
-              <svg width="18" height="18" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
-                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#000" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </>
-          ) : (
-            <Spinner size="small" color="#333" />
+        <XStack alignItems="center" justifyContent="space-between">
+          <XStack
+            alignItems="center"
+            gap="$1.5"
+            cursor="pointer"
+            onPress={() => setIsRegionModalOpen(true)}
+          >
+            {address ? (
+              <>
+                <Text fontSize={20} fontWeight="700" color="#000000">
+                  {zoom >= MIN_ZOOM_FOR_ADDRESS ? `${address.sigungu} ${address.dong}` : '지역 선택'}
+                </Text>
+                <svg width="18" height="18" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
+                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#000" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </>
+            ) : (
+              <Spinner size="small" color="#333" />
+            )}
+          </XStack>
+
+          {/* 로그인 상태 - 이름 배지 + 드롭다운 */}
+          {user && (
+            <Popover placement="bottom-end" offset={4}>
+              <Popover.Trigger>
+                <View
+                  width={36}
+                  height={36}
+                  borderRadius={18}
+                  backgroundColor="#EEF2FF"
+                  alignItems="center"
+                  justifyContent="center"
+                  cursor="pointer"
+                  style={{ userSelect: 'none' }}
+                >
+                  <Text fontSize={14} fontWeight="700" color="#6B7CFF" style={{ userSelect: 'none' }}>
+                    {(user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || '').slice(0, 2)}
+                  </Text>
+                </View>
+              </Popover.Trigger>
+
+              <Popover.Content
+                borderWidth={1}
+                borderColor="#eee"
+                padding="$2"
+                backgroundColor="white"
+                borderRadius={12}
+                shadowColor="#000"
+                shadowOffset={{ width: 0, height: 2 }}
+                shadowOpacity={0.1}
+                shadowRadius={8}
+                elevate
+              >
+                <Popover.Arrow borderWidth={1} borderColor="#eee" />
+                <YStack gap="$1">
+                  <Popover.Close asChild>
+                    <Button
+                      size="$3"
+                      backgroundColor="transparent"
+                      color="#000"
+                      fontWeight="500"
+                      onPress={() => signOut()}
+                      hoverStyle={{ backgroundColor: 'transparent' }}
+                      pressStyle={{ backgroundColor: 'transparent' }}
+                      style={{ userSelect: 'none' }}
+                    >
+                      로그아웃
+                    </Button>
+                  </Popover.Close>
+                </YStack>
+              </Popover.Content>
+            </Popover>
           )}
         </XStack>
       </View>
 
       {/* 지도 */}
       <NaverMap
+        ref={naverMapRef}
         latitude={location.latitude}
         longitude={location.longitude}
         zoom={zoom}
         style={{ width: '100%', height: '100%' }}
         onCameraChange={handleCameraChange}
+        showCurrentLocation={!!currentLocation}
+        currentLocationLat={currentLocation?.latitude}
+        currentLocationLng={currentLocation?.longitude}
       />
+
+      {/* 지도 컨트롤 버튼들 */}
+      <View
+        position="absolute"
+        top={70}
+        left={16}
+        zIndex={100}
+        gap="$2"
+      >
+        {/* 현재 위치 버튼 */}
+        <View
+          width={44}
+          height={44}
+          borderRadius={8}
+          backgroundColor="white"
+          alignItems="center"
+          justifyContent="center"
+          cursor="pointer"
+          shadowColor="#000"
+          shadowOffset={{ width: 0, height: 1 }}
+          shadowOpacity={0.2}
+          shadowRadius={2}
+          onPress={() => {
+            requestAndGetLocation().then(({ location: loc, granted }) => {
+              if (granted) {
+                setLocation(loc);
+                setCurrentLocation(loc);
+                setZoom(16);
+                naverMapRef.current?.moveTo(loc.latitude, loc.longitude, 16);
+                getAddressFromCoords(loc.latitude, loc.longitude).then(setAddress);
+              }
+            });
+          }}
+        >
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="7" stroke="#333" strokeWidth="1.5"/>
+            <path d="M12 5v4M12 15v4M5 12h4M15 12h4" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </View>
+
+        {/* 확대/축소 버튼 */}
+        <View
+          borderRadius={8}
+          backgroundColor="white"
+          overflow="hidden"
+          shadowColor="#000"
+          shadowOffset={{ width: 0, height: 1 }}
+          shadowOpacity={0.2}
+          shadowRadius={2}
+        >
+          {/* 확대 */}
+          <View
+            width={44}
+            height={44}
+            alignItems="center"
+            justifyContent="center"
+            cursor="pointer"
+            borderBottomWidth={1}
+            borderBottomColor="#eee"
+            onPress={() => naverMapRef.current?.zoomIn()}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </View>
+          {/* 축소 */}
+          <View
+            width={44}
+            height={44}
+            alignItems="center"
+            justifyContent="center"
+            cursor="pointer"
+            onPress={() => naverMapRef.current?.zoomOut()}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </View>
+        </View>
+      </View>
 
       {/* 지역 선택 모달 */}
       <RegionSelectModal
@@ -170,6 +341,24 @@ export function HomeScreen() {
         onClose={() => setIsRegionModalOpen(false)}
         onSelect={handleRegionSelect}
         currentAddress={address}
+      />
+
+      {/* 우측 하단 + 버튼 (의뢰 등록) */}
+      <FloatingActionButton onPress={handleFabPress} />
+
+      {/* 로그인 모달 */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={() => setIsLoginModalOpen(false)}
+      />
+
+      {/* 의뢰 등록 모달 */}
+      <RequestFormModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        onSuccess={() => setIsRequestModalOpen(false)}
+        defaultAddress={address ? `${address.sido} ${address.sigungu} ${address.dong}`.trim() : ''}
       />
     </View>
   );
