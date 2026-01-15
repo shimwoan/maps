@@ -11,6 +11,9 @@ export default defineConfig({
       components: ['tamagui'],
     }),
   ],
+  define: {
+    'process.env.TAMAGUI_OPTIMIZE_THEMES': JSON.stringify(false),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

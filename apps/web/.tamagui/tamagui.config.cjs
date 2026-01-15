@@ -34,7 +34,89 @@ __export(tamagui_config_exports, {
 });
 module.exports = __toCommonJS(tamagui_config_exports);
 
-// ../../node_modules/.pnpm/@tamagui+shorthands@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7._w5y5ygsr3uxclnqtsohlwglpmq/node_modules/@tamagui/shorthands/dist/esm/v2.mjs
+// ../../node_modules/.pnpm/@tamagui+constants@1.144.1_react-native@0.83.1_@babel+core@7.28.6_@react-native-community+cli_nb6jgy5p7cljxkdeudjqqy3ije/node_modules/@tamagui/constants/dist/esm/constants.mjs
+var import_react = __toESM(require("react"), 1);
+var IS_REACT_19 = typeof import_react.default.use < "u";
+var isWeb = true;
+var isWindowDefined = typeof window < "u";
+var isServer = isWeb && !isWindowDefined;
+var isClient = isWeb && isWindowDefined;
+var useIsomorphicLayoutEffect = isServer ? import_react.useEffect : import_react.useLayoutEffect;
+var isChrome = typeof navigator < "u" && /Chrome/.test(navigator.userAgent || "");
+var isWebTouchable = isClient && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+var isIos = process.env.TEST_NATIVE_PLATFORM === "ios";
+
+// ../../node_modules/.pnpm/@tamagui+use-presence@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_x7y52py3k5l6fhgkfketvz6sfq/node_modules/@tamagui/use-presence/dist/esm/PresenceContext.mjs
+var React2 = __toESM(require("react"), 1);
+var import_jsx_runtime = require("react/jsx-runtime");
+var PresenceContext = React2.createContext(null);
+var ResetPresence = /* @__PURE__ */ __name((props) => {
+  const parent = React2.useContext(PresenceContext);
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PresenceContext.Provider, {
+    value: props.disable ? parent : null,
+    children: props.children
+  });
+}, "ResetPresence");
+
+// ../../node_modules/.pnpm/@tamagui+use-presence@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_x7y52py3k5l6fhgkfketvz6sfq/node_modules/@tamagui/use-presence/dist/esm/usePresence.mjs
+var React3 = __toESM(require("react"), 1);
+function usePresence() {
+  const context = React3.useContext(PresenceContext);
+  if (!context) return [true, null, context];
+  const {
+    id,
+    isPresent: isPresent2,
+    onExitComplete,
+    register
+  } = context;
+  return React3.useEffect(() => register(id), []), !isPresent2 && onExitComplete ? [false, () => onExitComplete?.(id), context] : [true, void 0, context];
+}
+__name(usePresence, "usePresence");
+
+// ../../node_modules/.pnpm/tamagui@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_@react-_q266cwlqywek6bfv3oob5nvrnu/node_modules/tamagui/dist/esm/createTamagui.mjs
+var import_core = require("@tamagui/core");
+var createTamagui = process.env.NODE_ENV !== "development" ? import_core.createTamagui : (conf) => {
+  const sizeTokenKeys = ["$true"], hasKeys = /* @__PURE__ */ __name((expectedKeys, obj) => expectedKeys.every((k) => typeof obj[k] < "u"), "hasKeys"), tamaguiConfig = (0, import_core.createTamagui)(conf);
+  for (const name of ["size", "space"]) {
+    const tokenSet = tamaguiConfig.tokensParsed[name];
+    if (!tokenSet) throw new Error(`Expected tokens for "${name}" in ${Object.keys(tamaguiConfig.tokensParsed).join(", ")}`);
+    if (!hasKeys(sizeTokenKeys, tokenSet)) throw new Error(`
+createTamagui() missing expected tokens.${name}:
+
+Received: ${Object.keys(tokenSet).join(", ")}
+
+Expected: ${sizeTokenKeys.join(", ")}
+
+Tamagui expects a "true" key that is the same value as your default size. This is so 
+it can size things up or down from the defaults without assuming which keys you use.
+
+Please define a "true" or "$true" key on your size and space tokens like so (example):
+
+size: {
+  sm: 2,
+  md: 10,
+  true: 10, // this means "md" is your default size
+  lg: 20,
+}
+
+`);
+  }
+  const expected = Object.keys(tamaguiConfig.tokensParsed.size);
+  for (const name of ["radius", "zIndex"]) {
+    const tokenSet = tamaguiConfig.tokensParsed[name], received = Object.keys(tokenSet);
+    if (!received.some((rk) => expected.includes(rk))) throw new Error(`
+createTamagui() invalid tokens.${name}:
+
+Received: ${received.join(", ")}
+
+Expected a subset of: ${expected.join(", ")}
+
+`);
+  }
+  return tamaguiConfig;
+};
+
+// ../../node_modules/.pnpm/@tamagui+shorthands@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7._dxy56f56qy5r5nuvk44tp765e4/node_modules/@tamagui/shorthands/dist/esm/v2.mjs
 var shorthands = {
   // web-only
   ussel: "userSelect",
@@ -379,13 +461,13 @@ var yellow2 = {
   yellow12: "hsl(40, 55.0%, 13.5%)"
 };
 
-// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/isMinusZero.mjs
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_ilrqv6gry7a325kpm37hwousmy/node_modules/@tamagui/create-theme/dist/esm/isMinusZero.mjs
 function isMinusZero(value) {
   return 1 / value === Number.NEGATIVE_INFINITY;
 }
 __name(isMinusZero, "isMinusZero");
 
-// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/themeInfo.mjs
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_ilrqv6gry7a325kpm37hwousmy/node_modules/@tamagui/create-theme/dist/esm/themeInfo.mjs
 var THEME_INFO = /* @__PURE__ */ new Map();
 var getThemeInfo = /* @__PURE__ */ __name((theme, name) => THEME_INFO.get(name || JSON.stringify(theme)), "getThemeInfo");
 var setThemeInfo = /* @__PURE__ */ __name((theme, info) => {
@@ -396,7 +478,7 @@ var setThemeInfo = /* @__PURE__ */ __name((theme, info) => {
   THEME_INFO.set(info.name || JSON.stringify(theme), next), THEME_INFO.set(JSON.stringify(info.definition), next);
 }, "setThemeInfo");
 
-// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/createTheme.mjs
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_ilrqv6gry7a325kpm37hwousmy/node_modules/@tamagui/create-theme/dist/esm/createTheme.mjs
 var identityCache = /* @__PURE__ */ new Map();
 function createThemeWithPalettes(palettes, defaultPalette, definition, options, name, skipCache = false) {
   if (!palettes[defaultPalette]) throw new Error(`No pallete: ${defaultPalette}`);
@@ -438,7 +520,7 @@ var getValue = /* @__PURE__ */ __name((palette, value) => {
   return palette[index];
 }, "getValue");
 
-// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/helpers.mjs
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_ilrqv6gry7a325kpm37hwousmy/node_modules/@tamagui/create-theme/dist/esm/helpers.mjs
 function objectEntries(obj) {
   return Object.entries(obj);
 }
@@ -448,13 +530,13 @@ function objectFromEntries(arr) {
 }
 __name(objectFromEntries, "objectFromEntries");
 
-// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/masks.mjs
-var createMask = /* @__PURE__ */ __name((createMask2) => typeof createMask2 == "function" ? {
-  name: createMask2.name || "unnamed",
-  mask: createMask2
-} : createMask2, "createMask");
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_ilrqv6gry7a325kpm37hwousmy/node_modules/@tamagui/create-theme/dist/esm/masks.mjs
+var createMask = /* @__PURE__ */ __name((createMask22) => typeof createMask22 == "function" ? {
+  name: createMask22.name || "unnamed",
+  mask: createMask22
+} : createMask22, "createMask");
 
-// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/applyMask.mjs
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_ilrqv6gry7a325kpm37hwousmy/node_modules/@tamagui/create-theme/dist/esm/applyMask.mjs
 function applyMask(theme, mask, options = {}, parentName, nextName) {
   const info = getThemeInfo(theme, parentName);
   if (!info) throw new Error(process.env.NODE_ENV !== "production" ? "No info found for theme, you must pass the theme created by createThemeFromPalette directly to extendTheme" : "\u274C Err2");
@@ -486,7 +568,7 @@ function applyMaskStateless(info, mask, options = {}, parentName) {
 }
 __name(applyMaskStateless, "applyMaskStateless");
 
-// ../../node_modules/.pnpm/@tamagui+theme-builder@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core_h2ywl6dfwvslxniwpej4cvsyum/node_modules/@tamagui/theme-builder/dist/esm/ThemeBuilder.mjs
+// ../../node_modules/.pnpm/@tamagui+theme-builder@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core_mbuu3j3irfui3yq4b7jstasyxi/node_modules/@tamagui/theme-builder/dist/esm/ThemeBuilder.mjs
 var ThemeBuilder = class {
   static {
     __name(this, "ThemeBuilder");
@@ -638,10 +720,10 @@ function createThemeBuilder() {
 }
 __name(createThemeBuilder, "createThemeBuilder");
 
-// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/v3-themes.mjs
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_6xirq2mzq6ininzaymec4vftcu/node_modules/@tamagui/themes/dist/esm/v3-themes.mjs
 var import_web = require("@tamagui/core");
 
-// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/utils.mjs
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_6xirq2mzq6ininzaymec4vftcu/node_modules/@tamagui/themes/dist/esm/utils.mjs
 function postfixObjKeys(obj, postfix) {
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [`${k}${postfix}`, v]));
 }
@@ -655,7 +737,7 @@ function objectKeys(obj) {
 }
 __name(objectKeys, "objectKeys");
 
-// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/v3-tokens.mjs
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_6xirq2mzq6ininzaymec4vftcu/node_modules/@tamagui/themes/dist/esm/v3-tokens.mjs
 var size = {
   $0: 0,
   "$0.25": 2,
@@ -724,7 +806,7 @@ var tokens = {
   size
 };
 
-// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/v3-themes.mjs
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_6xirq2mzq6ininzaymec4vftcu/node_modules/@tamagui/themes/dist/esm/v3-themes.mjs
 var colorTokens = {
   light: {
     blue: blue2,
@@ -870,7 +952,7 @@ var getTemplates = /* @__PURE__ */ __name(() => {
       colorTransparent: -1,
       placeholderColor: -bgIndex - 3,
       outlineColor: -2
-    }, surface12 = {
+    }, surface122 = {
       background: base.background + 1,
       backgroundHover: base.backgroundHover + 1,
       backgroundPress: base.backgroundPress + 1,
@@ -879,7 +961,7 @@ var getTemplates = /* @__PURE__ */ __name(() => {
       borderColorHover: base.borderColorHover + 1,
       borderColorFocus: base.borderColorFocus + 1,
       borderColorPress: base.borderColorPress + 1
-    }, surface22 = {
+    }, surface222 = {
       background: base.background + 2,
       backgroundHover: base.backgroundHover + 2,
       backgroundPress: base.backgroundPress + 2,
@@ -888,7 +970,7 @@ var getTemplates = /* @__PURE__ */ __name(() => {
       borderColorHover: base.borderColorHover + 2,
       borderColorFocus: base.borderColorFocus + 2,
       borderColorPress: base.borderColorPress + 2
-    }, surface32 = {
+    }, surface322 = {
       background: base.background + 3,
       backgroundHover: base.backgroundHover + 3,
       backgroundPress: base.backgroundPress + 3,
@@ -909,11 +991,11 @@ var getTemplates = /* @__PURE__ */ __name(() => {
       borderColorHover: surfaceActiveBg.backgroundHover,
       borderColorFocus: surfaceActiveBg.backgroundFocus,
       borderColorPress: surfaceActiveBg.backgroundPress
-    }, inverseSurface12 = {
-      color: surface12.background,
-      colorHover: surface12.backgroundHover,
-      colorPress: surface12.backgroundPress,
-      colorFocus: surface12.backgroundFocus,
+    }, inverseSurface122 = {
+      color: surface122.background,
+      colorHover: surface122.backgroundHover,
+      colorPress: surface122.backgroundPress,
+      colorFocus: surface122.backgroundFocus,
       background: base.color,
       backgroundHover: base.colorHover,
       backgroundPress: base.colorPress,
@@ -923,7 +1005,7 @@ var getTemplates = /* @__PURE__ */ __name(() => {
       borderColorFocus: base.color - 4,
       borderColorPress: base.color - 5
     }, inverseActive = {
-      ...inverseSurface12,
+      ...inverseSurface122,
       background: base.color - 2,
       backgroundHover: base.colorHover - 2,
       backgroundPress: base.colorPress - 2,
@@ -947,10 +1029,10 @@ var getTemplates = /* @__PURE__ */ __name(() => {
       base,
       alt1,
       alt2,
-      surface1: surface12,
-      surface2: surface22,
-      surface3: surface32,
-      inverseSurface1: inverseSurface12,
+      surface1: surface122,
+      surface2: surface222,
+      surface3: surface322,
+      inverseSurface1: inverseSurface122,
       inverseActive,
       surfaceActive
     };
@@ -1134,47 +1216,763 @@ var tokens2 = (0, import_web.createTokens)({
   ...tokens
 });
 
-// ../../node_modules/.pnpm/@tamagui+constants@1.144.1_react-native@0.83.1_@babel+core@7.28.6_@react-native-community+cli_nb6jgy5p7cljxkdeudjqqy3ije/node_modules/@tamagui/constants/dist/esm/constants.mjs
-var import_react = __toESM(require("react"), 1);
-var IS_REACT_19 = typeof import_react.default.use < "u";
-var isWeb = true;
-var isWindowDefined = typeof window < "u";
-var isServer = isWeb && !isWindowDefined;
-var isClient = isWeb && isWindowDefined;
-var useIsomorphicLayoutEffect = isServer ? import_react.useEffect : import_react.useLayoutEffect;
-var isChrome = typeof navigator < "u" && /Chrome/.test(navigator.userAgent || "");
-var isWebTouchable = isClient && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-var isIos = process.env.TEST_NATIVE_PLATFORM === "ios";
-
-// ../../node_modules/.pnpm/@tamagui+use-presence@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_x7y52py3k5l6fhgkfketvz6sfq/node_modules/@tamagui/use-presence/dist/esm/PresenceContext.mjs
-var React2 = __toESM(require("react"), 1);
-var import_jsx_runtime = require("react/jsx-runtime");
-var PresenceContext = React2.createContext(null);
-var ResetPresence = /* @__PURE__ */ __name((props) => {
-  const parent = React2.useContext(PresenceContext);
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PresenceContext.Provider, {
-    value: props.disable ? parent : null,
-    children: props.children
-  });
-}, "ResetPresence");
-
-// ../../node_modules/.pnpm/@tamagui+use-presence@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_x7y52py3k5l6fhgkfketvz6sfq/node_modules/@tamagui/use-presence/dist/esm/usePresence.mjs
-var React3 = __toESM(require("react"), 1);
-function usePresence() {
-  const context = React3.useContext(PresenceContext);
-  if (!context) return [true, null, context];
-  const {
-    id,
-    isPresent: isPresent2,
-    onExitComplete,
-    register
-  } = context;
-  return React3.useEffect(() => register(id), []), !isPresent2 && onExitComplete ? [false, () => onExitComplete?.(id), context] : [true, void 0, context];
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/isMinusZero.mjs
+function isMinusZero2(value) {
+  return 1 / value === Number.NEGATIVE_INFINITY;
 }
-__name(usePresence, "usePresence");
+__name(isMinusZero2, "isMinusZero");
+
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/themeInfo.mjs
+var THEME_INFO2 = /* @__PURE__ */ new Map();
+var getThemeInfo2 = /* @__PURE__ */ __name((theme, name) => THEME_INFO2.get(name || JSON.stringify(theme)), "getThemeInfo");
+var setThemeInfo2 = /* @__PURE__ */ __name((theme, info) => {
+  const next = {
+    ...info,
+    cache: /* @__PURE__ */ new Map()
+  };
+  THEME_INFO2.set(info.name || JSON.stringify(theme), next), THEME_INFO2.set(JSON.stringify(info.definition), next);
+}, "setThemeInfo");
+
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/createTheme.mjs
+var identityCache2 = /* @__PURE__ */ new Map();
+function createThemeWithPalettes2(palettes, defaultPalette, definition, options, name, skipCache = false) {
+  if (!palettes[defaultPalette]) throw new Error(`No pallete: ${defaultPalette}`);
+  const newDef = {
+    ...definition
+  };
+  for (const key in definition) {
+    let val = definition[key];
+    if (typeof val == "string" && val[0] === "$") {
+      const [altPaletteName$, altPaletteIndex] = val.split("."), altPaletteName = altPaletteName$.slice(1), parentName = defaultPalette.split("_")[0], altPalette = palettes[altPaletteName] || palettes[`${parentName}_${altPaletteName}`];
+      if (altPalette) {
+        const next = getValue2(altPalette, +altPaletteIndex);
+        typeof next < "u" && (newDef[key] = next);
+      }
+    }
+  }
+  return createTheme2(palettes[defaultPalette], newDef, options, name, skipCache);
+}
+__name(createThemeWithPalettes2, "createThemeWithPalettes");
+function createTheme2(palette, definition, options, name, skipCache = false) {
+  const cacheKey = skipCache ? "" : JSON.stringify([name, palette, definition, options]);
+  if (!skipCache && identityCache2.has(cacheKey)) return identityCache2.get(cacheKey);
+  const theme = {
+    ...Object.fromEntries(Object.entries(definition).map(([key, offset]) => [key, getValue2(palette, offset)])),
+    ...options?.nonInheritedValues
+  };
+  return setThemeInfo2(theme, {
+    palette,
+    definition,
+    options,
+    name
+  }), cacheKey && identityCache2.set(cacheKey, theme), theme;
+}
+__name(createTheme2, "createTheme");
+var getValue2 = /* @__PURE__ */ __name((palette, value) => {
+  if (!palette) throw new Error("No palette!");
+  if (typeof value == "string") return value;
+  const max = palette.length - 1, next = (value === 0 ? !isMinusZero2(value) : value >= 0) ? value : max + value, index = Math.min(Math.max(0, next), max);
+  return palette[index];
+}, "getValue");
+
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/helpers.mjs
+function objectEntries2(obj) {
+  return Object.entries(obj);
+}
+__name(objectEntries2, "objectEntries");
+function objectFromEntries2(arr) {
+  return Object.fromEntries(arr);
+}
+__name(objectFromEntries2, "objectFromEntries");
+
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/masks.mjs
+var createMask2 = /* @__PURE__ */ __name((createMask22) => typeof createMask22 == "function" ? {
+  name: createMask22.name || "unnamed",
+  mask: createMask22
+} : createMask22, "createMask");
+
+// ../../node_modules/.pnpm/@tamagui+create-theme@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@_4b5dyfobvhvq5vwayow2uqfrwa/node_modules/@tamagui/create-theme/dist/esm/applyMask.mjs
+function applyMask2(theme, mask, options = {}, parentName, nextName) {
+  const info = getThemeInfo2(theme, parentName);
+  if (!info) throw new Error(process.env.NODE_ENV !== "production" ? "No info found for theme, you must pass the theme created by createThemeFromPalette directly to extendTheme" : "\u274C Err2");
+  const next = applyMaskStateless2(info, mask, options, parentName);
+  return setThemeInfo2(next.theme, {
+    definition: next.definition,
+    palette: info.palette,
+    name: nextName
+  }), next.theme;
+}
+__name(applyMask2, "applyMask");
+function applyMaskStateless2(info, mask, options = {}, parentName) {
+  const skip = {
+    ...options.skip
+  };
+  if (info.options?.nonInheritedValues) for (const key in info.options.nonInheritedValues) skip[key] = 1;
+  const maskOptions = {
+    parentName,
+    palette: info.palette,
+    ...options,
+    skip
+  }, template = mask.mask(info.definition, maskOptions), theme = createTheme2(info.palette, template);
+  return {
+    ...info,
+    cache: /* @__PURE__ */ new Map(),
+    definition: template,
+    theme
+  };
+}
+__name(applyMaskStateless2, "applyMaskStateless");
+
+// ../../node_modules/.pnpm/@tamagui+theme-builder@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core_h2ywl6dfwvslxniwpej4cvsyum/node_modules/@tamagui/theme-builder/dist/esm/ThemeBuilder.mjs
+var ThemeBuilder2 = class {
+  static {
+    __name(this, "ThemeBuilder");
+  }
+  constructor(state) {
+    this.state = state;
+  }
+  _getThemeFn;
+  addPalettes(palettes) {
+    return this.state.palettes = {
+      // as {} prevents generic string key merge messing up types
+      ...this.state.palettes,
+      ...palettes
+    }, this;
+  }
+  addTemplates(templates) {
+    return this.state.templates = {
+      // as {} prevents generic string key merge messing up types
+      ...this.state.templates,
+      ...templates
+    }, this;
+  }
+  addMasks(masks) {
+    return this.state.masks = {
+      // as {} prevents generic string key merge messing up types
+      ...this.state.masks,
+      ...objectFromEntries2(objectEntries2(masks).map(([key, val]) => [key, createMask2(val)]))
+    }, this;
+  }
+  // for dev mode only really
+  _addedThemes = [];
+  addThemes(themes3) {
+    return this._addedThemes.push({
+      type: "themes",
+      args: [themes3]
+    }), this.state.themes = {
+      // as {} prevents generic string key merge messing up types
+      ...this.state.themes,
+      ...themes3
+    }, this;
+  }
+  // these wont be typed to save some complexity and because they don't need to be typed!
+  addComponentThemes(childThemeDefinition, options) {
+    return this.addChildThemes(childThemeDefinition, options), this;
+  }
+  addChildThemes(childThemeDefinition, options) {
+    const currentThemes = this.state.themes;
+    if (!currentThemes) throw new Error("No themes defined yet, use addThemes first to set your base themes");
+    this._addedThemes.push({
+      type: "childThemes",
+      args: [childThemeDefinition, options]
+    });
+    const currentThemeNames = Object.keys(currentThemes), incomingThemeNames = Object.keys(childThemeDefinition), namesWithDefinitions = currentThemeNames.flatMap((prefix) => {
+      const avoidNestingWithin = options?.avoidNestingWithin;
+      return avoidNestingWithin && avoidNestingWithin.some((avoidName) => prefix.startsWith(avoidName) || prefix.endsWith(avoidName)) ? [] : incomingThemeNames.map((subName) => {
+        const fullName = `${prefix}_${subName}`, definition = childThemeDefinition[subName];
+        return "avoidNestingWithin" in definition && definition.avoidNestingWithin.some((name) => prefix.startsWith(name) || prefix.endsWith(name)) ? null : [fullName, definition];
+      }).filter(Boolean);
+    }), childThemes = Object.fromEntries(namesWithDefinitions), next = {
+      // as {} prevents generic string key merge messing up types
+      ...this.state.themes,
+      ...childThemes
+    };
+    return this.state.themes = next, this;
+  }
+  getTheme(fn) {
+    return this._getThemeFn = fn, this;
+  }
+  build() {
+    if (!this.state.themes) return {};
+    const out = {}, maskedThemes = [];
+    for (const themeName in this.state.themes) {
+      const nameParts = themeName.split("_"), parentName = nameParts.slice(0, nameParts.length - 1).join("_"), definitions = this.state.themes[themeName], themeDefinition = Array.isArray(definitions) ? (() => {
+        const found = definitions.find(
+          // endWith match stronger than startsWith
+          (d) => d.parent ? parentName.endsWith(d.parent) || parentName.startsWith(d.parent) : true
+        );
+        return found || null;
+      })() : definitions;
+      if (themeDefinition) if ("theme" in themeDefinition) out[themeName] = themeDefinition.theme;
+      else if ("mask" in themeDefinition) maskedThemes.push({
+        parentName,
+        themeName,
+        mask: themeDefinition
+      });
+      else {
+        let {
+          palette: paletteName = "",
+          template: templateName,
+          ...options
+        } = themeDefinition;
+        const parentDefinition = this.state.themes[parentName];
+        if (!this.state.palettes) throw new Error(`No palettes defined for theme with palette expected: ${themeName}`);
+        let palette = this.state.palettes[paletteName || ""], attemptParentName = `${parentName}_${paletteName}`;
+        for (; !palette && attemptParentName; ) attemptParentName in this.state.palettes ? (palette = this.state.palettes[attemptParentName], paletteName = attemptParentName) : attemptParentName = attemptParentName.split("_").slice(0, -1).join("_");
+        if (!palette) {
+          const msg = process.env.NODE_ENV !== "production" ? `: ${themeName}: ${paletteName}
+          Definition: ${JSON.stringify(themeDefinition)}
+          Parent: ${JSON.stringify(parentDefinition)}
+          Potential: (${Object.keys(this.state.palettes).join(", ")})` : "";
+          throw new Error(`No palette for theme${msg}`);
+        }
+        const template = this.state.templates?.[templateName] ?? // fall back to finding the scheme specific on if it exists
+        this.state.templates?.[`${nameParts[0]}_${templateName}`];
+        if (!template) throw new Error(`No template for theme ${themeName}: ${templateName} in templates:
+- ${Object.keys(this.state.templates || {}).join(`
+ - `)}`);
+        const theme = createThemeWithPalettes2(this.state.palettes, paletteName, template, options, themeName, true);
+        out[themeName] = this._getThemeFn ? this._getThemeFn({
+          theme,
+          name: themeName,
+          level: nameParts.length,
+          parentName,
+          scheme: /^(light|dark)$/.test(nameParts[0]) ? nameParts[0] : void 0,
+          parentNames: nameParts.slice(0, -1),
+          palette,
+          template
+        }) : theme;
+      }
+    }
+    for (const {
+      mask,
+      themeName,
+      parentName
+    } of maskedThemes) {
+      const parent = out[parentName];
+      if (!parent) continue;
+      const {
+        mask: maskName,
+        ...options
+      } = mask;
+      let maskFunction = this.state.masks?.[maskName];
+      if (!maskFunction) throw new Error(`No mask ${maskName}`);
+      const parentTheme = this.state.themes[parentName];
+      if (parentTheme && "childOptions" in parentTheme) {
+        const {
+          mask: mask2,
+          ...childOpts
+        } = parentTheme.childOptions;
+        mask2 && (maskFunction = this.state.masks?.[mask2]), Object.assign(options, childOpts);
+      }
+      out[themeName] = applyMask2(parent, maskFunction, options, parentName, themeName);
+    }
+    return out;
+  }
+};
+function createThemeBuilder2() {
+  return new ThemeBuilder2({});
+}
+__name(createThemeBuilder2, "createThemeBuilder");
+
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/v3-themes.mjs
+var import_web2 = require("@tamagui/core");
+
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/utils.mjs
+function postfixObjKeys2(obj, postfix) {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [`${k}${postfix}`, v]));
+}
+__name(postfixObjKeys2, "postfixObjKeys");
+function sizeToSpace2(v) {
+  return v === 0 ? 0 : v === 2 ? 0.5 : v === 4 ? 1 : v === 8 ? 1.5 : v <= 16 ? Math.round(v * 0.333) : Math.floor(v * 0.7 - 12);
+}
+__name(sizeToSpace2, "sizeToSpace");
+function objectKeys2(obj) {
+  return Object.keys(obj);
+}
+__name(objectKeys2, "objectKeys");
+
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/v3-tokens.mjs
+var size2 = {
+  $0: 0,
+  "$0.25": 2,
+  "$0.5": 4,
+  "$0.75": 8,
+  $1: 20,
+  "$1.5": 24,
+  $2: 28,
+  "$2.5": 32,
+  $3: 36,
+  "$3.5": 40,
+  $4: 44,
+  $true: 44,
+  "$4.5": 48,
+  $5: 52,
+  $6: 64,
+  $7: 74,
+  $8: 84,
+  $9: 94,
+  $10: 104,
+  $11: 124,
+  $12: 144,
+  $13: 164,
+  $14: 184,
+  $15: 204,
+  $16: 224,
+  $17: 224,
+  $18: 244,
+  $19: 264,
+  $20: 284
+};
+var spaces2 = Object.entries(size2).map(([k, v]) => [k, sizeToSpace2(v)]);
+var spacesNegative2 = spaces2.slice(1).map(([k, v]) => [`-${k.slice(1)}`, -v]);
+var space2 = {
+  ...Object.fromEntries(spaces2),
+  ...Object.fromEntries(spacesNegative2)
+};
+var zIndex2 = {
+  0: 0,
+  1: 100,
+  2: 200,
+  3: 300,
+  4: 400,
+  5: 500
+};
+var radius2 = {
+  0: 0,
+  1: 3,
+  2: 5,
+  3: 7,
+  4: 9,
+  true: 9,
+  5: 10,
+  6: 16,
+  7: 19,
+  8: 22,
+  9: 26,
+  10: 34,
+  11: 42,
+  12: 50
+};
+var tokens3 = {
+  radius: radius2,
+  zIndex: zIndex2,
+  space: space2,
+  size: size2
+};
+
+// ../../node_modules/.pnpm/@tamagui+themes@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_jkhadwcfnidnriyedmpedtqn6e/node_modules/@tamagui/themes/dist/esm/v3-themes.mjs
+var colorTokens2 = {
+  light: {
+    blue: blue2,
+    gray: gray2,
+    green: green2,
+    orange: orange2,
+    pink: pink2,
+    purple: purple2,
+    red: red2,
+    yellow: yellow2
+  },
+  dark: {
+    blue,
+    gray,
+    green,
+    orange,
+    pink,
+    purple,
+    red,
+    yellow
+  }
+};
+var lightShadowColor2 = "rgba(0,0,0,0.04)";
+var lightShadowColorStrong2 = "rgba(0,0,0,0.085)";
+var darkShadowColor2 = "rgba(0,0,0,0.2)";
+var darkShadowColorStrong2 = "rgba(0,0,0,0.3)";
+var darkColors2 = {
+  ...colorTokens2.dark.blue,
+  ...colorTokens2.dark.gray,
+  ...colorTokens2.dark.green,
+  ...colorTokens2.dark.orange,
+  ...colorTokens2.dark.pink,
+  ...colorTokens2.dark.purple,
+  ...colorTokens2.dark.red,
+  ...colorTokens2.dark.yellow
+};
+var lightColors2 = {
+  ...colorTokens2.light.blue,
+  ...colorTokens2.light.gray,
+  ...colorTokens2.light.green,
+  ...colorTokens2.light.orange,
+  ...colorTokens2.light.pink,
+  ...colorTokens2.light.purple,
+  ...colorTokens2.light.red,
+  ...colorTokens2.light.yellow
+};
+var color2 = {
+  white0: "rgba(255,255,255,0)",
+  white075: "rgba(255,255,255,0.75)",
+  white05: "rgba(255,255,255,0.5)",
+  white025: "rgba(255,255,255,0.25)",
+  black0: "rgba(10,10,10,0)",
+  black075: "rgba(10,10,10,0.75)",
+  black05: "rgba(10,10,10,0.5)",
+  black025: "rgba(10,10,10,0.25)",
+  white1: "#fff",
+  white2: "#f8f8f8",
+  white3: "hsl(0, 0%, 96.3%)",
+  white4: "hsl(0, 0%, 94.1%)",
+  white5: "hsl(0, 0%, 92.0%)",
+  white6: "hsl(0, 0%, 90.0%)",
+  white7: "hsl(0, 0%, 88.5%)",
+  white8: "hsl(0, 0%, 81.0%)",
+  white9: "hsl(0, 0%, 56.1%)",
+  white10: "hsl(0, 0%, 50.3%)",
+  white11: "hsl(0, 0%, 42.5%)",
+  white12: "hsl(0, 0%, 9.0%)",
+  black1: "#050505",
+  black2: "#151515",
+  black3: "#191919",
+  black4: "#232323",
+  black5: "#282828",
+  black6: "#323232",
+  black7: "#424242",
+  black8: "#494949",
+  black9: "#545454",
+  black10: "#626262",
+  black11: "#a5a5a5",
+  black12: "#fff",
+  ...postfixObjKeys2(lightColors2, "Light"),
+  ...postfixObjKeys2(darkColors2, "Dark")
+};
+var defaultPalettes2 = (() => {
+  const transparent = /* @__PURE__ */ __name((hsl, opacity = 0) => hsl.replace("%)", `%, ${opacity})`).replace("hsl(", "hsla("), "transparent"), getColorPalette = /* @__PURE__ */ __name((colors, accentColors) => {
+    const colorPalette = Object.values(colors), colorI = colorPalette.length - 4, accentPalette = Object.values(accentColors), accentBackground = accentPalette[0], accentColor = accentPalette[accentPalette.length - 1];
+    return [accentBackground, transparent(colorPalette[0], 0), transparent(colorPalette[0], 0.25), transparent(colorPalette[0], 0.5), transparent(colorPalette[0], 0.75), ...colorPalette, transparent(colorPalette[colorI], 0.75), transparent(colorPalette[colorI], 0.5), transparent(colorPalette[colorI], 0.25), transparent(colorPalette[colorI], 0), accentColor];
+  }, "getColorPalette"), brandColor = {
+    light: color2.blue4Light,
+    dark: color2.blue4Dark
+  }, lightPalette = [brandColor.light, color2.white0, color2.white025, color2.white05, color2.white075, color2.white1, color2.white2, color2.white3, color2.white4, color2.white5, color2.white6, color2.white7, color2.white8, color2.white9, color2.white10, color2.white11, color2.white12, color2.black075, color2.black05, color2.black025, color2.black0, brandColor.dark], darkPalette = [brandColor.dark, color2.black0, color2.black025, color2.black05, color2.black075, color2.black1, color2.black2, color2.black3, color2.black4, color2.black5, color2.black6, color2.black7, color2.black8, color2.black9, color2.black10, color2.black11, color2.black12, color2.white075, color2.white05, color2.white025, color2.white0, brandColor.light], lightColorNames = objectKeys2(colorTokens2.light), lightPalettes = objectFromEntries2(lightColorNames.map((key, index) => [`light_${key}`, getColorPalette(colorTokens2.light[key], colorTokens2.light[lightColorNames[(index + 1) % lightColorNames.length]])])), darkColorNames = objectKeys2(colorTokens2.dark), darkPalettes = objectFromEntries2(darkColorNames.map((key, index) => [`dark_${key}`, getColorPalette(colorTokens2.dark[key], colorTokens2.dark[darkColorNames[(index + 1) % darkColorNames.length]])])), colorPalettes = {
+    ...lightPalettes,
+    ...darkPalettes
+  };
+  return {
+    light: lightPalette,
+    dark: darkPalette,
+    ...colorPalettes
+  };
+})();
+var getTemplates2 = /* @__PURE__ */ __name(() => {
+  const getBaseTemplates = /* @__PURE__ */ __name((scheme) => {
+    const isLight = scheme === "light", bgIndex = 5, lighten = isLight ? -1 : 1, darken = -lighten, borderColor = bgIndex + 3, base = {
+      accentBackground: 0,
+      accentColor: -0,
+      background0: 1,
+      background025: 2,
+      background05: 3,
+      background075: 4,
+      color1: bgIndex,
+      color2: bgIndex + 1,
+      color3: bgIndex + 2,
+      color4: bgIndex + 3,
+      color5: bgIndex + 4,
+      color6: bgIndex + 5,
+      color7: bgIndex + 6,
+      color8: bgIndex + 7,
+      color9: bgIndex + 8,
+      color10: bgIndex + 9,
+      color11: bgIndex + 10,
+      color12: bgIndex + 11,
+      color0: -1,
+      color025: -2,
+      color05: -3,
+      color075: -4,
+      // the background, color, etc keys here work like generics - they make it so you
+      // can publish components for others to use without mandating a specific color scale
+      // the @tamagui/button Button component looks for `$background`, so you set the
+      // dark_red_Button theme to have a stronger background than the dark_red theme.
+      background: bgIndex,
+      backgroundHover: bgIndex + lighten,
+      // always lighten on hover no matter the scheme
+      backgroundPress: bgIndex + darken,
+      // always darken on press no matter the theme
+      backgroundFocus: bgIndex + darken,
+      borderColor,
+      borderColorHover: borderColor + lighten,
+      borderColorPress: borderColor + darken,
+      borderColorFocus: borderColor,
+      color: -bgIndex,
+      colorHover: -bgIndex - 1,
+      colorPress: -bgIndex,
+      colorFocus: -bgIndex - 1,
+      colorTransparent: -1,
+      placeholderColor: -bgIndex - 3,
+      outlineColor: -2
+    }, surface122 = {
+      background: base.background + 1,
+      backgroundHover: base.backgroundHover + 1,
+      backgroundPress: base.backgroundPress + 1,
+      backgroundFocus: base.backgroundFocus + 1,
+      borderColor: base.borderColor + 1,
+      borderColorHover: base.borderColorHover + 1,
+      borderColorFocus: base.borderColorFocus + 1,
+      borderColorPress: base.borderColorPress + 1
+    }, surface222 = {
+      background: base.background + 2,
+      backgroundHover: base.backgroundHover + 2,
+      backgroundPress: base.backgroundPress + 2,
+      backgroundFocus: base.backgroundFocus + 2,
+      borderColor: base.borderColor + 2,
+      borderColorHover: base.borderColorHover + 2,
+      borderColorFocus: base.borderColorFocus + 2,
+      borderColorPress: base.borderColorPress + 2
+    }, surface322 = {
+      background: base.background + 3,
+      backgroundHover: base.backgroundHover + 3,
+      backgroundPress: base.backgroundPress + 3,
+      backgroundFocus: base.backgroundFocus + 3,
+      borderColor: base.borderColor + 3,
+      borderColorHover: base.borderColorHover + 3,
+      borderColorFocus: base.borderColorFocus + 3,
+      borderColorPress: base.borderColorPress + 3
+    }, surfaceActiveBg = {
+      background: base.background + 5,
+      backgroundHover: base.background + 5,
+      backgroundPress: base.backgroundPress + 5,
+      backgroundFocus: base.backgroundFocus + 5
+    }, surfaceActive = {
+      ...surfaceActiveBg,
+      // match border to background when active
+      borderColor: surfaceActiveBg.background,
+      borderColorHover: surfaceActiveBg.backgroundHover,
+      borderColorFocus: surfaceActiveBg.backgroundFocus,
+      borderColorPress: surfaceActiveBg.backgroundPress
+    }, inverseSurface122 = {
+      color: surface122.background,
+      colorHover: surface122.backgroundHover,
+      colorPress: surface122.backgroundPress,
+      colorFocus: surface122.backgroundFocus,
+      background: base.color,
+      backgroundHover: base.colorHover,
+      backgroundPress: base.colorPress,
+      backgroundFocus: base.colorFocus,
+      borderColor: base.color - 2,
+      borderColorHover: base.color - 3,
+      borderColorFocus: base.color - 4,
+      borderColorPress: base.color - 5
+    }, inverseActive = {
+      ...inverseSurface122,
+      background: base.color - 2,
+      backgroundHover: base.colorHover - 2,
+      backgroundPress: base.colorPress - 2,
+      backgroundFocus: base.colorFocus - 2,
+      borderColor: base.color - 2 - 2,
+      borderColorHover: base.color - 3 - 2,
+      borderColorFocus: base.color - 4 - 2,
+      borderColorPress: base.color - 5 - 2
+    }, alt1 = {
+      color: base.color - 1,
+      colorHover: base.colorHover - 1,
+      colorPress: base.colorPress - 1,
+      colorFocus: base.colorFocus - 1
+    }, alt2 = {
+      color: base.color - 2,
+      colorHover: base.colorHover - 2,
+      colorPress: base.colorPress - 2,
+      colorFocus: base.colorFocus - 2
+    };
+    return {
+      base,
+      alt1,
+      alt2,
+      surface1: surface122,
+      surface2: surface222,
+      surface3: surface322,
+      inverseSurface1: inverseSurface122,
+      inverseActive,
+      surfaceActive
+    };
+  }, "getBaseTemplates"), lightTemplates = getBaseTemplates("light"), darkTemplates = getBaseTemplates("dark");
+  return {
+    ...objectFromEntries2(objectKeys2(lightTemplates).map((name) => [`light_${name}`, lightTemplates[name]])),
+    ...objectFromEntries2(objectKeys2(darkTemplates).map((name) => [`dark_${name}`, darkTemplates[name]]))
+  };
+}, "getTemplates");
+var defaultTemplates2 = getTemplates2();
+var shadows2 = {
+  light: {
+    shadowColor: lightShadowColorStrong2,
+    shadowColorHover: lightShadowColorStrong2,
+    shadowColorPress: lightShadowColor2,
+    shadowColorFocus: lightShadowColor2
+  },
+  dark: {
+    shadowColor: darkShadowColorStrong2,
+    shadowColorHover: darkShadowColorStrong2,
+    shadowColorPress: darkShadowColor2,
+    shadowColorFocus: darkShadowColor2
+  }
+};
+var nonInherited2 = {
+  light: {
+    ...lightColors2,
+    ...shadows2.light
+  },
+  dark: {
+    ...darkColors2,
+    ...shadows2.dark
+  }
+};
+var overlayThemeDefinitions2 = [{
+  parent: "light",
+  theme: {
+    background: "rgba(0,0,0,0.5)"
+  }
+}, {
+  parent: "dark",
+  theme: {
+    background: "rgba(0,0,0,0.8)"
+  }
+}];
+var inverseSurface12 = [{
+  parent: "active",
+  template: "inverseActive"
+}, {
+  parent: "",
+  template: "inverseSurface1"
+}];
+var surface12 = [{
+  parent: "active",
+  template: "surfaceActive"
+}, {
+  parent: "",
+  template: "surface1"
+}];
+var surface22 = [{
+  parent: "active",
+  template: "surfaceActive"
+}, {
+  parent: "",
+  template: "surface2"
+}];
+var surface32 = [{
+  parent: "active",
+  template: "surfaceActive"
+}, {
+  parent: "",
+  template: "surface3"
+}];
+var defaultComponentThemes2 = {
+  ListItem: {
+    template: "surface1"
+  },
+  SelectTrigger: surface12,
+  Card: surface12,
+  Button: surface32,
+  Checkbox: surface22,
+  Switch: surface22,
+  SwitchThumb: inverseSurface12,
+  TooltipContent: surface22,
+  Progress: {
+    template: "surface1"
+  },
+  RadioGroupItem: surface22,
+  TooltipArrow: {
+    template: "surface1"
+  },
+  SliderTrackActive: {
+    template: "surface3"
+  },
+  SliderTrack: {
+    template: "surface1"
+  },
+  SliderThumb: inverseSurface12,
+  Tooltip: inverseSurface12,
+  ProgressIndicator: inverseSurface12,
+  SheetOverlay: overlayThemeDefinitions2,
+  DialogOverlay: overlayThemeDefinitions2,
+  ModalOverlay: overlayThemeDefinitions2,
+  Input: surface12,
+  TextArea: surface12
+};
+var defaultSubThemes2 = {
+  alt1: {
+    template: "alt1"
+  },
+  alt2: {
+    template: "alt2"
+  },
+  active: {
+    template: "surface3"
+  },
+  surface1: {
+    template: "surface1"
+  },
+  surface2: {
+    template: "surface2"
+  },
+  surface3: {
+    template: "surface3"
+  },
+  surface4: {
+    template: "surfaceActive"
+  }
+};
+var themeBuilder2 = createThemeBuilder2().addPalettes(defaultPalettes2).addTemplates(defaultTemplates2).addThemes({
+  light: {
+    template: "base",
+    palette: "light",
+    nonInheritedValues: nonInherited2.light
+  },
+  dark: {
+    template: "base",
+    palette: "dark",
+    nonInheritedValues: nonInherited2.dark
+  }
+}).addChildThemes({
+  orange: {
+    palette: "orange",
+    template: "base"
+  },
+  yellow: {
+    palette: "yellow",
+    template: "base"
+  },
+  green: {
+    palette: "green",
+    template: "base"
+  },
+  blue: {
+    palette: "blue",
+    template: "base"
+  },
+  purple: {
+    palette: "purple",
+    template: "base"
+  },
+  pink: {
+    palette: "pink",
+    template: "base"
+  },
+  red: {
+    palette: "red",
+    template: "base"
+  },
+  gray: {
+    palette: "gray",
+    template: "base"
+  }
+}).addChildThemes(defaultSubThemes2).addComponentThemes(defaultComponentThemes2, {
+  avoidNestingWithin: ["alt1", "alt2", "surface1", "surface2", "surface3", "surface4"]
+});
+var themesIn2 = themeBuilder2.build();
+var themes2 = themesIn2;
+var tokens4 = (0, import_web2.createTokens)({
+  color: color2,
+  ...tokens3
+});
 
 // ../../node_modules/.pnpm/@tamagui+animations-css@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+cor_5xdwi33wz76yjv2kijjmis44gu/node_modules/@tamagui/animations-css/dist/esm/createAnimations.mjs
-var import_web2 = require("@tamagui/core");
+var import_web3 = require("@tamagui/core");
 var import_react2 = __toESM(require("react"), 1);
 function extractDuration(animation) {
   const msMatch = animation.match(/(\d+(?:\.\d+)?)\s*ms/);
@@ -1202,7 +2000,7 @@ function createAnimations(animations) {
         getValue() {
           return val;
         },
-        setValue(next, config3, onFinish2) {
+        setValue(next, config2, onFinish2) {
           setVal(next), setOnFinish(onFinish2);
         },
         stop() {
@@ -1246,7 +2044,7 @@ function createAnimations(animations) {
         return node.addEventListener("transitionend", onFinishAnimation), node.addEventListener("transitioncancel", onFinishAnimation), () => {
           clearTimeout(timeoutId), node.removeEventListener("transitionend", onFinishAnimation), node.removeEventListener("transitioncancel", onFinishAnimation);
         };
-      }, [sendExitComplete, isExiting]), animation && (Array.isArray(style.transform) && (style.transform = (0, import_web2.transformsToString)(style.transform)), style.transition = keys.map((key) => {
+      }, [sendExitComplete, isExiting]), animation && (Array.isArray(style.transform) && (style.transform = (0, import_web3.transformsToString)(style.transform)), style.transition = keys.map((key) => {
         const override = animations[animationConfig?.[key]] ?? animation;
         return `${key} ${override}`;
       }).join(", ")), process.env.NODE_ENV === "development" && props.debug === "verbose" && console.info("CSS animation", {
@@ -1284,18 +2082,18 @@ var animationsCSS = createAnimations({
 });
 
 // ../../node_modules/.pnpm/@tamagui+font-inter@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7._ybi2zkbdu5a2dnk47coobtdura/node_modules/@tamagui/font-inter/dist/esm/index.mjs
-var import_core = require("@tamagui/core");
+var import_core2 = require("@tamagui/core");
 var createInterFont = /* @__PURE__ */ __name((font = {}, {
-  sizeLineHeight = /* @__PURE__ */ __name((size3) => size3 + 10, "sizeLineHeight"),
-  sizeSize = /* @__PURE__ */ __name((size3) => size3 * 1, "sizeSize")
+  sizeLineHeight = /* @__PURE__ */ __name((size4) => size4 + 10, "sizeLineHeight"),
+  sizeSize = /* @__PURE__ */ __name((size4) => size4 * 1, "sizeSize")
 } = {}) => {
-  const size3 = Object.fromEntries(Object.entries({
+  const size4 = Object.fromEntries(Object.entries({
     ...defaultSizes,
     ...font.size
   }).map(([k, v]) => [k, sizeSize(+v)]));
-  return (0, import_core.createFont)({
-    family: import_core.isWeb ? 'Inter, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' : "Inter",
-    lineHeight: Object.fromEntries(Object.entries(size3).map(([k, v]) => [k, sizeLineHeight((0, import_core.getVariableValue)(v))])),
+  return (0, import_core2.createFont)({
+    family: import_core2.isWeb ? 'Inter, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' : "Inter",
+    lineHeight: Object.fromEntries(Object.entries(size4).map(([k, v]) => [k, sizeLineHeight((0, import_core2.getVariableValue)(v))])),
     weight: {
       4: "300"
     },
@@ -1303,7 +2101,7 @@ var createInterFont = /* @__PURE__ */ __name((font = {}, {
       4: 0
     },
     ...font,
-    size: size3
+    size: size4
   });
 }, "createInterFont");
 var defaultSizes = {
@@ -1327,11 +2125,11 @@ var defaultSizes = {
 };
 
 // ../../node_modules/.pnpm/@tamagui+font-silkscreen@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+co_6cd7st7mx2ppit77h7rql7kua4/node_modules/@tamagui/font-silkscreen/dist/esm/index.mjs
-var import_core2 = require("@tamagui/core");
-var createSilkscreenFont = /* @__PURE__ */ __name((font = {}) => (0, import_core2.createFont)({
-  family: import_core2.isWeb ? "Silkscreen, Fira Code, Monaco, Consolas, Ubuntu Mono, monospace" : "Silkscreen",
-  size: size2,
-  lineHeight: Object.fromEntries(Object.entries(font.size || size2).map(([k, v]) => [k, typeof v == "number" ? Math.round(v * 1.2 + 6) : v])),
+var import_core3 = require("@tamagui/core");
+var createSilkscreenFont = /* @__PURE__ */ __name((font = {}) => (0, import_core3.createFont)({
+  family: import_core3.isWeb ? "Silkscreen, Fira Code, Monaco, Consolas, Ubuntu Mono, monospace" : "Silkscreen",
+  size: size3,
+  lineHeight: Object.fromEntries(Object.entries(font.size || size3).map(([k, v]) => [k, typeof v == "number" ? Math.round(v * 1.2 + 6) : v])),
   weight: {
     4: "300"
   },
@@ -1345,7 +2143,7 @@ var createSilkscreenFont = /* @__PURE__ */ __name((font = {}) => (0, import_core
   },
   ...font
 }), "createSilkscreenFont");
-var size2 = {
+var size3 = {
   1: 11,
   2: 12,
   3: 13,
@@ -1365,7 +2163,7 @@ var size2 = {
 };
 
 // ../../node_modules/.pnpm/@tamagui+config@1.144.1_react-dom@19.2.3_react@19.2.3__react-native-reanimated@3.19.5_@babel+_252jiitcccntuy65cify5nkfi4/node_modules/@tamagui/config/dist/esm/createGenericFont.mjs
-var import_web3 = require("@tamagui/core");
+var import_web4 = require("@tamagui/core");
 var genericFontSizes = {
   1: 10,
   2: 11,
@@ -1387,11 +2185,11 @@ var genericFontSizes = {
 function createGenericFont(family, font = {}, {
   sizeLineHeight = /* @__PURE__ */ __name((val) => val * 1.35, "sizeLineHeight")
 } = {}) {
-  const size3 = font.size || genericFontSizes;
-  return (0, import_web3.createFont)({
+  const size4 = font.size || genericFontSizes;
+  return (0, import_web4.createFont)({
     family,
-    size: size3,
-    lineHeight: Object.fromEntries(Object.entries(size3).map(([k, v]) => [k, sizeLineHeight(+v)])),
+    size: size4,
+    lineHeight: Object.fromEntries(Object.entries(size4).map(([k, v]) => [k, sizeLineHeight(+v)])),
     weight: {
       0: "300"
     },
@@ -1448,7 +2246,7 @@ var headingFont = createInterFont({
     }
   }
 }, {
-  sizeLineHeight: /* @__PURE__ */ __name((size3) => Math.round(size3 * 1.1 + (size3 < 30 ? 10 : 5)), "sizeLineHeight")
+  sizeLineHeight: /* @__PURE__ */ __name((size4) => Math.round(size4 * 1.1 + (size4 < 30 ? 10 : 5)), "sizeLineHeight")
 });
 var bodyFont = createInterFont({
   weight: {
@@ -1456,8 +2254,8 @@ var bodyFont = createInterFont({
     7: "600"
   }
 }, {
-  sizeSize: /* @__PURE__ */ __name((size3) => Math.round(size3), "sizeSize"),
-  sizeLineHeight: /* @__PURE__ */ __name((size3) => Math.round(size3 * 1.1 + (size3 >= 12 ? 8 : 4)), "sizeLineHeight")
+  sizeSize: /* @__PURE__ */ __name((size4) => Math.round(size4), "sizeSize"),
+  sizeLineHeight: /* @__PURE__ */ __name((size4) => Math.round(size4 * 1.1 + (size4 >= 12 ? 8 : 4)), "sizeLineHeight")
 });
 var monoFont = createGenericFont('"ui-monospace", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace', {
   weight: {
@@ -1540,19 +2338,16 @@ var mediaQueryDefaultActive = {
 
 // ../../node_modules/.pnpm/@tamagui+config@1.144.1_react-dom@19.2.3_react@19.2.3__react-native-reanimated@3.19.5_@babel+_252jiitcccntuy65cify5nkfi4/node_modules/@tamagui/config/dist/esm/v3.mjs
 globalThis.global ||= globalThis;
-var selectionStyles = /* @__PURE__ */ __name((theme) => theme.color5 ? {
-  backgroundColor: theme.color5,
-  color: theme.color11
-} : null, "selectionStyles");
-var themes2 = process.env.TAMAGUI_OPTIMIZE_THEMES === "true" ? {} : themes;
-var config = {
+var themes22 = process.env.TAMAGUI_OPTIMIZE_THEMES === "true" ? {} : themes2;
+
+// src/tamagui.config.ts
+var config = createTamagui({
   animations: animationsCSS,
-  themes: themes2,
+  themes,
   media,
   shorthands,
   tokens: tokens2,
   fonts,
-  selectionStyles,
   settings: {
     mediaQueryDefaultActive,
     defaultFont: "body",
@@ -1560,51 +2355,5 @@ var config = {
     shouldAddPrefersColorThemes: true,
     themeClassNameOnRoot: true
   }
-};
-
-// ../../node_modules/.pnpm/tamagui@1.144.1_react-dom@19.2.3_react@19.2.3__react-native@0.83.1_@babel+core@7.28.6_@react-_q266cwlqywek6bfv3oob5nvrnu/node_modules/tamagui/dist/esm/createTamagui.mjs
-var import_core3 = require("@tamagui/core");
-var createTamagui = process.env.NODE_ENV !== "development" ? import_core3.createTamagui : (conf) => {
-  const sizeTokenKeys = ["$true"], hasKeys = /* @__PURE__ */ __name((expectedKeys, obj) => expectedKeys.every((k) => typeof obj[k] < "u"), "hasKeys"), tamaguiConfig = (0, import_core3.createTamagui)(conf);
-  for (const name of ["size", "space"]) {
-    const tokenSet = tamaguiConfig.tokensParsed[name];
-    if (!tokenSet) throw new Error(`Expected tokens for "${name}" in ${Object.keys(tamaguiConfig.tokensParsed).join(", ")}`);
-    if (!hasKeys(sizeTokenKeys, tokenSet)) throw new Error(`
-createTamagui() missing expected tokens.${name}:
-
-Received: ${Object.keys(tokenSet).join(", ")}
-
-Expected: ${sizeTokenKeys.join(", ")}
-
-Tamagui expects a "true" key that is the same value as your default size. This is so 
-it can size things up or down from the defaults without assuming which keys you use.
-
-Please define a "true" or "$true" key on your size and space tokens like so (example):
-
-size: {
-  sm: 2,
-  md: 10,
-  true: 10, // this means "md" is your default size
-  lg: 20,
-}
-
-`);
-  }
-  const expected = Object.keys(tamaguiConfig.tokensParsed.size);
-  for (const name of ["radius", "zIndex"]) {
-    const tokenSet = tamaguiConfig.tokensParsed[name], received = Object.keys(tokenSet);
-    if (!received.some((rk) => expected.includes(rk))) throw new Error(`
-createTamagui() invalid tokens.${name}:
-
-Received: ${received.join(", ")}
-
-Expected a subset of: ${expected.join(", ")}
-
-`);
-  }
-  return tamaguiConfig;
-};
-
-// src/tamagui.config.ts
-var config2 = createTamagui(config);
-var tamagui_config_default = config2;
+});
+var tamagui_config_default = config;
