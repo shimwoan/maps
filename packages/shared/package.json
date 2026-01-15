@@ -9,6 +9,7 @@
     "clean": "rm -rf node_modules"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
     "@tanstack/react-query": "^5.62.0",
     "react-hook-form": "^7.54.0"
   },
