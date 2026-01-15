@@ -12,7 +12,7 @@ const queryClient = createQueryClient();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <TamaguiProvider config={config as unknown as TamaguiProviderProps['config']}>
+      <TamaguiProvider config={config as unknown as TamaguiProviderProps['config']} defaultTheme="light">
         <App />
       </TamaguiProvider>
     </QueryClientProvider>
