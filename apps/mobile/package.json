@@ -1,0 +1,44 @@
+{
+  "name": "mobile",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "build:android": "cd android && ./gradlew assembleRelease",
+    "build:ios": "cd ios && xcodebuild -workspace mobile.xcworkspace -scheme mobile -configuration Release",
+    "lint": "eslint src/",
+    "clean": "rm -rf node_modules && cd android && ./gradlew clean && cd ../ios && rm -rf build Pods"
+  },
+  "dependencies": {
+    "@mj-studio/react-native-naver-map": "^1.5.0",
+    "@monorepo/shared": "workspace:*",
+    "@monorepo/ui": "workspace:*",
+    "@tamagui/config": "^1.144.0",
+    "@tamagui/core": "^1.144.0",
+    "@tanstack/react-query": "^5.62.0",
+    "react": "19.2.3",
+    "react-hook-form": "^7.54.0",
+    "react-native": "0.83.1",
+    "react-native-reanimated": "^3.17.0",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-svg": "^15.11.0",
+    "tamagui": "^1.144.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/runtime": "^7.26.0",
+    "@monorepo/config": "workspace:*",
+    "@react-native/babel-preset": "0.83.1",
+    "@react-native/metro-config": "0.83.1",
+    "@react-native/typescript-config": "0.83.1",
+    "@tamagui/babel-plugin": "^1.144.0",
+    "@types/react": "^19.2.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

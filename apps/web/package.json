@@ -1,0 +1,34 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "clean": "rm -rf node_modules dist"
+  },
+  "dependencies": {
+    "@monorepo/shared": "workspace:*",
+    "@monorepo/ui": "workspace:*",
+    "@tamagui/config": "^1.144.0",
+    "@tamagui/core": "^1.144.0",
+    "@tamagui/web": "^1.144.0",
+    "@tanstack/react-query": "^5.62.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.54.0",
+    "tamagui": "^1.144.0"
+  },
+  "devDependencies": {
+    "@monorepo/config": "workspace:*",
+    "@tamagui/vite-plugin": "^1.144.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}

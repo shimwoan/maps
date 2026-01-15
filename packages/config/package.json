@@ -1,0 +1,12 @@
+{
+  "name": "@monorepo/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./typescript/*": "./typescript/*"
+  },
+  "files": [
+    "eslint",
+    "typescript"
+  ]
+}
