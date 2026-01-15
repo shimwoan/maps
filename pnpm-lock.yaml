@@ -97,13 +97,13 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@tamagui/config':
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native-reanimated@3.19.5(@babel/core@7.28.6)(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/core':
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/web':
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tanstack/react-query':
         specifier: ^5.62.0
@@ -118,14 +118,14 @@ importers:
         specifier: ^7.54.0
         version: 7.71.1(react@19.2.3)
       tamagui:
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
     devDependencies:
       '@monorepo/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@tamagui/vite-plugin':
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native-svg@15.15.1(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)(vite@6.4.1(@types/node@25.0.8)(terser@5.44.1)(yaml@2.8.2))
       '@types/react':
         specifier: ^19.2.0
@@ -173,28 +173,28 @@ importers:
   packages/ui:
     dependencies:
       '@tamagui/animations-css':
-        specifier: ^1.144.1
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/config':
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native-reanimated@3.19.5(@babel/core@7.28.6)(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/core':
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/font-inter':
-        specifier: ^1.144.1
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/shorthands':
-        specifier: ^1.144.1
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       '@tamagui/themes':
-        specifier: ^1.144.1
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       react:
         specifier: '>=18.0.0'
         version: 19.2.3
       tamagui:
-        specifier: ^1.144.0
+        specifier: 1.144.1
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
 
 packages:
@@ -5452,7 +5452,7 @@ snapshots:
       nullthrows: 1.1.1
       yargs: 17.7.2
 
-  '@react-native/community-cli-plugin@0.83.1(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))':
+  '@react-native/community-cli-plugin@0.83.1(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))':
     dependencies:
       '@react-native/dev-middleware': 0.83.1
       debug: 4.4.3
@@ -9455,7 +9455,7 @@ snapshots:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.83.1
       '@react-native/codegen': 0.83.1(@babel/core@7.28.6)
-      '@react-native/community-cli-plugin': 0.83.1(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))
+      '@react-native/community-cli-plugin': 0.83.1(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))
       '@react-native/gradle-plugin': 0.83.1
       '@react-native/js-polyfills': 0.83.1
       '@react-native/normalize-colors': 0.83.1
@@ -9503,7 +9503,7 @@ snapshots:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.83.1
       '@react-native/codegen': 0.83.1(@babel/core@7.28.6)
-      '@react-native/community-cli-plugin': 0.83.1(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))
+      '@react-native/community-cli-plugin': 0.83.1(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))
       '@react-native/gradle-plugin': 0.83.1
       '@react-native/js-polyfills': 0.83.1
       '@react-native/normalize-colors': 0.83.1

@@ -9,13 +9,13 @@
     "clean": "rm -rf node_modules"
   },
   "dependencies": {
-    "@tamagui/animations-css": "^1.144.1",
-    "@tamagui/config": "^1.144.0",
-    "@tamagui/core": "^1.144.0",
-    "@tamagui/font-inter": "^1.144.1",
-    "@tamagui/shorthands": "^1.144.1",
-    "@tamagui/themes": "^1.144.1",
-    "tamagui": "^1.144.0"
+    "@tamagui/animations-css": "1.144.1",
+    "@tamagui/config": "1.144.1",
+    "@tamagui/core": "1.144.1",
+    "@tamagui/font-inter": "1.144.1",
+    "@tamagui/shorthands": "1.144.1",
+    "@tamagui/themes": "1.144.1",
+    "tamagui": "1.144.1"
   },
   "peerDependencies": {
     "react": ">=18.0.0"

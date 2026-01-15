@@ -13,18 +13,18 @@
   "dependencies": {
     "@monorepo/shared": "workspace:*",
     "@monorepo/ui": "workspace:*",
-    "@tamagui/config": "^1.144.0",
-    "@tamagui/core": "^1.144.0",
-    "@tamagui/web": "^1.144.0",
+    "@tamagui/config": "1.144.1",
+    "@tamagui/core": "1.144.1",
+    "@tamagui/web": "1.144.1",
     "@tanstack/react-query": "^5.62.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.54.0",
-    "tamagui": "^1.144.0"
+    "tamagui": "1.144.1"
   },
   "devDependencies": {
     "@monorepo/config": "workspace:*",
-    "@tamagui/vite-plugin": "^1.144.0",
+    "@tamagui/vite-plugin": "1.144.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^4.3.4",
