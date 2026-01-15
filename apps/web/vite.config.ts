@@ -24,5 +24,12 @@ export default defineConfig({
     watch: {
       ignored: ['!**/node_modules/@monorepo/shared/**'],
     },
+    proxy: {
+      '/api/geocode': {
+        target: 'https://nominatim.openstreetmap.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/geocode/, ''),
+      },
+    },
   },
 });
