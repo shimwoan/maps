@@ -10,6 +10,9 @@ export interface NaverMapProps {
   };
   onMapReady?: () => void;
   onCameraChange?: (lat: number, lng: number, zoom: number) => void;
+  showCurrentLocation?: boolean;
+  currentLocationLat?: number;
+  currentLocationLng?: number;
 }
 
 export interface MapCoordinate {
