@@ -58,26 +58,25 @@ function requestAndGetLocation(): Promise<{ location: Location; granted: boolean
 
 async function getAddressFromCoords(latitude: number, longitude: number): Promise<Address | null> {
   try {
-    const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ko`;
-    const response = await fetch(url);
+    const response = await fetch(
+      `https://photon.komoot.io/reverse?lat=${latitude}&lon=${longitude}`
+    );
 
     if (!response.ok) {
       return null;
     }
 
     const data = await response.json();
-    const adminList = data.localityInfo?.administrative || [];
+    const properties = data?.features?.[0]?.properties;
 
-    // 시/도 (adminLevel 4)
-    const sido = data.principalSubdivision || '';
+    if (!properties) {
+      return null;
+    }
 
-    // 구/군/시 (adminLevel 6) - administrative 배열에서 찾기
-    const sigunguAdmin = adminList.find((a: { adminLevel: number; name: string }) => a.adminLevel === 6);
-    const sigungu = sigunguAdmin?.name || '';
-
-    // 동/읍/면 (adminLevel 8) - 가장 마지막 항목 또는 locality
-    const dongAdmin = adminList.filter((a: { adminLevel: number }) => a.adminLevel === 8).pop();
-    const dong = dongAdmin?.name || data.locality || '';
+    // Photon 응답에서 한국 주소 형식으로 매핑
+    const sido = properties.state || '';
+    const sigungu = properties.city || properties.county || '';
+    const dong = properties.district || properties.locality || properties.name || '';
 
     return { sido, sigungu, dong };
   } catch (error) {
@@ -99,6 +98,7 @@ export function HomeScreen() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, signOut } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
 
@@ -113,7 +113,7 @@ export function HomeScreen() {
         title: r.title,
         price: r.expected_fee,
         visitType: r.visit_type,
-        equipmentType: r.equipment_type,
+        asType: r.as_type,
       }));
   }, [requests]);
 
@@ -122,6 +122,16 @@ export function HomeScreen() {
     if (!selectedRequestId) return null;
     return requests.find(r => r.id === selectedRequestId) || null;
   }, [requests, selectedRequestId]);
+
+  // 주소 조회 (debounce 적용)
+  const fetchAddressDebounced = (latitude: number, longitude: number) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      getAddressFromCoords(latitude, longitude).then(setAddress);
+    }, 500);
+  };
 
   // + 버튼 클릭 핸들러
   const handleFabPress = () => {
@@ -142,19 +152,22 @@ export function HomeScreen() {
         setCurrentLocation(loc);
         setZoom(16);
       }
-      getAddressFromCoords(loc.latitude, loc.longitude).then(setAddress);
+      // 초기 로딩 후 카메라 변경 시 중복 호출 방지
+      skipAddressUpdateRef.current = true;
+      fetchAddressDebounced(loc.latitude, loc.longitude);
     });
   }, []);
 
   const handleCameraChange = (latitude: number, longitude: number, currentZoom: number) => {
     setZoom(currentZoom);
-    // 지역 선택 직후에는 주소 업데이트 스킵
+    // 지역 선택 직후 또는 초기 로딩 직후에는 주소 업데이트 스킵
     if (skipAddressUpdateRef.current) {
       skipAddressUpdateRef.current = false;
       return;
     }
+
     if (currentZoom >= MIN_ZOOM_FOR_ADDRESS) {
-      getAddressFromCoords(latitude, longitude).then(setAddress);
+      fetchAddressDebounced(latitude, longitude);
     }
   };
 
@@ -179,7 +192,7 @@ export function HomeScreen() {
   };
 
   return (
-    <View position="relative" width="100%" height="100vh">
+    <View position="relative" width="100%" height="100vh" overflow="hidden">
       {/* 상단 주소 표시 */}
       <View
         position="absolute"
@@ -283,6 +296,7 @@ export function HomeScreen() {
         markers={markers}
         selectedMarkerId={selectedRequestId}
         onMarkerClick={(id) => setSelectedRequestId(id)}
+        onMapClick={() => setSelectedRequestId(null)}
       />
 
       {/* 지도 컨트롤 버튼들 */}
