@@ -12,3 +12,6 @@ export * from './components';
 
 // Screens
 export * from './screens';
+
+// Contexts
+export { AuthProvider, useAuth } from './contexts/AuthContext';
