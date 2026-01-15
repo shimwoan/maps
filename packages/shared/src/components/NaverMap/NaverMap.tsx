@@ -149,14 +149,13 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     };
   }, [onMapReady]);
 
-  // 위치/줌 변경 시 지도 이동
+  // 위치 변경 시에만 지도 이동 (줌은 제외 - 사용자가 직접 조작할 수 있도록)
   useEffect(() => {
     if (mapInstanceRef.current && window.naver?.maps) {
       const newCenter = new window.naver.maps.LatLng(latitude, longitude);
       mapInstanceRef.current.setCenter(newCenter);
-      mapInstanceRef.current.setZoom(zoom);
     }
-  }, [latitude, longitude, zoom]);
+  }, [latitude, longitude]);
 
   // 현재 위치 마커 표시
   useEffect(() => {
