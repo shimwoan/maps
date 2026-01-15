@@ -200,18 +200,26 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       >
         <Sheet.Handle backgroundColor="#ddd" marginTop="$3" />
 
+        {/* 고정 헤더 */}
+        <XStack
+          justifyContent="space-between"
+          alignItems="center"
+          paddingHorizontal="$4"
+          paddingVertical="$3"
+          borderBottomWidth={1}
+          borderBottomColor="#eee"
+          backgroundColor="white"
+        >
+          <Text fontSize={20} fontWeight="700" color="#000">의뢰 등록</Text>
+          <View cursor="pointer" onPress={handleClose} padding="$1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </View>
+        </XStack>
+
         <ScrollView>
           <YStack padding="$4" gap="$4">
-            {/* Header */}
-            <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize={20} fontWeight="700" color="#000">의뢰 등록</Text>
-              <View cursor="pointer" onPress={handleClose} padding="$1">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </View>
-            </XStack>
-
             {/* 방문/원격 선택 */}
             <YStack gap="$2">
               <Text fontSize={14} fontWeight="600" color="#333">방문 유형</Text>
