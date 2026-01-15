@@ -23264,7 +23264,25 @@ var config = {
 };
 
 // ../../packages/ui/src/tamagui.config.ts
-var config2 = createTamagui(config);
+var brandColors = {
+  primary: "#6B7CFF",
+  primaryHover: "#5a6be6",
+  primaryPressed: "#4a5bd6",
+  primaryLight: "#EEF2FF"
+};
+var config2 = createTamagui({
+  ...config,
+  tokens: {
+    ...config.tokens,
+    color: {
+      ...config.tokens.color,
+      brandPrimary: brandColors.primary,
+      brandPrimaryHover: brandColors.primaryHover,
+      brandPrimaryPressed: brandColors.primaryPressed,
+      brandPrimaryLight: brandColors.primaryLight
+    }
+  }
+});
 
 // ../../packages/ui/src/components/Button.tsx
 var Button = (0, import_core8.styled)(Button2, {
