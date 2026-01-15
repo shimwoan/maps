@@ -81,36 +81,40 @@ const loadDaumPostcodeScript = (): Promise<void> => {
   });
 };
 
-// 네이버 지도 Geocoding으로 좌표 가져오기
-const getCoordinatesFromAddress = (address: string): Promise<{ lat: number; lng: number } | null> => {
-  return new Promise((resolve) => {
-    if (!window.naver?.maps?.Service) {
-      console.warn('Naver Maps Service not available');
-      resolve(null);
-      return;
+// Photon API (OpenStreetMap 기반, CORS 지원) - API 키 불필요
+const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+  console.log('[Geocoding] 주소:', address);
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`;
+  console.log('[Geocoding] 요청 URL:', url);
+
+  try {
+    console.log('[Geocoding] fetch 시작...');
+    const response = await fetch(url);
+    console.log('[Geocoding] fetch 완료, status:', response.status);
+
+    if (!response.ok) {
+      console.warn('[Geocoding] 실패:', response.status);
+      return null;
     }
 
-    window.naver.maps.Service.geocode(
-      { query: address },
-      (status, response) => {
-        if (status !== window.naver.maps.Service.Status.OK) {
-          console.warn('Geocoding failed:', status);
-          resolve(null);
-          return;
-        }
+    const data = await response.json();
+    console.log('[Geocoding] 응답:', data);
+    const result = data?.features?.[0];
 
-        const result = response.v2.addresses[0];
-        if (result) {
-          resolve({
-            lat: parseFloat(result.y),
-            lng: parseFloat(result.x),
-          });
-        } else {
-          resolve(null);
-        }
-      }
-    );
-  });
+    if (result?.geometry?.coordinates) {
+      const coords = {
+        lat: result.geometry.coordinates[1],
+        lng: result.geometry.coordinates[0],
+      };
+      console.log('[Geocoding] 좌표:', coords);
+      return coords;
+    }
+    console.warn('[Geocoding] 결과 없음');
+    return null;
+  } catch (error) {
+    console.error('[Geocoding] 에러:', error);
+    return null;
+  }
 };
 
 export function AddressSearch({
@@ -136,11 +140,14 @@ export function AddressSearch({
       oncomplete: async (data: DaumPostcodeResult) => {
         // 도로명 주소 우선, 없으면 지번 주소
         const fullAddress = data.roadAddress || data.jibunAddress;
+        console.log('[AddressSearch] 선택된 주소:', fullAddress);
         onChange(fullAddress);
 
         // 좌표 가져오기
+        console.log('[AddressSearch] onCoordinatesChange 존재:', !!onCoordinatesChange);
         if (onCoordinatesChange) {
           const coords = await getCoordinatesFromAddress(fullAddress);
+          console.log('[AddressSearch] 좌표 결과:', coords);
           if (coords) {
             onCoordinatesChange(coords.lat, coords.lng);
           } else {
