@@ -114,6 +114,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [lastCoords, setLastCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
 
   const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<RequestFormData>({
     defaultValues: {
@@ -158,6 +159,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
       if (error) throw error;
 
+      // 좌표 저장 (성공 다이얼로그 닫힐 때 전달)
+      setLastCoords({ lat: data.latitude, lng: data.longitude });
       reset();
       onClose();
       setShowSuccessDialog(true);
@@ -509,7 +512,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       isOpen={showSuccessDialog}
       onClose={() => {
         setShowSuccessDialog(false);
-        onSuccess?.();
+        onSuccess?.(lastCoords.lat, lastCoords.lng);
       }}
     />
     </>

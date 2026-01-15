@@ -21,6 +21,6 @@ export interface RequestFormData {
 export interface RequestFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (latitude: number | null, longitude: number | null) => void;
   defaultAddress?: string;
 }

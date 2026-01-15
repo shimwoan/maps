@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, XStack, YStack } from 'tamagui';
+import { useState } from 'react';
+import { Sheet, View, Text, XStack, YStack, ScrollView } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { Request } from '../../hooks/useRequests';
 
@@ -37,96 +37,94 @@ function formatDate(dateStr: string): string {
 }
 
 export function RequestDetailCard({ request, onClose }: RequestDetailCardProps) {
+  const [position, setPosition] = useState(0);
+
   if (!request) return null;
 
   return (
-    <View
-      position="absolute"
-      bottom={0}
-      left={0}
-      right={0}
+    <Sheet
+      forceRemoveScrollEnabled
+      modal={false}
+      open={true}
+      onOpenChange={(open: boolean) => !open && onClose()}
+      snapPointsMode="fit"
+      position={position}
+      onPositionChange={setPosition}
+      dismissOnSnapToBottom
       zIndex={200}
-      backgroundColor="white"
-      borderTopLeftRadius={20}
-      borderTopRightRadius={20}
-      shadowColor="#000"
-      shadowOffset={{ width: 0, height: -2 }}
-      shadowOpacity={0.1}
-      shadowRadius={8}
-      elevation={10}
       animation="quick"
-      enterStyle={{ y: 300, opacity: 0 }}
-      exitStyle={{ y: 300, opacity: 0 }}
-      onTouchMove={(e: React.TouchEvent) => e.stopPropagation()}
     >
-      {/* 닫기 핸들 */}
-      <View
-        alignItems="center"
-        paddingVertical="$2"
-        onPress={onClose}
-        cursor="pointer"
+      <Sheet.Frame
+        backgroundColor="white"
+        borderTopLeftRadius={20}
+        borderTopRightRadius={20}
+        shadowColor="#000"
+        shadowOffset={{ width: 0, height: -2 }}
+        shadowOpacity={0.1}
+        shadowRadius={8}
       >
-        <View width={40} height={4} backgroundColor="#ddd" borderRadius={2} />
-      </View>
 
-      <YStack paddingHorizontal="$4" paddingBottom="$5" gap="$3">
-        {/* 상단: 방문유형 + 장비 태그 */}
-        <XStack gap="$2" alignItems="center">
-          <View
-            backgroundColor={brandColors.primaryLight}
-            paddingHorizontal="$2"
-            paddingVertical="$1"
-            borderRadius={4}
-          >
-            <Text fontSize={12} fontWeight="600" color={brandColors.primary}>
-              {request.visit_type}
-            </Text>
-          </View>
-          <Text fontSize={14} color="#666">{request.as_type}</Text>
-        </XStack>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <YStack paddingHorizontal="$4" paddingBottom="$5" paddingTop="$4" gap="$3">
+            {/* 상단: 방문유형 + AS종류 태그 */}
+            <XStack gap="$2" alignItems="center">
+              <View
+                backgroundColor={brandColors.primaryLight}
+                paddingHorizontal="$2"
+                paddingVertical="$1"
+                borderRadius={4}
+              >
+                <Text fontSize={12} fontWeight="600" color={brandColors.primary}>
+                  {request.visit_type}
+                </Text>
+              </View>
+              <Text fontSize={14} color="#666">{request.as_type}</Text>
+            </XStack>
 
-        {/* 제목 + 금액 */}
-        <YStack gap="$1">
-          <Text fontSize={18} fontWeight="700" color="#000">
-            {request.title}
-          </Text>
-          <Text fontSize={20} fontWeight="700" color={brandColors.primary}>
-            {formatPrice(request.expected_fee)}원
-          </Text>
-        </YStack>
+            {/* 제목 + 금액 */}
+            <YStack gap="$1">
+              <Text fontSize={18} fontWeight="700" color="#000">
+                {request.title}
+              </Text>
+              <Text fontSize={20} fontWeight="700" color={brandColors.primary}>
+                {formatPrice(request.expected_fee)}원
+              </Text>
+            </YStack>
 
-        {/* 상세 정보 */}
-        <YStack gap="$2" backgroundColor="#f9f9f9" padding="$3" borderRadius={12}>
-          <XStack justifyContent="space-between">
-            <Text fontSize={13} color="#888">주소</Text>
-            <Text fontSize={13} color="#333" flex={1} textAlign="right">
-              {request.address}
-              {request.address_detail ? ` ${request.address_detail}` : ''}
-            </Text>
-          </XStack>
-          <XStack justifyContent="space-between">
-            <Text fontSize={13} color="#888">일정</Text>
-            <Text fontSize={13} color="#333">
-              {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
-            </Text>
-          </XStack>
-          <XStack justifyContent="space-between">
-            <Text fontSize={13} color="#888">소요시간</Text>
-            <Text fontSize={13} color="#333">{request.duration}</Text>
-          </XStack>
-          <XStack justifyContent="space-between">
-            <Text fontSize={13} color="#888">필요인원</Text>
-            <Text fontSize={13} color="#333">{request.required_personnel}명</Text>
-          </XStack>
-        </YStack>
+            {/* 상세 정보 */}
+            <YStack gap="$2" backgroundColor="#f9f9f9" padding="$3" borderRadius={12}>
+              <XStack justifyContent="space-between">
+                <Text fontSize={13} color="#888">주소</Text>
+                <Text fontSize={13} color="#333" flex={1} textAlign="right">
+                  {request.address}
+                  {request.address_detail ? ` ${request.address_detail}` : ''}
+                </Text>
+              </XStack>
+              <XStack justifyContent="space-between">
+                <Text fontSize={13} color="#888">일정</Text>
+                <Text fontSize={13} color="#333">
+                  {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
+                </Text>
+              </XStack>
+              <XStack justifyContent="space-between">
+                <Text fontSize={13} color="#888">소요시간</Text>
+                <Text fontSize={13} color="#333">{request.duration}</Text>
+              </XStack>
+              <XStack justifyContent="space-between">
+                <Text fontSize={13} color="#888">필요인원</Text>
+                <Text fontSize={13} color="#333">{request.required_personnel}명</Text>
+              </XStack>
+            </YStack>
 
-        {/* 설명 */}
-        {request.description && (
-          <Text fontSize={14} color="#666" lineHeight={20}>
-            {request.description}
-          </Text>
-        )}
-      </YStack>
-    </View>
+            {/* 설명 */}
+            {request.description && (
+              <Text fontSize={14} color="#666" lineHeight={20}>
+                {request.description}
+              </Text>
+            )}
+          </YStack>
+        </ScrollView>
+      </Sheet.Frame>
+    </Sheet>
   );
 }

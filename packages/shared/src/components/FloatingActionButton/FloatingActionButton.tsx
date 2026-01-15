@@ -19,7 +19,6 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       justifyContent="center"
       cursor="pointer"
       onPress={onPress}
-      elevation={4}
       shadowColor="#000"
       shadowOffset={{ width: 0, height: 2 }}
       shadowOpacity={0.25}

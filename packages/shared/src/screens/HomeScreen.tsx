@@ -29,15 +29,12 @@ const DEFAULT_LOCATION: Location = {
 
 // 위치 권한 요청 및 위치 가져오기
 function requestAndGetLocation(): Promise<{ location: Location; granted: boolean }> {
-  console.log('requestAndGetLocation called');
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      console.log('Geolocation not supported');
       resolve({ location: DEFAULT_LOCATION, granted: false });
       return;
     }
 
-    console.log('Calling getCurrentPosition...');
     navigator.geolocation.getCurrentPosition(
       (position) => {
         resolve({
@@ -192,7 +189,7 @@ export function HomeScreen() {
   };
 
   return (
-    <View position="relative" width="100%" height="100vh" overflow="hidden">
+    <View position="relative" width="100%" height="100vh" overflow="hidden" backgroundColor="#f5f5f5">
       {/* 상단 주소 표시 */}
       <View
         position="absolute"
@@ -401,9 +398,13 @@ export function HomeScreen() {
       <RequestFormModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        onSuccess={() => {
+        onSuccess={(latitude, longitude) => {
           setIsRequestModalOpen(false);
           refetchRequests();
+          // 새로 등록된 의뢰 위치로 지도 이동
+          if (latitude && longitude) {
+            naverMapRef.current?.moveTo(latitude, longitude, 16);
+          }
         }}
         defaultAddress={address ? `${address.sido} ${address.sigungu} ${address.dong}`.trim() : ''}
       />

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import type { NaverMapProps, RequestMarker } from './types';
 
 declare global {
@@ -24,11 +24,21 @@ const formatPrice = (price: number): string => {
   return price.toLocaleString();
 };
 
+// 줌 레벨에 따른 스케일 계산
+const getMarkerScale = (zoom: number): number => {
+  if (zoom >= 16) return 1;
+  if (zoom >= 14) return 0.85;
+  if (zoom >= 12) return 0.7;
+  if (zoom >= 10) return 0.55;
+  return 0.4;
+};
+
 // 마커 HTML 생성
-const createMarkerContent = (marker: RequestMarker, isSelected: boolean): string => {
+const createMarkerContent = (marker: RequestMarker, isSelected: boolean, zoom: number): string => {
   const bgColor = isSelected ? '#ffffff' : '#6B7CFF';
   const textColor = isSelected ? '#6B7CFF' : '#ffffff';
   const borderColor = '#6B7CFF';
+  const scale = getMarkerScale(zoom);
 
   return `
     <div style="
@@ -36,6 +46,8 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean): string
       flex-direction: column;
       align-items: center;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+      transform: scale(${scale});
+      transform-origin: bottom center;
     ">
       <div style="
         background: ${bgColor};
@@ -130,15 +142,18 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   const onCameraChangeRef = useRef(onCameraChange);
   const onMarkerClickRef = useRef(onMarkerClick);
   const onMapClickRef = useRef(onMapClick);
+  const [currentZoom, setCurrentZoom] = useState(zoom);
+  const markersDataRef = useRef<RequestMarker[]>([]);
 
   useImperativeHandle(ref, () => ({
     moveTo: (lat: number, lng: number, z?: number) => {
       if (mapInstanceRef.current && window.naver?.maps) {
+        const map = mapInstanceRef.current as naver.maps.Map & { panTo: (coord: naver.maps.LatLng, options?: object) => void };
         const newCenter = new window.naver.maps.LatLng(lat, lng);
-        mapInstanceRef.current.panTo(newCenter, { duration: 300, easing: 'easeOutCubic' });
+        map.panTo(newCenter, { duration: 300, easing: 'easeOutCubic' });
         if (z !== undefined) {
           setTimeout(() => {
-            mapInstanceRef.current?.setZoom(z, true);
+            (mapInstanceRef.current as naver.maps.Map)?.setZoom(z);
           }, 100);
         }
       }
@@ -146,13 +161,13 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     zoomIn: () => {
       if (mapInstanceRef.current) {
         const currentZoom = mapInstanceRef.current.getZoom();
-        mapInstanceRef.current.setZoom(Math.min(currentZoom + 1, 21), true);
+        mapInstanceRef.current.setZoom(Math.min(currentZoom + 1, 21));
       }
     },
     zoomOut: () => {
       if (mapInstanceRef.current) {
         const currentZoom = mapInstanceRef.current.getZoom();
-        mapInstanceRef.current.setZoom(Math.max(currentZoom - 1, 6), true);
+        mapInstanceRef.current.setZoom(Math.max(currentZoom - 1, 6));
       }
     },
   }));
@@ -191,8 +206,9 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
 
         window.naver.maps.Event.addListener(map, 'idle', () => {
           const center = map.getCenter();
-          const currentZoom = map.getZoom();
-          onCameraChangeRef.current?.(center.y, center.x, currentZoom);
+          const newZoom = map.getZoom();
+          setCurrentZoom(newZoom);
+          onCameraChangeRef.current?.(center.y, center.x, newZoom);
         });
 
         // 지도 클릭 시 선택 해제
@@ -263,6 +279,8 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   useEffect(() => {
     if (!mapInstanceRef.current || !window.naver?.maps) return;
 
+    markersDataRef.current = markers;
+
     const currentMarkerIds = new Set(markers.map(m => m.id));
     const existingMarkerIds = new Set(requestMarkersRef.current.keys());
 
@@ -279,12 +297,14 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     markers.forEach(markerData => {
       const isSelected = markerData.id === selectedMarkerId;
       const existingMarker = requestMarkersRef.current.get(markerData.id);
+      const scale = getMarkerScale(currentZoom);
+      const anchorY = 56 * scale;
 
       if (existingMarker) {
-        // 기존 마커 업데이트 (선택 상태 변경 시)
+        // 기존 마커 업데이트 (선택 상태 또는 줌 변경 시)
         existingMarker.setIcon({
-          content: createMarkerContent(markerData, isSelected),
-          anchor: new window.naver.maps.Point(50, 56),
+          content: createMarkerContent(markerData, isSelected, currentZoom),
+          anchor: new window.naver.maps.Point(50, anchorY),
         });
       } else {
         // 새 마커 생성
@@ -292,8 +312,8 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           position: new window.naver.maps.LatLng(markerData.latitude, markerData.longitude),
           map: mapInstanceRef.current!,
           icon: {
-            content: createMarkerContent(markerData, isSelected),
-            anchor: new window.naver.maps.Point(50, 56),
+            content: createMarkerContent(markerData, isSelected, currentZoom),
+            anchor: new window.naver.maps.Point(50, anchorY),
           },
         });
 
@@ -305,7 +325,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         requestMarkersRef.current.set(markerData.id, newMarker);
       }
     });
-  }, [markers, selectedMarkerId]);
+  }, [markers, selectedMarkerId, currentZoom]);
 
   return (
     <div

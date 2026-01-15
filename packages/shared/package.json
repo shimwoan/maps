@@ -21,5 +21,9 @@
     "@mj-studio/react-native-naver-map": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@types/navermaps": "^3.9.1",
+    "vite": "^6.0.0"
   }
 }

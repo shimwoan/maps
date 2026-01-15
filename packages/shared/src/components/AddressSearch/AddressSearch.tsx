@@ -15,20 +15,6 @@ declare global {
         open: () => void;
       };
     };
-    naver: {
-      maps: {
-        Service: {
-          geocode: (
-            options: { query: string },
-            callback: (status: string, response: NaverGeocodeResponse) => void
-          ) => void;
-          Status: {
-            OK: string;
-            ERROR: string;
-          };
-        };
-      };
-    };
   }
 }
 
@@ -44,17 +30,6 @@ interface DaumPostcodeResult {
   sigungu: string;
   bname1: string;
   bname2: string;
-}
-
-interface NaverGeocodeResponse {
-  v2: {
-    addresses: Array<{
-      x: string; // longitude
-      y: string; // latitude
-      roadAddress: string;
-      jibunAddress: string;
-    }>;
-  };
 }
 
 interface AddressSearchProps {
@@ -83,36 +58,26 @@ const loadDaumPostcodeScript = (): Promise<void> => {
 
 // Photon API (OpenStreetMap 기반, CORS 지원) - API 키 불필요
 const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
-  console.log('[Geocoding] 주소:', address);
   const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`;
-  console.log('[Geocoding] 요청 URL:', url);
 
   try {
-    console.log('[Geocoding] fetch 시작...');
     const response = await fetch(url);
-    console.log('[Geocoding] fetch 완료, status:', response.status);
 
     if (!response.ok) {
-      console.warn('[Geocoding] 실패:', response.status);
       return null;
     }
 
     const data = await response.json();
-    console.log('[Geocoding] 응답:', data);
     const result = data?.features?.[0];
 
     if (result?.geometry?.coordinates) {
-      const coords = {
+      return {
         lat: result.geometry.coordinates[1],
         lng: result.geometry.coordinates[0],
       };
-      console.log('[Geocoding] 좌표:', coords);
-      return coords;
     }
-    console.warn('[Geocoding] 결과 없음');
     return null;
-  } catch (error) {
-    console.error('[Geocoding] 에러:', error);
+  } catch {
     return null;
   }
 };
@@ -138,16 +103,11 @@ export function AddressSearch({
 
     new window.daum.Postcode({
       oncomplete: async (data: DaumPostcodeResult) => {
-        // 도로명 주소 우선, 없으면 지번 주소
         const fullAddress = data.roadAddress || data.jibunAddress;
-        console.log('[AddressSearch] 선택된 주소:', fullAddress);
         onChange(fullAddress);
 
-        // 좌표 가져오기
-        console.log('[AddressSearch] onCoordinatesChange 존재:', !!onCoordinatesChange);
         if (onCoordinatesChange) {
           const coords = await getCoordinatesFromAddress(fullAddress);
-          console.log('[AddressSearch] 좌표 결과:', coords);
           if (coords) {
             onCoordinatesChange(coords.lat, coords.lng);
           } else {

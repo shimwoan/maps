@@ -4,8 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["vite/client", "navermaps"]
   },
-  "include": ["src"],
+  "include": ["src", "../../packages/shared/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
