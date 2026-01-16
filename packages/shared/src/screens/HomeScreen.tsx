@@ -181,10 +181,13 @@ export function HomeScreen() {
     // 지역 선택 후 카메라 이동 시 주소 업데이트 스킵 설정
     skipAddressUpdateRef.current = true;
 
+    const newZoom = region.zoom || zoom;
     setLocation({ latitude: region.lat, longitude: region.lng });
-    if (region.zoom) {
-      setZoom(region.zoom);
-    }
+    setZoom(newZoom);
+
+    // 지도 이동
+    naverMapRef.current?.moveTo(region.lat, region.lng, newZoom);
+
     // 선택한 지역명을 직접 사용 (BigDataCloud 대신)
     const parts = region.name.split(' ');
     if (parts.length >= 2) {
@@ -223,10 +226,10 @@ export function HomeScreen() {
           >
             {address ? (
               <>
-                <Text fontSize={20} fontWeight="700" color="#000000">
+                <Text fontSize={18} fontWeight="700" color="#000000">
                   {zoom >= MIN_ZOOM_FOR_ADDRESS ? `${address.sigungu} ${address.dong}` : '지역 선택'}
                 </Text>
-                <svg width="18" height="18" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
+                <svg width="16" height="16" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
                   <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#000" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </>
