@@ -160,11 +160,12 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       if (mapInstanceRef.current && window.naver?.maps) {
         const map = mapInstanceRef.current as naver.maps.Map & { panTo: (coord: naver.maps.LatLng, options?: object) => void };
         const newCenter = new window.naver.maps.LatLng(lat, lng);
-        map.panTo(newCenter, { duration: 300, easing: 'easeOutCubic' });
+        // 줌 변경이 있으면 애니메이션 없이 즉시 이동
         if (z !== undefined) {
-          setTimeout(() => {
-            (mapInstanceRef.current as naver.maps.Map)?.setZoom(z);
-          }, 100);
+          map.setCenter(newCenter);
+          map.setZoom(z);
+        } else {
+          map.panTo(newCenter, { duration: 300, easing: 'easeOutCubic' });
         }
       }
     },

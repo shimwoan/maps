@@ -340,6 +340,9 @@ export function HomeScreen() {
             shadowOpacity={0.2}
             shadowRadius={2}
             onPress={() => {
+              skipAddressUpdateRef.current = true;
+              setLocation(currentLocation);
+              setZoom(16);
               naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 16);
               setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
             }}
