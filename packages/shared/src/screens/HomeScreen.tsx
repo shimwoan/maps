@@ -29,13 +29,24 @@ const DEFAULT_LOCATION: Location = {
 };
 
 // 위치 권한 요청 및 위치 가져오기
-function requestAndGetLocation(): Promise<{ location: Location; granted: boolean }> {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve({ location: DEFAULT_LOCATION, granted: false });
-      return;
-    }
+async function requestAndGetLocation(): Promise<{ location: Location; granted: boolean; permissionState?: string }> {
+  if (!navigator.geolocation) {
+    return { location: DEFAULT_LOCATION, granted: false };
+  }
 
+  // 권한 상태 확인
+  let permissionState = 'unknown';
+  if (navigator.permissions) {
+    try {
+      const status = await navigator.permissions.query({ name: 'geolocation' });
+      permissionState = status.state;
+      console.log('위치 권한 상태:', permissionState);
+    } catch (e) {
+      console.log('Permissions API 미지원');
+    }
+  }
+
+  return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         resolve({
@@ -44,10 +55,12 @@ function requestAndGetLocation(): Promise<{ location: Location; granted: boolean
             longitude: position.coords.longitude,
           },
           granted: true,
+          permissionState,
         });
       },
-      () => {
-        resolve({ location: DEFAULT_LOCATION, granted: false });
+      (error) => {
+        console.log('위치 오류:', error.code, error.message);
+        resolve({ location: DEFAULT_LOCATION, granted: false, permissionState });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -84,8 +97,9 @@ function getAddressFromCoords(latitude: number, longitude: number): Address | nu
 const MIN_ZOOM_FOR_ADDRESS = 14;
 
 export function HomeScreen() {
-  const [location, setLocation] = useState<Location>(DEFAULT_LOCATION);
+  const [location, setLocation] = useState<Location | null>(null);
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
+  const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [address, setAddress] = useState<Address | null>(null);
   const [zoom, setZoom] = useState(14);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
@@ -152,12 +166,15 @@ export function HomeScreen() {
 
   useEffect(() => {
     // 사이트 접속 시 위치 권한 요청
+    console.log('위치 권한 요청 시작');
     requestAndGetLocation().then(({ location: loc, granted }) => {
+      console.log('위치 권한 결과:', granted, loc);
       setLocation(loc);
       if (granted) {
         setCurrentLocation(loc);
         setZoom(16);
       }
+      setIsLocationLoading(false);
       // 초기 로딩 후 카메라 변경 시 중복 호출 방지
       skipAddressUpdateRef.current = true;
       fetchAddressDebounced(loc.latitude, loc.longitude);
@@ -294,60 +311,64 @@ export function HomeScreen() {
       </View>
 
       {/* 지도 */}
-      <NaverMap
-        ref={naverMapRef}
-        latitude={location.latitude}
-        longitude={location.longitude}
-        zoom={zoom}
-        style={{ width: '100%', height: '100%' }}
-        onCameraChange={handleCameraChange}
-        showCurrentLocation={!!currentLocation}
-        currentLocationLat={currentLocation?.latitude}
-        currentLocationLng={currentLocation?.longitude}
-        markers={markers}
-        selectedMarkerId={selectedRequestId}
-        onMarkerClick={(id) => setSelectedRequestId(id)}
-        onMapClick={() => setSelectedRequestId(null)}
-      />
+      {isLocationLoading || !location ? (
+        <View flex={1} alignItems="center" justifyContent="center" backgroundColor="#f5f5f5">
+          <Spinner size="large" color="#333" />
+        </View>
+      ) : (
+        <NaverMap
+          ref={naverMapRef}
+          latitude={location.latitude}
+          longitude={location.longitude}
+          zoom={zoom}
+          style={{ width: '100%', height: '100%' }}
+          onCameraChange={handleCameraChange}
+          showCurrentLocation={!!currentLocation}
+          currentLocationLat={currentLocation?.latitude}
+          currentLocationLng={currentLocation?.longitude}
+          markers={markers}
+          selectedMarkerId={selectedRequestId}
+          onMarkerClick={(id) => setSelectedRequestId(id)}
+          onMapClick={() => setSelectedRequestId(null)}
+        />
+      )}
 
       {/* 지도 컨트롤 버튼들 */}
-      <View
-        position="absolute"
-        top={56}
-        left={16}
-        zIndex={100}
-        gap="$2"
-      >
-        {/* 현재 위치 버튼 */}
+      {!isLocationLoading && location && (
         <View
-          width={44}
-          height={44}
-          borderRadius={8}
-          backgroundColor="white"
-          alignItems="center"
-          justifyContent="center"
-          cursor="pointer"
-          shadowColor="#000"
-          shadowOffset={{ width: 0, height: 1 }}
-          shadowOpacity={0.2}
-          shadowRadius={2}
-          onPress={() => {
-            requestAndGetLocation().then(({ location: loc, granted }) => {
-              if (granted) {
-                setLocation(loc);
-                setCurrentLocation(loc);
-                setZoom(16);
-                naverMapRef.current?.moveTo(loc.latitude, loc.longitude, 16);
-                setAddress(getAddressFromCoords(loc.latitude, loc.longitude));
-              }
-            });
-          }}
+          position="absolute"
+          top={56}
+          left={16}
+          zIndex={100}
+          gap="$2"
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="7" stroke="#333" strokeWidth="1.5"/>
-            <path d="M12 5v4M12 15v4M5 12h4M15 12h4" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
-        </View>
+          {/* 현재 위치 버튼 - 위치 권한이 허용된 경우에만 표시 */}
+          {currentLocation && (
+          <View
+            width={44}
+            height={44}
+            borderRadius={8}
+            backgroundColor="white"
+            alignItems="center"
+            justifyContent="center"
+            cursor="pointer"
+            shadowColor="#000"
+            shadowOffset={{ width: 0, height: 1 }}
+            shadowOpacity={0.2}
+            shadowRadius={2}
+            onPress={() => {
+              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 16);
+              setLocation(currentLocation);
+              setZoom(16);
+              setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
+            }}
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="7" stroke="#333" strokeWidth="1.5"/>
+              <path d="M12 5v4M12 15v4M5 12h4M15 12h4" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </View>
+        )}
 
         {/* 확대/축소 버튼 */}
         <View
@@ -389,6 +410,7 @@ export function HomeScreen() {
           </View>
         </View>
       </View>
+      )}
 
       {/* 지역 선택 모달 */}
       <RegionSelectModal

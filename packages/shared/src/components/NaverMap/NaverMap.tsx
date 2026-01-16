@@ -143,6 +143,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   const onMarkerClickRef = useRef(onMarkerClick);
   const onMapClickRef = useRef(onMapClick);
   const [currentZoom, setCurrentZoom] = useState(zoom);
+  const [mapReady, setMapReady] = useState(false);
   const markersDataRef = useRef<RequestMarker[]>([]);
 
   useImperativeHandle(ref, () => ({
@@ -202,6 +203,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           mapDataControl: false,
         });
         mapInstanceRef.current = map;
+        setMapReady(true);
         onMapReady?.();
 
         window.naver.maps.Event.addListener(map, 'idle', () => {
@@ -248,7 +250,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       return;
     }
 
-    if (!mapInstanceRef.current || !window.naver?.maps) return;
+    if (!mapReady || !mapInstanceRef.current || !window.naver?.maps) return;
 
     injectStyles();
 
@@ -273,7 +275,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         },
       });
     }
-  }, [showCurrentLocation, currentLocationLat, currentLocationLng]);
+  }, [showCurrentLocation, currentLocationLat, currentLocationLng, mapReady]);
 
   // 의뢰 마커 표시
   useEffect(() => {
@@ -325,7 +327,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         requestMarkersRef.current.set(markerData.id, newMarker);
       }
     });
-  }, [markers, selectedMarkerId, currentZoom]);
+  }, [markers, selectedMarkerId, currentZoom, mapReady]);
 
   return (
     <div
