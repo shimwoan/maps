@@ -24,6 +24,7 @@ interface ProfileSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  isEdit?: boolean;
 }
 
 // 크롭된 이미지를 Blob으로 변환
@@ -59,7 +60,7 @@ function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): Promise<Blob> 
   });
 }
 
-export function ProfileSetupModal({ isOpen, onClose, onSuccess }: ProfileSetupModalProps) {
+export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }: ProfileSetupModalProps) {
   const { uploadBusinessCard, updateBusinessCard } = useProfile();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
@@ -246,11 +247,12 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess }: ProfileSetupMo
           <YStack gap="$4" marginTop="$3">
             <YStack gap="$2" alignItems="center">
               <Text fontSize={20} fontWeight="700" color="#000">
-                명함 등록
+                {isEdit ? '명함 수정' : '명함 등록'}
               </Text>
               <Text fontSize={14} color="#666" textAlign="center">
-                작업을 수락하려면 명함 이미지를 등록해주세요.{'\n'}
-                의뢰인에게 전문가 정보로 제공됩니다.
+                {isEdit
+                  ? '새로운 명함 이미지를 업로드해주세요.'
+                  : '작업을 수락하려면 명함 이미지를 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
               </Text>
             </YStack>
 
