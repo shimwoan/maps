@@ -400,10 +400,7 @@ export function HomeScreen() {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={() => {
-          setIsLoginModalOpen(false);
-          setIsRequestModalOpen(true); // 로그인 후 바로 의뢰 등록 모달 열기
-        }}
+        onLoginSuccess={() => setIsLoginModalOpen(false)}
       />
 
       {/* 의뢰 등록 모달 */}
