@@ -24,58 +24,16 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
   const [sigunguList, setSigunguList] = useState<SiGunGu[]>([]);
   const [dongList, setDongList] = useState<Dong[]>([]);
 
-  // 모달이 열릴 때 현재 주소로 기본값 설정
+  // 모달이 열릴 때 항상 시도 선택부터 시작
   useEffect(() => {
-    if (isOpen && currentAddress) {
-      // 시도 찾기
-      const matchedSido = SIDO_LIST.find(s => {
-        const sidoShort = s.name.replace(/특별시|광역시|특별자치시|특별자치도|도/g, '');
-        return s.name === currentAddress.sido ||
-               s.name.includes(currentAddress.sido) ||
-               currentAddress.sido.includes(sidoShort);
-      });
-
-      if (matchedSido) {
-        setSelectedSido(matchedSido);
-        const sigungus = getSigunguBySido(matchedSido.code);
-        setSigunguList(sigungus);
-
-        // 동 이름으로 시군구 찾기 (더 정확함)
-        const dongName = currentAddress.dong?.replace(/[0-9]/g, ''); // 숫자 제거 (수진2동 -> 수진동)
-        const matchedDong = DONG_LIST.find(d =>
-          d.name === currentAddress.dong ||
-          d.name === dongName ||
-          d.name.includes(dongName) ||
-          dongName?.includes(d.name.replace(/동|읍|면/g, ''))
-        );
-
-        let matchedSigungu: SiGunGu | undefined;
-
-        if (matchedDong) {
-          // 동을 찾았으면 해당 동의 시군구 코드로 시군구 찾기
-          matchedSigungu = sigungus.find(sg => sg.code === matchedDong.sigungu);
-        }
-
-        // 동으로 못 찾으면 시군구 이름으로 찾기
-        if (!matchedSigungu) {
-          const sigunguName = currentAddress.sigungu;
-          matchedSigungu = sigungus.find(sg =>
-            sg.name === sigunguName ||
-            sg.name.includes(sigunguName) ||
-            sigunguName?.includes(sg.name)
-          );
-        }
-
-        if (matchedSigungu) {
-          setSelectedSigungu(matchedSigungu);
-          setDongList(getDongBySigungu(matchedSigungu.code));
-          setStep('dong');
-        } else {
-          setStep('sigungu');
-        }
-      }
+    if (isOpen) {
+      setStep('sido');
+      setSelectedSido(null);
+      setSelectedSigungu(null);
+      setSigunguList([]);
+      setDongList([]);
     }
-  }, [isOpen, currentAddress]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
