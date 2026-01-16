@@ -34,11 +34,14 @@ const getMarkerScale = (zoom: number): number => {
 };
 
 // 마커 HTML 생성
-const createMarkerContent = (marker: RequestMarker, isSelected: boolean, zoom: number): string => {
-  const bgColor = isSelected ? '#ffffff' : '#6B7CFF';
-  const textColor = isSelected ? '#6B7CFF' : '#ffffff';
-  const borderColor = '#6B7CFF';
+const createMarkerContent = (marker: RequestMarker, isSelected: boolean, isOwn: boolean, zoom: number): string => {
+  // 내 의뢰: 초록색, 다른 의뢰: 보라색
+  const primaryColor = isOwn ? '#22C55E' : '#6B7CFF';
+  const bgColor = isSelected ? '#ffffff' : primaryColor;
+  const textColor = isSelected ? primaryColor : '#ffffff';
+  const borderColor = primaryColor;
   const scale = getMarkerScale(zoom);
+  const ownBadge = isOwn ? `<span style="font-size: 9px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: ${isSelected ? '#fff' : '#fff'}; padding: 1px 4px; border-radius: 3px; margin-right: 4px;">내 의뢰</span>` : '';
 
   return `
     <div style="
@@ -60,7 +63,7 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, zoom: n
         white-space: nowrap;
         cursor: pointer;
       ">
-        <div style="font-size: 11px; opacity: 0.9; text-align: center;">${marker.title} | ${marker.asType}</div>
+        <div style="font-size: 11px; opacity: 0.9; text-align: center;">${ownBadge}${marker.title} | ${marker.asType}</div>
         <div style="font-size: 13px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
       </div>
       <svg width="16" height="8" viewBox="0 0 16 8" style="margin-top: -2px;">
@@ -131,6 +134,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   currentLocationLng,
   markers = [],
   selectedMarkerId = null,
+  currentUserId = null,
   onMarkerClick,
   onMapClick,
 }, ref) {
@@ -298,6 +302,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     // 마커 추가/업데이트
     markers.forEach(markerData => {
       const isSelected = markerData.id === selectedMarkerId;
+      const isOwn = currentUserId ? markerData.userId === currentUserId : false;
       const existingMarker = requestMarkersRef.current.get(markerData.id);
       const scale = getMarkerScale(currentZoom);
       const anchorY = 56 * scale;
@@ -305,7 +310,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       if (existingMarker) {
         // 기존 마커 업데이트 (선택 상태 또는 줌 변경 시)
         existingMarker.setIcon({
-          content: createMarkerContent(markerData, isSelected, currentZoom),
+          content: createMarkerContent(markerData, isSelected, isOwn, currentZoom),
           anchor: new window.naver.maps.Point(50, anchorY),
         });
       } else {
@@ -314,7 +319,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           position: new window.naver.maps.LatLng(markerData.latitude, markerData.longitude),
           map: mapInstanceRef.current!,
           icon: {
-            content: createMarkerContent(markerData, isSelected, currentZoom),
+            content: createMarkerContent(markerData, isSelected, isOwn, currentZoom),
             anchor: new window.naver.maps.Point(50, anchorY),
           },
         });
@@ -327,7 +332,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         requestMarkersRef.current.set(markerData.id, newMarker);
       }
     });
-  }, [markers, selectedMarkerId, currentZoom, mapReady]);
+  }, [markers, selectedMarkerId, currentUserId, currentZoom, mapReady]);
 
   return (
     <div

@@ -1,5 +1,6 @@
 export interface RequestMarker {
   id: string;
+  userId: string;
   latitude: number;
   longitude: number;
   title: string;
@@ -25,6 +26,7 @@ export interface NaverMapProps {
   currentLocationLng?: number;
   markers?: RequestMarker[];
   selectedMarkerId?: string | null;
+  currentUserId?: string | null;
   onMarkerClick?: (markerId: string) => void;
   onMapClick?: () => void;
 }
