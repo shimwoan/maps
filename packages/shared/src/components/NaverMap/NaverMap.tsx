@@ -35,13 +35,18 @@ const getMarkerScale = (zoom: number): number => {
 
 // 마커 HTML 생성
 const createMarkerContent = (marker: RequestMarker, isSelected: boolean, isOwn: boolean, zoom: number): string => {
-  // 내 의뢰: 초록색, 다른 의뢰: 보라색
-  const primaryColor = isOwn ? '#22C55E' : '#6B7CFF';
+  const isInProgress = marker.status === 'accepted';
+  // 진행중: 주황색, 내 의뢰: 초록색, 다른 의뢰: 보라색
+  const primaryColor = isInProgress ? '#F59E0B' : (isOwn ? '#22C55E' : '#6B7CFF');
   const bgColor = isSelected ? '#ffffff' : primaryColor;
   const textColor = isSelected ? primaryColor : '#ffffff';
   const borderColor = primaryColor;
   const scale = getMarkerScale(zoom);
-  const ownBadge = isOwn ? `<span style="font-size: 9px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: ${isSelected ? '#fff' : '#fff'}; padding: 1px 4px; border-radius: 3px; margin-right: 4px;">내 의뢰</span>` : '';
+
+  let badge = '';
+  if (isInProgress) {
+    badge = `<span style="font-size: 9px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: ${isSelected ? '#fff' : '#fff'}; padding: 1px 4px; border-radius: 3px; margin-right: 4px;">진행중</span>`;
+  }
 
   return `
     <div style="
@@ -63,7 +68,7 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, isOwn: 
         white-space: nowrap;
         cursor: pointer;
       ">
-        <div style="font-size: 11px; opacity: 0.9; text-align: center;">${ownBadge}${marker.title} | ${marker.asType}</div>
+        <div style="font-size: 11px; opacity: 0.9; text-align: center;">${badge}${marker.title} | ${marker.asType}</div>
         <div style="font-size: 13px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
       </div>
       <svg width="16" height="8" viewBox="0 0 16 8" style="margin-top: -2px;">

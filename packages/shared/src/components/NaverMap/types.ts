@@ -7,6 +7,7 @@ export interface RequestMarker {
   price: number;
   visitType: string;
   asType: string;
+  status: string;
 }
 
 export interface NaverMapProps {
