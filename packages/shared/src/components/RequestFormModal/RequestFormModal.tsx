@@ -1,5 +1,6 @@
 import { useForm, Controller } from 'react-hook-form';
-import { Sheet, YStack, XStack, Text, Input, Button, View, TextArea, ScrollView, Dialog } from 'tamagui';
+import { Sheet, YStack, XStack, Text, Input, View, TextArea, ScrollView, Dialog } from 'tamagui';
+import { Button } from '../Button';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -201,6 +202,9 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         animation="medium"
         enterStyle={{ y: 1000 }}
         exitStyle={{ y: 1000 }}
+        maxWidth={768}
+        alignSelf="center"
+        width="100%"
       >
         <Sheet.Handle backgroundColor="#ddd" marginTop="$3" />
 
@@ -241,6 +245,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         color={value === type ? 'white' : '#666'}
                         borderWidth={0}
                         onPress={() => onChange(type)}
+                        hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
+                        pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
                       >
                         {type}
                       </Button>
@@ -267,6 +273,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         borderWidth={0}
                         onPress={() => onChange(type)}
                         paddingHorizontal="$3"
+                        hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
+                        pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
                       >
                         {type}
                       </Button>
@@ -380,6 +388,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         borderWidth={0}
                         onPress={() => onChange(option)}
                         paddingHorizontal="$3"
+                        hoverStyle={{ backgroundColor: value === option ? brandColors.primaryHover : '#e8e8e8' }}
+                        pressStyle={{ backgroundColor: value === option ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
                       >
                         {option}
                       </Button>
@@ -453,6 +463,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         color={value === num ? 'white' : '#666'}
                         borderWidth={0}
                         onPress={() => onChange(num)}
+                        hoverStyle={{ backgroundColor: value === num ? brandColors.primaryHover : '#e8e8e8' }}
+                        pressStyle={{ backgroundColor: value === num ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
                       >
                         {num} 명
                       </Button>

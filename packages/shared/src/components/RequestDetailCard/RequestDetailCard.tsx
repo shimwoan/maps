@@ -1,11 +1,18 @@
 import { useState } from 'react';
-import { Sheet, View, Text, XStack, YStack, ScrollView } from 'tamagui';
+import { Sheet, View, Text, XStack, YStack, ScrollView, Spinner } from 'tamagui';
+import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { Request } from '../../hooks/useRequests';
+import { useAuth } from '../../contexts/AuthContext';
+import { useProfile } from '../../hooks/useProfile';
+import { useRequestApplications } from '../../hooks/useRequestApplications';
+import { LoginModal } from '../LoginModal';
+import { ProfileSetupModal } from '../ProfileSetupModal';
 
 interface RequestDetailCardProps {
   request: Request | null;
   onClose: () => void;
+  onAccept?: (requestId: string) => void;
 }
 
 // 금액 포맷팅
@@ -36,10 +43,71 @@ function formatDate(dateStr: string): string {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-export function RequestDetailCard({ request, onClose }: RequestDetailCardProps) {
+export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailCardProps) {
   const [position, setPosition] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { hasBusinessCard, refetch: refetchProfile } = useProfile();
+  const { applyToRequest, myApplications } = useRequestApplications();
 
   if (!request) return null;
+
+  // 작성자가 아닌 경우에만 작업 수락 버튼 표시
+  const canAccept = !user || user.id !== request.user_id;
+  // 이미 신청했는지 확인
+  const alreadyApplied = myApplications.some(app => app.request_id === request.id);
+
+  const handleAcceptClick = async () => {
+    // 비로그인 시 로그인 모달 표시
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // 명함 미등록 시 프로필 설정 모달 표시
+    if (!hasBusinessCard) {
+      setShowProfileModal(true);
+      return;
+    }
+
+    // 작업 신청 처리
+    setIsApplying(true);
+    setApplyError(null);
+    try {
+      await applyToRequest(request.id);
+      onAccept?.(request.id);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '신청 중 오류가 발생했습니다';
+      setApplyError(errorMessage);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+    // 로그인 후 명함 체크
+    refetchProfile();
+  };
+
+  const handleProfileSuccess = async () => {
+    setShowProfileModal(false);
+    // 명함 등록 후 작업 신청 처리
+    setIsApplying(true);
+    setApplyError(null);
+    try {
+      await applyToRequest(request.id);
+      onAccept?.(request.id);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '신청 중 오류가 발생했습니다';
+      setApplyError(errorMessage);
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   return (
     <Sheet
@@ -62,6 +130,9 @@ export function RequestDetailCard({ request, onClose }: RequestDetailCardProps) 
         shadowOffset={{ width: 0, height: -2 }}
         shadowOpacity={0.1}
         shadowRadius={8}
+        maxWidth={768}
+        alignSelf="center"
+        width="100%"
       >
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -122,9 +193,53 @@ export function RequestDetailCard({ request, onClose }: RequestDetailCardProps) 
                 {request.description}
               </Text>
             )}
+
+            {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시 */}
+            {canAccept && (
+              <>
+                <Button
+                  size="$5"
+                  backgroundColor={alreadyApplied ? '#999' : brandColors.primary}
+                  color="white"
+                  fontWeight="700"
+                  marginTop="$2"
+                  onPress={handleAcceptClick}
+                  disabled={isApplying || alreadyApplied}
+                  hoverStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryHover }}
+                  pressStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryPressed, scale: 0.98 }}
+                >
+                  {isApplying ? (
+                    <Spinner size="small" color="white" />
+                  ) : alreadyApplied ? (
+                    '신청 완료'
+                  ) : (
+                    '작업 수락하기'
+                  )}
+                </Button>
+                {applyError && (
+                  <Text fontSize={13} color="#ff4444" textAlign="center" marginTop="$2">
+                    {applyError}
+                  </Text>
+                )}
+              </>
+            )}
           </YStack>
         </ScrollView>
       </Sheet.Frame>
+
+      {/* 로그인 모달 */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* 프로필 설정 모달 */}
+      <ProfileSetupModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onSuccess={handleProfileSuccess}
+      />
     </Sheet>
   );
 }

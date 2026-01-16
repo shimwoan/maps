@@ -5,3 +5,5 @@ export * from './LoginModal';
 export * from './AddressSearch';
 export * from './RequestFormModal';
 export * from './RequestDetailCard';
+export * from './ProfileSetupModal';
+export * from './Button';

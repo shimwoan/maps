@@ -1,4 +1,5 @@
-import { View, Text, Button, Sheet, Spinner } from 'tamagui';
+import { View, Text, Sheet, Spinner } from 'tamagui';
+import { Button } from '../Button';
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -47,6 +48,9 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
         backgroundColor="white"
         borderTopLeftRadius={20}
         borderTopRightRadius={20}
+        maxWidth={768}
+        alignSelf="center"
+        width="100%"
       >
         <Sheet.Handle backgroundColor="#ddd" />
 
@@ -67,7 +71,8 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
             borderRadius={12}
             onPress={handleKakaoLogin}
             disabled={loading}
-            pressStyle={{ backgroundColor: '#FFEB3B' }}
+            hoverStyle={{ backgroundColor: '#F5DC00' }}
+            pressStyle={{ backgroundColor: '#E6CE00' }}
           >
             {loading ? (
               <Spinner size="small" color="#000" />
@@ -91,6 +96,8 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
             backgroundColor="transparent"
             color="#999"
             onPress={onClose}
+            hoverStyle={{ backgroundColor: 'transparent', opacity: 0.7 }}
+            pressStyle={{ backgroundColor: 'transparent', opacity: 0.5 }}
           >
             나중에 하기
           </Button>
