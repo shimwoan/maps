@@ -207,9 +207,9 @@ export function HomeScreen() {
         right={0}
         zIndex={100}
         backgroundColor="white"
-        paddingVertical="$2.5"
+        paddingVertical="$2"
         paddingHorizontal="$3"
-        minHeight={70}
+        minHeight={44}
         justifyContent="center"
         borderBottomWidth={1}
         borderBottomColor="#eee"
@@ -310,7 +310,7 @@ export function HomeScreen() {
       {/* 지도 컨트롤 버튼들 */}
       <View
         position="absolute"
-        top={70}
+        top={56}
         left={16}
         zIndex={100}
         gap="$2"
@@ -409,12 +409,15 @@ export function HomeScreen() {
       <RequestFormModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        onSuccess={(latitude, longitude) => {
+        onSuccess={(latitude, longitude, requestId) => {
           setIsRequestModalOpen(false);
           refetchRequests();
-          // 새로 등록된 의뢰 위치로 지도 이동
+          // 새로 등록된 의뢰 위치로 지도 이동 및 마커 선택
           if (latitude && longitude) {
             naverMapRef.current?.moveTo(latitude, longitude, 16);
+          }
+          if (requestId) {
+            setSelectedRequestId(requestId);
           }
         }}
         defaultAddress={address ? `${address.sido} ${address.sigungu} ${address.dong}`.trim() : ''}

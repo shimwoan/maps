@@ -114,7 +114,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [lastCoords, setLastCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const [lastCoords, setLastCoords] = useState<{ lat: number | null; lng: number | null; id: string | null }>({ lat: null, lng: null, id: null });
 
   const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<RequestFormData>({
     defaultValues: {
@@ -139,7 +139,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('requests').insert({
+      const { data: insertedData, error } = await supabase.from('requests').insert({
         user_id: user.id,
         visit_type: data.visitType,
         as_type: data.asType,
@@ -155,12 +155,12 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         required_personnel: data.requiredPersonnel,
         description: data.description,
         status: 'pending',
-      });
+      }).select('id').single();
 
       if (error) throw error;
 
-      // 좌표 저장 (성공 다이얼로그 닫힐 때 전달)
-      setLastCoords({ lat: data.latitude, lng: data.longitude });
+      // 좌표와 ID 저장 (성공 다이얼로그 닫힐 때 전달)
+      setLastCoords({ lat: data.latitude, lng: data.longitude, id: insertedData?.id || null });
       reset();
       onClose();
       setShowSuccessDialog(true);
@@ -512,7 +512,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       isOpen={showSuccessDialog}
       onClose={() => {
         setShowSuccessDialog(false);
-        onSuccess?.(lastCoords.lat, lastCoords.lng);
+        onSuccess?.(lastCoords.lat, lastCoords.lng, lastCoords.id);
       }}
     />
     </>
