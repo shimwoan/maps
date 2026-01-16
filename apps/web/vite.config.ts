@@ -15,8 +15,21 @@ export default defineConfig({
       'react-native': 'react-native-web',
     },
   },
+  build: {
+    rollupOptions: {
+      // Prevent tree-shaking of Tamagui themes
+      treeshake: {
+        moduleSideEffects: (id) => {
+          if (id.includes('@tamagui/themes') || id.includes('tamagui.config')) {
+            return true;
+          }
+          return false;
+        },
+      },
+    },
+  },
   optimizeDeps: {
-    include: ['@monorepo/ui', 'tamagui', '@tamagui/core', '@tamagui/web'],
+    include: ['@monorepo/ui', 'tamagui', '@tamagui/core', '@tamagui/web', '@tamagui/themes'],
     exclude: ['@monorepo/shared'],
   },
   server: {
