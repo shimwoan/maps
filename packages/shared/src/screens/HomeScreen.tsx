@@ -54,58 +54,31 @@ function requestAndGetLocation(): Promise<{ location: Location; granted: boolean
   });
 }
 
-// 동 이름으로 시군구 찾기
-function findSigunguByDong(dongName: string): string | null {
-  // 동 이름에서 숫자 제거하여 검색 (예: "방배2동" -> "방배동", "방배2동")
-  const dongInfo = DONG_LIST.find(d => d.name === dongName);
-  if (dongInfo) {
-    const sigunguInfo = SIGUNGU_LIST.find(s => s.code === dongInfo.sigungu);
-    return sigunguInfo?.name || null;
+// 좌표로 가장 가까운 동 찾기
+function findNearestDong(latitude: number, longitude: number): Address | null {
+  let nearest = null;
+  let minDistance = Infinity;
+
+  for (const dong of DONG_LIST) {
+    const distance = Math.pow(dong.lat - latitude, 2) + Math.pow(dong.lng - longitude, 2);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = dong;
+    }
   }
 
-  // 정확한 매칭이 없으면 부분 매칭 시도
-  const baseName = dongName.replace(/[0-9]/g, '').replace('동', '');
-  const partialMatch = DONG_LIST.find(d => d.name.includes(baseName));
-  if (partialMatch) {
-    const sigunguInfo = SIGUNGU_LIST.find(s => s.code === partialMatch.sigungu);
-    return sigunguInfo?.name || null;
-  }
+  if (!nearest) return null;
 
-  return null;
+  const sigungu = SIGUNGU_LIST.find(s => s.code === nearest.sigungu);
+  return {
+    sido: '',
+    sigungu: sigungu?.name || '',
+    dong: nearest.name,
+  };
 }
 
-async function getAddressFromCoords(latitude: number, longitude: number): Promise<Address | null> {
-  try {
-    const response = await fetch(
-      `https://photon.komoot.io/reverse?lat=${latitude}&lon=${longitude}`
-    );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    const properties = data?.features?.[0]?.properties;
-
-    if (!properties) {
-      return null;
-    }
-
-    // Photon 응답에서 동 이름 추출
-    const dong = properties.district || properties.locality || properties.name || '';
-
-    // 동 이름으로 시군구 찾기 (지역 데이터 활용)
-    const sigunguFromData = findSigunguByDong(dong);
-
-    // 시군구가 데이터에서 찾아지면 사용, 아니면 Photon 응답 사용
-    const sigungu = sigunguFromData || properties.county || '';
-    const sido = properties.state || '';
-
-    return { sido, sigungu, dong };
-  } catch (error) {
-    console.error('Failed to get address:', error);
-    return null;
-  }
+function getAddressFromCoords(latitude: number, longitude: number): Address | null {
+  return findNearestDong(latitude, longitude);
 }
 
 const MIN_ZOOM_FOR_ADDRESS = 14;
@@ -152,7 +125,7 @@ export function HomeScreen() {
       clearTimeout(debounceTimerRef.current);
     }
     debounceTimerRef.current = setTimeout(() => {
-      getAddressFromCoords(latitude, longitude).then(setAddress);
+      setAddress(getAddressFromCoords(latitude, longitude));
     }, 500);
   };
 
@@ -350,7 +323,7 @@ export function HomeScreen() {
                 setCurrentLocation(loc);
                 setZoom(16);
                 naverMapRef.current?.moveTo(loc.latitude, loc.longitude, 16);
-                getAddressFromCoords(loc.latitude, loc.longitude).then(setAddress);
+                setAddress(getAddressFromCoords(loc.latitude, loc.longitude));
               }
             });
           }}
