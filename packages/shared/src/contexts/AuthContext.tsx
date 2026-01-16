@@ -17,18 +17,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 프로필 upsert (닉네임 저장)
+  const upsertProfile = async (user: User) => {
+    const nickname = user.user_metadata?.name ||
+                     user.user_metadata?.full_name ||
+                     user.user_metadata?.preferred_username ||
+                     user.email?.split('@')[0] || '';
+
+    try {
+      await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          nickname: nickname,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false,
+        });
+    } catch (err) {
+      console.error('Failed to upsert profile:', err);
+    }
+  };
+
   useEffect(() => {
     // 현재 세션 가져오기
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        upsertProfile(session.user);
+      }
       setLoading(false);
     });
 
     // 인증 상태 변화 구독
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      // 로그인 시 프로필 저장
+      if (event === 'SIGNED_IN' && session?.user) {
+        upsertProfile(session.user);
+      }
       setLoading(false);
     });
 
@@ -40,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: 'kakao',
       options: {
         redirectTo: window.location.origin,
+        queryParams: {
+          prompt: 'login',
+        },
       },
     });
 
