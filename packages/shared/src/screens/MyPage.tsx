@@ -8,11 +8,12 @@ import { useProfile } from '../hooks/useProfile';
 import { useRequestApplications, RequestApplication } from '../hooks/useRequestApplications';
 import { useRequests, Request } from '../hooks/useRequests';
 
+type TabType = 'myRequests' | 'myApplications';
+
 interface MyPageProps {
   onBack: () => void;
+  initialTab?: TabType;
 }
-
-type TabType = 'myRequests' | 'myApplications';
 
 // 금액 포맷팅
 function formatPrice(price: number): string {
@@ -426,8 +427,8 @@ function MyApplicationCard({
   );
 }
 
-export function MyPage({ onBack }: MyPageProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('myRequests');
+export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const { user, signOut } = useAuth();
@@ -487,6 +488,21 @@ export function MyPage({ onBack }: MyPageProps) {
   const handleComplete = async (reqId: string) => {
     const { supabase } = await import('../lib/supabase');
 
+    // 의뢰 정보 조회
+    const { data: requestData } = await supabase
+      .from('requests')
+      .select('title')
+      .eq('id', reqId)
+      .single();
+
+    // 수락된 신청자 정보 조회 (알림 보내기 위해)
+    const { data: acceptedApp } = await supabase
+      .from('request_applications')
+      .select('applicant_id')
+      .eq('request_id', reqId)
+      .eq('status', 'accepted')
+      .single();
+
     // 의뢰 상태 업데이트
     const { error: reqError } = await supabase
       .from('requests')
@@ -503,6 +519,17 @@ export function MyPage({ onBack }: MyPageProps) {
       .eq('status', 'accepted');
 
     if (appError) throw appError;
+
+    // 수행자에게 알림 전송
+    if (acceptedApp && requestData) {
+      await supabase.from('notifications').insert({
+        user_id: acceptedApp.applicant_id,
+        type: 'request_completed',
+        title: '의뢰 완료',
+        message: `"${requestData.title}" 의뢰가 완료되었습니다.`,
+        request_id: reqId,
+      });
+    }
 
     // 로컬 상태 업데이트
     setMyRequests(prev => prev.map(r =>
