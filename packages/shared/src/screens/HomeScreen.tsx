@@ -207,8 +207,10 @@ export function HomeScreen() {
         right={0}
         zIndex={100}
         backgroundColor="white"
-        paddingVertical="$3.5"
-        paddingHorizontal="$4"
+        paddingVertical="$2.5"
+        paddingHorizontal="$3"
+        minHeight={70}
+        justifyContent="center"
         borderBottomWidth={1}
         borderBottomColor="#eee"
       >
