@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { View, Text, YStack, XStack } from 'tamagui';
 import { Button } from '../components/Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
+import { storage, STORAGE_KEYS } from '../lib/storage';
 
 interface IntroScreenProps {
   onStart: () => void;
@@ -9,6 +11,7 @@ interface IntroScreenProps {
 
 export function IntroScreen({ onStart }: IntroScreenProps) {
   const { user } = useAuth();
+  const [skipIntro, setSkipIntro] = useState(false);
 
   const getUserName = () => {
     if (user?.user_metadata?.name) return user.user_metadata.name;
@@ -37,26 +40,51 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
         {/* 상단: 로고 + 앱 이름 */}
         <YStack alignItems="center" gap="$3" paddingTop="$4">
           <View
-            width={72}
-            height={72}
-            borderRadius={20}
-            backgroundColor={brandColors.primaryLight}
+            width={80}
+            height={80}
+            borderRadius={22}
+            backgroundColor={brandColors.primary}
             alignItems="center"
             justifyContent="center"
+            shadowColor={brandColors.primary}
+            shadowOffset={{ width: 0, height: 6 }}
+            shadowOpacity={0.35}
+            shadowRadius={12}
           >
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="3.5" fill={brandColors.primary} />
-              <circle cx="12" cy="3.5" r="2" fill={brandColors.primary} />
-              <circle cx="19.5" cy="7.5" r="2" fill={brandColors.primary} />
-              <circle cx="19.5" cy="16.5" r="2" fill={brandColors.primary} />
-              <circle cx="12" cy="20.5" r="2" fill={brandColors.primary} />
-              <circle cx="4.5" cy="16.5" r="2" fill={brandColors.primary} />
-              <circle cx="4.5" cy="7.5" r="2" fill={brandColors.primary} />
+            <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
+              {/* 지도 핀 + 연결 아이콘 */}
+              {/* 메인 핀 */}
               <path
-                d="M12 5.5v3.5M12 15v3.5M14.5 10.5l3.5-2M14.5 13.5l3.5 2M9.5 10.5l-3.5-2M9.5 13.5l-3.5 2"
-                stroke={brandColors.primary}
-                strokeWidth="1.5"
+                d="M24 4C17.4 4 12 9.4 12 16C12 25 24 36 24 36C24 36 36 25 36 16C36 9.4 30.6 4 24 4Z"
+                fill="white"
+              />
+              <circle cx="24" cy="16" r="5" fill={brandColors.primary} />
+              {/* 작은 연결 점들 */}
+              <circle cx="10" cy="34" r="4" fill="white" opacity="0.9" />
+              <circle cx="38" cy="34" r="4" fill="white" opacity="0.9" />
+              {/* 연결선 */}
+              <path
+                d="M14 34 L20 28"
+                stroke="white"
+                strokeWidth="2"
                 strokeLinecap="round"
+                opacity="0.7"
+              />
+              <path
+                d="M34 34 L28 28"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                opacity="0.7"
+              />
+              {/* 하단 곡선 연결 */}
+              <path
+                d="M10 38 Q24 44 38 38"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.5"
               />
             </svg>
           </View>
@@ -165,27 +193,46 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             marginTop="$4"
             lineHeight={22}
           >
-            내 주변 전문가에게{'\n'}
+            주변 전문가에게{'\n'}
             <Text fontWeight="600" color="#555">실시간으로 작업을 요청</Text>하세요
           </Text>
         </View>
 
         {/* 하단: 인사말 + 버튼 + 특징 */}
         <YStack gap="$4">
-          {/* 인사말 */}
-          <View
-            width="100%"
-            paddingHorizontal="$4"
-            paddingVertical="$3"
-            backgroundColor="white"
-            borderRadius={14}
-            borderWidth={1}
-            borderColor="#eee"
+          {/* 다시 보지 않기 체크박스 */}
+          <XStack
+            alignItems="center"
+            gap="$2"
+            justifyContent="center"
+            cursor="pointer"
+            onPress={() => setSkipIntro(!skipIntro)}
           >
-            <Text fontSize={15} fontWeight="600" color="#333" textAlign="center">
-              {getUserName()}님! <Text color="#666" fontWeight="400">오늘도 신속하고 안전하게 협업하세요</Text>
+            <View
+              width={20}
+              height={20}
+              borderRadius={4}
+              borderWidth={1.5}
+              borderColor={skipIntro ? brandColors.primary : '#ccc'}
+              backgroundColor={skipIntro ? brandColors.primary : 'white'}
+              alignItems="center"
+              justifyContent="center"
+            >
+              {skipIntro && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </View>
+            <Text fontSize={14} color="#666">
+              다시 보지 않기
             </Text>
-          </View>
+          </XStack>
+
+          {/* 인사말 */}
+          <Text fontSize={15} fontWeight="600" color="#333" textAlign="center" paddingVertical="$2">
+            {user && <>{getUserName()}님! </>}<Text color="#666" fontWeight="400">오늘도 신속하고 안전하게 협업하세요</Text>
+          </Text>
 
           {/* 시작 버튼 */}
           <Button
@@ -197,7 +244,12 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             width="100%"
             height={52}
             borderRadius={14}
-            onPress={onStart}
+            onPress={() => {
+              if (skipIntro) {
+                storage.setItem(STORAGE_KEYS.SKIP_INTRO, 'true');
+              }
+              onStart();
+            }}
             hoverStyle={{ backgroundColor: brandColors.primaryHover }}
             pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
           >
