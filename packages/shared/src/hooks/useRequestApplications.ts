@@ -137,6 +137,13 @@ export function useRequestApplications() {
   const applyToRequest = async (requestId: string) => {
     if (!user) throw new Error('로그인이 필요합니다');
 
+    // 의뢰 정보 조회 (의뢰자에게 알림 보내기 위해)
+    const { data: requestData } = await supabase
+      .from('requests')
+      .select('user_id, title')
+      .eq('id', requestId)
+      .single();
+
     const { data, error } = await supabase
       .from('request_applications')
       .insert({
@@ -160,6 +167,18 @@ export function useRequestApplications() {
       .update({ status: 'applied' })
       .eq('id', requestId);
 
+    // 의뢰자에게 알림 전송
+    if (requestData) {
+      const applicantName = user.user_metadata?.name || user.user_metadata?.full_name || '수행자';
+      await supabase.from('notifications').insert({
+        user_id: requestData.user_id,
+        type: 'application_received',
+        title: '새로운 작업 신청',
+        message: `${applicantName}님이 "${requestData.title}" 의뢰에 작업을 신청했습니다.`,
+        request_id: requestId,
+      });
+    }
+
     await fetchAll();
     return data;
   };
@@ -167,6 +186,20 @@ export function useRequestApplications() {
   // 신청 수락 (의뢰 작성자가)
   const acceptApplication = async (applicationId: string, requestId: string) => {
     if (!user) throw new Error('로그인이 필요합니다');
+
+    // 신청 정보 조회 (수행자에게 알림 보내기 위해)
+    const { data: appData } = await supabase
+      .from('request_applications')
+      .select('applicant_id')
+      .eq('id', applicationId)
+      .single();
+
+    // 의뢰 정보 조회
+    const { data: requestData } = await supabase
+      .from('requests')
+      .select('title')
+      .eq('id', requestId)
+      .single();
 
     // 신청 상태를 accepted로
     const { error: appError } = await supabase
@@ -183,6 +216,17 @@ export function useRequestApplications() {
       .eq('id', requestId);
 
     if (reqError) throw reqError;
+
+    // 수행자에게 알림 전송
+    if (appData && requestData) {
+      await supabase.from('notifications').insert({
+        user_id: appData.applicant_id,
+        type: 'application_accepted',
+        title: '작업 신청 수락됨',
+        message: `"${requestData.title}" 의뢰의 작업 신청이 수락되었습니다.`,
+        request_id: requestId,
+      });
+    }
 
     await fetchAll();
   };

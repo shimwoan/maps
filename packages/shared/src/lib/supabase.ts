@@ -8,3 +8,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// 디버깅용 (개발 환경에서만)
+if (typeof window !== 'undefined') {
+  (window as unknown as { supabase: typeof supabase }).supabase = supabase;
+}
