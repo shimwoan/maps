@@ -59,6 +59,8 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
   const canAccept = !user || user.id !== request.user_id;
   // 이미 신청했는지 확인
   const alreadyApplied = myApplications.some(app => app.request_id === request.id);
+  // 진행중인 의뢰인지 확인
+  const isInProgress = request.status === 'accepted';
 
   const handleAcceptClick = async () => {
     // 비로그인 시 로그인 모달 표시
@@ -197,25 +199,38 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
             {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시 */}
             {canAccept && (
               <>
-                <Button
-                  size="$5"
-                  backgroundColor={alreadyApplied ? '#999' : brandColors.primary}
-                  color="white"
-                  fontWeight="700"
-                  marginTop="$2"
-                  onPress={handleAcceptClick}
-                  disabled={isApplying || alreadyApplied}
-                  hoverStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryHover }}
-                  pressStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryPressed, scale: 0.98 }}
-                >
-                  {isApplying ? (
-                    <Spinner size="small" color="white" />
-                  ) : alreadyApplied ? (
-                    '신청 완료'
-                  ) : (
-                    '작업 수락하기'
-                  )}
-                </Button>
+                {isInProgress ? (
+                  <View
+                    backgroundColor="#FEF3C7"
+                    padding="$3"
+                    borderRadius={8}
+                    marginTop="$2"
+                  >
+                    <Text fontSize={14} color="#D97706" textAlign="center" fontWeight="600">
+                      이미 진행중인 의뢰입니다
+                    </Text>
+                  </View>
+                ) : (
+                  <Button
+                    size="$5"
+                    backgroundColor={alreadyApplied ? '#999' : brandColors.primary}
+                    color="white"
+                    fontWeight="700"
+                    marginTop="$2"
+                    onPress={handleAcceptClick}
+                    disabled={isApplying || alreadyApplied}
+                    hoverStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryHover }}
+                    pressStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryPressed, scale: 0.98 }}
+                  >
+                    {isApplying ? (
+                      <Spinner size="small" color="white" />
+                    ) : alreadyApplied ? (
+                      '신청 완료'
+                    ) : (
+                      '작업 수락하기'
+                    )}
+                  </Button>
+                )}
                 {applyError && (
                   <Text fontSize={13} color="#ff4444" textAlign="center" marginTop="$2">
                     {applyError}
