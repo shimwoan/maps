@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Sheet, YStack, XStack, Text, View, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -76,6 +76,28 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
   const [isCropping, setIsCropping] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // 모달이 열릴 때 상태 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setImageSrc(null);
+      setCompletedCrop(null);
+      setIsUploading(false);
+      setError(null);
+      setIsCropping(false);
+      setCrop({
+        unit: '%',
+        x: 5,
+        y: 5,
+        width: 90,
+        height: 90,
+      });
+      // 파일 인풋도 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [isOpen]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
