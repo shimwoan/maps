@@ -204,19 +204,29 @@ export function useRequestApplications() {
   const cancelApplication = async (applicationId: string, requestId: string) => {
     if (!user) throw new Error('로그인이 필요합니다');
 
-    const { error } = await supabase
+    console.log('Canceling application:', applicationId, 'for request:', requestId);
+
+    const { error, data } = await supabase
       .from('request_applications')
       .delete()
       .eq('id', applicationId)
-      .eq('applicant_id', user.id);
+      .eq('applicant_id', user.id)
+      .select();
 
-    if (error) throw error;
+    console.log('Delete result:', { error, data });
+
+    if (error) {
+      console.error('Delete error:', error);
+      throw error;
+    }
 
     // 다른 신청자가 없으면 의뢰 상태를 다시 pending으로
     const { data: otherApps } = await supabase
       .from('request_applications')
       .select('id')
       .eq('request_id', requestId);
+
+    console.log('Other applications:', otherApps);
 
     if (!otherApps || otherApps.length === 0) {
       await supabase
@@ -226,6 +236,7 @@ export function useRequestApplications() {
     }
 
     await fetchAll();
+    console.log('Refetch completed');
   };
 
   return {
