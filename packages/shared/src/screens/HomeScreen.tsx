@@ -240,9 +240,8 @@ export function HomeScreen() {
         right={0}
         zIndex={100}
         backgroundColor="white"
-        paddingVertical="$2"
         paddingHorizontal="$3"
-        minHeight={44}
+        height={51}
         justifyContent="center"
         borderBottomWidth={1}
         borderBottomColor="#eee"
@@ -340,20 +339,20 @@ export function HomeScreen() {
       {/* AS 종류 필터 */}
       <View
         position="absolute"
-        top={50}
+        top={51}
         left={0}
         right={0}
         zIndex={99}
         backgroundColor="white"
         borderBottomWidth={1}
         borderBottomColor="#eee"
-        height={48}
+        height={56}
         justifyContent="center"
       >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 12, alignItems: 'center', height: 48 }}
+          contentContainerStyle={{ paddingHorizontal: 12, alignItems: 'center', height: 56 }}
         >
           <XStack gap="$2" alignItems="center">
             {/* 전체 보기 칩 */}
@@ -487,7 +486,7 @@ export function HomeScreen() {
       {!isLocationLoading && location && (
         <View
           position="absolute"
-          top={106}
+          top={120}
           left={16}
           zIndex={100}
           gap="$2"
