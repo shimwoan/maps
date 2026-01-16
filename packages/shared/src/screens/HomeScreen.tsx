@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { View, Text, XStack, Spinner, Popover, YStack, Button } from 'tamagui';
+import { View, Text, XStack, Spinner } from 'tamagui';
 import { NaverMap, NaverMapRef } from '../components/NaverMap';
 import type { RequestMarker } from '../components/NaverMap';
 import { RegionSelectModal } from '../components/RegionSelectModal';
@@ -7,6 +7,7 @@ import { FloatingActionButton } from '../components/FloatingActionButton';
 import { LoginModal } from '../components/LoginModal';
 import { RequestFormModal } from '../components/RequestFormModal';
 import { RequestDetailCard } from '../components/RequestDetailCard';
+import { MyPage } from './MyPage';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -106,10 +107,11 @@ export function HomeScreen() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [isMyPageOpen, setIsMyPageOpen] = useState(false);
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
 
   // 의뢰를 마커 형식으로 변환
@@ -118,6 +120,7 @@ export function HomeScreen() {
       .filter(r => r.latitude && r.longitude)
       .map(r => ({
         id: r.id,
+        userId: r.user_id,
         latitude: r.latitude!,
         longitude: r.longitude!,
         title: r.title,
@@ -218,7 +221,8 @@ export function HomeScreen() {
   };
 
   return (
-    <View position="relative" width="100%" height="100vh" overflow="hidden" backgroundColor="#f5f5f5">
+    <View position="relative" width="100%" height="100vh" overflow="hidden" backgroundColor="#fff" alignItems="center">
+    <View position="relative" width="100%" maxWidth={768} height="100%" overflow="hidden" backgroundColor="#f5f5f5">
       {/* 상단 주소 표시 */}
       <View
         position="absolute"
@@ -255,57 +259,37 @@ export function HomeScreen() {
             )}
           </XStack>
 
-          {/* 로그인 상태 - 이름 배지 + 드롭다운 */}
-          {user && (
-            <Popover placement="bottom-end" offset={4}>
-              <Popover.Trigger>
-                <View
-                  width={36}
-                  height={36}
-                  borderRadius={18}
-                  backgroundColor={brandColors.primaryLight}
-                  alignItems="center"
-                  justifyContent="center"
-                  cursor="pointer"
-                  style={{ userSelect: 'none' }}
-                >
-                  <Text fontSize={14} fontWeight="700" color={brandColors.primary} style={{ userSelect: 'none' }}>
-                    {(user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || '').slice(0, 2)}
-                  </Text>
-                </View>
-              </Popover.Trigger>
-
-              <Popover.Content
-                borderWidth={1}
-                borderColor="#eee"
-                padding="$2"
-                backgroundColor="white"
-                borderRadius={12}
-                shadowColor="#000"
-                shadowOffset={{ width: 0, height: 2 }}
-                shadowOpacity={0.1}
-                shadowRadius={8}
-                elevate
-              >
-                <Popover.Arrow borderWidth={1} borderColor="#eee" />
-                <YStack gap="$1">
-                  <Popover.Close asChild>
-                    <Button
-                      size="$3"
-                      backgroundColor="transparent"
-                      color="#000"
-                      fontWeight="500"
-                      onPress={() => signOut()}
-                      hoverStyle={{ backgroundColor: 'transparent' }}
-                      pressStyle={{ backgroundColor: 'transparent' }}
-                      style={{ userSelect: 'none' }}
-                    >
-                      로그아웃
-                    </Button>
-                  </Popover.Close>
-                </YStack>
-              </Popover.Content>
-            </Popover>
+          {/* 로그인 상태 - MY 아이콘 / 비로그인 - 로그인 버튼 */}
+          {user ? (
+            <View
+              width={36}
+              height={36}
+              borderRadius={18}
+              backgroundColor={brandColors.primaryLight}
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
+              style={{ userSelect: 'none' }}
+              onPress={() => setIsMyPageOpen(true)}
+            >
+              <Text fontSize={12} fontWeight="700" color={brandColors.primary} style={{ userSelect: 'none' }}>
+                MY
+              </Text>
+            </View>
+          ) : (
+            <View
+              paddingHorizontal="$2.5"
+              paddingVertical="$1.5"
+              borderRadius={18}
+              backgroundColor={brandColors.primary}
+              cursor="pointer"
+              style={{ userSelect: 'none' }}
+              onPress={() => setIsLoginModalOpen(true)}
+            >
+              <Text fontSize={12} fontWeight="600" color="white" style={{ userSelect: 'none' }}>
+                로그인
+              </Text>
+            </View>
           )}
         </XStack>
       </View>
@@ -328,6 +312,7 @@ export function HomeScreen() {
           currentLocationLng={currentLocation?.longitude}
           markers={markers}
           selectedMarkerId={selectedRequestId}
+          currentUserId={user?.id || null}
           onMarkerClick={(id) => setSelectedRequestId(id)}
           onMapClick={() => setSelectedRequestId(null)}
         />
@@ -455,6 +440,12 @@ export function HomeScreen() {
           onClose={() => setSelectedRequestId(null)}
         />
       )}
+
+      {/* MY 페이지 */}
+      {isMyPageOpen && (
+        <MyPage onBack={() => setIsMyPageOpen(false)} />
+      )}
+    </View>
     </View>
   );
 }
