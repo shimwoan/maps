@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { AddressSearch } from '../AddressSearch';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { RequestFormData, RequestFormModalProps, VisitType, AsType } from './types';
+import { AS_TYPES } from './types';
 
 // 성공 팝업 컴포넌트
 function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -97,7 +98,6 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 const VISIT_TYPES: VisitType[] = ['방문', '원격'];
-const AS_TYPES: AsType[] = ['복합기/OA', '프린터', '컴퓨터', '파쇄기', '기타'];
 const DURATION_OPTIONS = ['30분', '1시간', '2시간', '3시간', '4시간', '반나절', '하루'];
 const PERSONNEL_OPTIONS = [1, 2, 3, 4, 5];
 
