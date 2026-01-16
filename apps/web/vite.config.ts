@@ -1,26 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { tamaguiPlugin } from '@tamagui/vite-plugin';
 import path from 'path';
 
 export default defineConfig({
   plugins: [
     react(),
-    tamaguiPlugin({
-      config: './src/tamagui.config.ts',
-      components: ['tamagui'],
-    }),
   ],
   define: {
-    'process.env.TAMAGUI_OPTIMIZE_THEMES': JSON.stringify(false),
+    'process.env.TAMAGUI_TARGET': JSON.stringify('web'),
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'react-native': 'react-native-web',
     },
   },
   optimizeDeps: {
-    include: ['@monorepo/ui'],
+    include: ['@monorepo/ui', 'tamagui', '@tamagui/core', '@tamagui/web'],
     exclude: ['@monorepo/shared'],
   },
   server: {
