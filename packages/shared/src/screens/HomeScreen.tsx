@@ -10,6 +10,7 @@ import { RequestDetailCard } from '../components/RequestDetailCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
+import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
 
 interface Location {
   latitude: number;
@@ -53,6 +54,26 @@ function requestAndGetLocation(): Promise<{ location: Location; granted: boolean
   });
 }
 
+// 동 이름으로 시군구 찾기
+function findSigunguByDong(dongName: string): string | null {
+  // 동 이름에서 숫자 제거하여 검색 (예: "방배2동" -> "방배동", "방배2동")
+  const dongInfo = DONG_LIST.find(d => d.name === dongName);
+  if (dongInfo) {
+    const sigunguInfo = SIGUNGU_LIST.find(s => s.code === dongInfo.sigungu);
+    return sigunguInfo?.name || null;
+  }
+
+  // 정확한 매칭이 없으면 부분 매칭 시도
+  const baseName = dongName.replace(/[0-9]/g, '').replace('동', '');
+  const partialMatch = DONG_LIST.find(d => d.name.includes(baseName));
+  if (partialMatch) {
+    const sigunguInfo = SIGUNGU_LIST.find(s => s.code === partialMatch.sigungu);
+    return sigunguInfo?.name || null;
+  }
+
+  return null;
+}
+
 async function getAddressFromCoords(latitude: number, longitude: number): Promise<Address | null> {
   try {
     const response = await fetch(
@@ -70,10 +91,15 @@ async function getAddressFromCoords(latitude: number, longitude: number): Promis
       return null;
     }
 
-    // Photon 응답에서 한국 주소 형식으로 매핑
-    const sido = properties.state || '';
-    const sigungu = properties.city || properties.county || '';
+    // Photon 응답에서 동 이름 추출
     const dong = properties.district || properties.locality || properties.name || '';
+
+    // 동 이름으로 시군구 찾기 (지역 데이터 활용)
+    const sigunguFromData = findSigunguByDong(dong);
+
+    // 시군구가 데이터에서 찾아지면 사용, 아니면 Photon 응답 사용
+    const sigungu = sigunguFromData || properties.county || '';
+    const sido = properties.state || '';
 
     return { sido, sigungu, dong };
   } catch (error) {
@@ -94,8 +120,6 @@ export function HomeScreen() {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const skipAddressUpdateRef = useRef(false);
-  const manuallySelectedRef = useRef(false); // 사용자가 직접 선택한 지역인지 여부
-  const lastSelectedLocationRef = useRef<Location | null>(null); // 마지막 선택 위치
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, signOut } = useAuth();
@@ -157,40 +181,12 @@ export function HomeScreen() {
     });
   }, []);
 
-  // 두 좌표 간 거리 계산 (미터)
-  const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371000; // 지구 반지름 (미터)
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
   const handleCameraChange = (latitude: number, longitude: number, currentZoom: number) => {
     setZoom(currentZoom);
     // 지역 선택 직후 또는 초기 로딩 직후에는 주소 업데이트 스킵
     if (skipAddressUpdateRef.current) {
       skipAddressUpdateRef.current = false;
       return;
-    }
-
-    // 사용자가 직접 선택한 지역이 있는 경우, 500m 이상 이동해야 주소 업데이트
-    if (manuallySelectedRef.current && lastSelectedLocationRef.current) {
-      const distance = getDistance(
-        lastSelectedLocationRef.current.latitude,
-        lastSelectedLocationRef.current.longitude,
-        latitude,
-        longitude
-      );
-      if (distance < 500) {
-        return; // 500m 미만 이동 시 주소 유지
-      }
-      // 500m 이상 이동 시 수동 선택 해제
-      manuallySelectedRef.current = false;
-      lastSelectedLocationRef.current = null;
     }
 
     if (currentZoom >= MIN_ZOOM_FOR_ADDRESS) {
@@ -201,9 +197,6 @@ export function HomeScreen() {
   const handleRegionSelect = (region: { name: string; lat: number; lng: number; zoom?: number }) => {
     // 지역 선택 후 카메라 이동 시 주소 업데이트 스킵 설정
     skipAddressUpdateRef.current = true;
-    // 사용자가 직접 선택한 지역임을 표시
-    manuallySelectedRef.current = true;
-    lastSelectedLocationRef.current = { latitude: region.lat, longitude: region.lng };
 
     setLocation({ latitude: region.lat, longitude: region.lng });
     if (region.zoom) {
