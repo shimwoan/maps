@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      react-native-mmkv:
+        specifier: ^4.1.1
+        version: 4.1.1(react-native-nitro-modules@0.33.1(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
     devDependencies:
       turbo:
         specifier: ^2.3.0
@@ -171,6 +175,9 @@ importers:
       react-image-crop:
         specifier: ^11.0.10
         version: 11.0.10(react@19.2.3)
+      react-native-mmkv:
+        specifier: ^4.1.1
+        version: 4.1.1(react-native-nitro-modules@0.33.1(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
       tamagui:
         specifier: '>=1.0.0'
         version: 1.144.1(react-dom@19.2.3(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
@@ -3518,6 +3525,19 @@ packages:
 
   react-native-is-edge-to-edge@1.1.7:
     resolution: {integrity: sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
+  react-native-mmkv@4.1.1:
+    resolution: {integrity: sha512-nYFjM27l7zVhIiyAqWEFRagGASecb13JMIlzAuOeakRRz9GMJ49hCQntUBE2aeuZRE4u4ehSqTOomB0mTF56Ew==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+      react-native-nitro-modules: '*'
+
+  react-native-nitro-modules@0.33.1:
+    resolution: {integrity: sha512-Kdo8qiqlkGAEs7fq29i0yiZs0Gf7ucmMiFsH8PH4uzsnSGEt2CQRBJGnQKKMl9vJYL8e7rzA0TZKRwO/L8G/Sg==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -9443,6 +9463,17 @@ snapshots:
       react-native: 0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3)
 
   react-native-is-edge-to-edge@1.1.7(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-native: 0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3)
+
+  react-native-mmkv@4.1.1(react-native-nitro-modules@0.33.1(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3))(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-native: 0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3)
+      react-native-nitro-modules: 0.33.1(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3)
+
+  react-native-nitro-modules@0.33.1(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3))(react@19.2.3):
     dependencies:
       react: 19.2.3
       react-native: 0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.1.0)(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.8)(react@19.2.3)

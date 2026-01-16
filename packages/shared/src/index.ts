@@ -18,3 +18,7 @@ export { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Hooks
 export * from './hooks';
+
+// Lib
+export { storage, STORAGE_KEYS, typedStorage, storageSync } from './lib/storage';
+export type { StorageInterface } from './lib/storage';
