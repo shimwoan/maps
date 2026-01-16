@@ -132,6 +132,8 @@ export function HomeScreen() {
   // + 버튼 클릭 핸들러
   const handleFabPress = () => {
     if (!user) {
+      // 로그인 후 의뢰 등록 모달을 열기 위해 저장
+      sessionStorage.setItem('openRequestModalAfterLogin', 'true');
       // 로그인 안됨 -> 로그인 모달
       setIsLoginModalOpen(true);
     } else {
@@ -139,6 +141,14 @@ export function HomeScreen() {
       setIsRequestModalOpen(true);
     }
   };
+
+  // 로그인 후 의뢰 등록 모달 자동 열기
+  useEffect(() => {
+    if (user && sessionStorage.getItem('openRequestModalAfterLogin') === 'true') {
+      sessionStorage.removeItem('openRequestModalAfterLogin');
+      setIsRequestModalOpen(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     // 사이트 접속 시 위치 권한 요청
