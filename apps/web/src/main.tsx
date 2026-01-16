@@ -1,11 +1,18 @@
+// Config must be imported FIRST to ensure createTamagui runs before any component
+import config from './tamagui.config';
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { TamaguiProvider } from 'tamagui';
 import { QueryClientProvider } from '@monorepo/shared';
 import { createQueryClient } from '@monorepo/shared';
-import config from './tamagui.config';
 import App from './App';
 import './index.css';
+
+// Ensure config is initialized
+if (!config) {
+  throw new Error('Tamagui config not initialized');
+}
 
 const queryClient = createQueryClient();
 

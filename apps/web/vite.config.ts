@@ -14,6 +14,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       'react-native': 'react-native-web',
     },
+    dedupe: ['tamagui', '@tamagui/core', '@tamagui/web', 'react', 'react-dom'],
   },
   build: {
     rollupOptions: {
