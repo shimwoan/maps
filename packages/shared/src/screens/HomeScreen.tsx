@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { View, Text, XStack, Spinner } from 'tamagui';
+import { View, Text, XStack, Spinner, ScrollView } from 'tamagui';
 import { NaverMap, NaverMapRef } from '../components/NaverMap';
 import type { RequestMarker } from '../components/NaverMap';
 import { RegionSelectModal } from '../components/RegionSelectModal';
@@ -8,10 +8,13 @@ import { LoginModal } from '../components/LoginModal';
 import { RequestFormModal } from '../components/RequestFormModal';
 import { RequestDetailCard } from '../components/RequestDetailCard';
 import { MyPage } from './MyPage';
+import { NotificationModal } from '../components/NotificationModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
+import { useNotifications } from '../hooks/useNotifications';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
+import { AS_TYPES, type AsType } from '../components/RequestFormModal/types';
 
 interface Location {
   latitude: number;
@@ -108,16 +111,21 @@ export function HomeScreen() {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isMyPageOpen, setIsMyPageOpen] = useState(false);
+  const [myPageInitialTab, setMyPageInitialTab] = useState<'myRequests' | 'myApplications'>('myRequests');
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [selectedAsTypeFilter, setSelectedAsTypeFilter] = useState<AsType | null>(null);
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
+  const { unreadCount } = useNotifications();
 
-  // 의뢰를 마커 형식으로 변환
+  // 의뢰를 마커 형식으로 변환 (필터 적용)
   const markers: RequestMarker[] = useMemo(() => {
     return requests
       .filter(r => r.latitude && r.longitude)
+      .filter(r => !selectedAsTypeFilter || r.as_type === selectedAsTypeFilter)
       .map(r => ({
         id: r.id,
         userId: r.user_id,
@@ -129,7 +137,7 @@ export function HomeScreen() {
         asType: r.as_type,
         status: r.status,
       }));
-  }, [requests]);
+  }, [requests, selectedAsTypeFilter]);
 
   // 선택된 의뢰 정보
   const selectedRequest = useMemo(() => {
@@ -260,23 +268,60 @@ export function HomeScreen() {
             )}
           </XStack>
 
-          {/* 로그인 상태 - MY 아이콘 / 비로그인 - 로그인 버튼 */}
+          {/* 로그인 상태 - 알림 + MY 아이콘 / 비로그인 - 로그인 버튼 */}
           {user ? (
-            <View
-              width={36}
-              height={36}
-              borderRadius={18}
-              backgroundColor={brandColors.primaryLight}
-              alignItems="center"
-              justifyContent="center"
-              cursor="pointer"
-              style={{ userSelect: 'none' }}
-              onPress={() => setIsMyPageOpen(true)}
-            >
-              <Text fontSize={12} fontWeight="700" color={brandColors.primary} style={{ userSelect: 'none' }}>
-                MY
-              </Text>
-            </View>
+            <XStack gap="$2" alignItems="center">
+              {/* 알림 아이콘 */}
+              <View
+                width={36}
+                height={36}
+                borderRadius={18}
+                alignItems="center"
+                justifyContent="center"
+                cursor="pointer"
+                position="relative"
+                onPress={() => setIsNotificationOpen(true)}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {unreadCount > 0 && (
+                  <View
+                    position="absolute"
+                    top={2}
+                    right={2}
+                    minWidth={16}
+                    height={16}
+                    borderRadius={8}
+                    backgroundColor="#FF4444"
+                    alignItems="center"
+                    justifyContent="center"
+                    paddingHorizontal={4}
+                  >
+                    <Text fontSize={10} fontWeight="700" color="white">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              {/* MY 아이콘 */}
+              <View
+                width={36}
+                height={36}
+                borderRadius={18}
+                backgroundColor={brandColors.primaryLight}
+                alignItems="center"
+                justifyContent="center"
+                cursor="pointer"
+                style={{ userSelect: 'none' }}
+                onPress={() => setIsMyPageOpen(true)}
+              >
+                <Text fontSize={12} fontWeight="700" color={brandColors.primary} style={{ userSelect: 'none' }}>
+                  MY
+                </Text>
+              </View>
+            </XStack>
           ) : (
             <Text
               fontSize={14}
@@ -290,6 +335,128 @@ export function HomeScreen() {
             </Text>
           )}
         </XStack>
+      </View>
+
+      {/* AS 종류 필터 */}
+      <View
+        position="absolute"
+        top={50}
+        left={0}
+        right={0}
+        zIndex={99}
+        backgroundColor="white"
+        borderBottomWidth={1}
+        borderBottomColor="#eee"
+        height={48}
+        justifyContent="center"
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 12, alignItems: 'center', height: 48 }}
+        >
+          <XStack gap="$2" alignItems="center">
+            {/* 전체 보기 칩 */}
+            <View
+              paddingHorizontal="$3.5"
+              height={32}
+              borderRadius={16}
+              backgroundColor={selectedAsTypeFilter === null ? brandColors.primaryLight : 'white'}
+              borderWidth={1}
+              borderColor={selectedAsTypeFilter === null ? brandColors.primary : '#ddd'}
+              cursor="pointer"
+              justifyContent="center"
+              alignItems="center"
+              onPress={() => setSelectedAsTypeFilter(null)}
+            >
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color={selectedAsTypeFilter === null ? brandColors.primary : '#666'}
+              >
+                전체
+              </Text>
+            </View>
+            {/* AS 종류 칩들 */}
+            {AS_TYPES.map((type) => {
+              const isSelected = selectedAsTypeFilter === type;
+              return (
+                <XStack
+                  key={type}
+                  paddingHorizontal="$3"
+                  height={32}
+                  borderRadius={16}
+                  backgroundColor={isSelected ? brandColors.primaryLight : 'white'}
+                  borderWidth={1}
+                  borderColor={isSelected ? brandColors.primary : '#ddd'}
+                  cursor="pointer"
+                  alignItems="center"
+                  justifyContent="center"
+                  gap="$1.5"
+                  onPress={() => setSelectedAsTypeFilter(type)}
+                >
+                  {/* 아이콘 */}
+                  {type === '복합기/OA' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      {/* 용지 입력 트레이 (상단) */}
+                      <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
+                      {/* 프린터 본체 */}
+                      <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
+                      {/* 출력 용지 */}
+                      <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
+                      {/* 상태 표시등 */}
+                      <circle cx="17" cy="12" r="1.5" fill="#22C55E"/>
+                    </svg>
+                  )}
+                  {type === '전기/통신' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                  {type === '가전/설비' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                  {type === '인테리어' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M9 22V12h6v10" fill="#5EEAD4" stroke="#0D9488" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                  {type === '청소' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2v5" stroke="#92400E" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                  {type === '소프트웨어' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="3" width="20" height="14" rx="2" fill="#4B5563" stroke="#374151" strokeWidth="1"/>
+                      <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
+                      <path d="M8 21h8M12 17v4" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  )}
+                  {type === '운반/설치' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M1 3h15v13H1z" fill="#FB923C" stroke="#EA580C" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#EA580C" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="5.5" cy="18.5" r="2.5" fill="#374151" stroke="#1F2937" strokeWidth="1"/>
+                      <circle cx="18.5" cy="18.5" r="2.5" fill="#374151" stroke="#1F2937" strokeWidth="1"/>
+                    </svg>
+                  )}
+                  <Text
+                    fontSize={13}
+                    fontWeight="500"
+                    color={isSelected ? brandColors.primary : '#666'}
+                  >
+                    {type}
+                  </Text>
+                </XStack>
+              );
+            })}
+          </XStack>
+        </ScrollView>
       </View>
 
       {/* 지도 */}
@@ -320,7 +487,7 @@ export function HomeScreen() {
       {!isLocationLoading && location && (
         <View
           position="absolute"
-          top={56}
+          top={106}
           left={16}
           zIndex={100}
           gap="$2"
@@ -442,8 +609,24 @@ export function HomeScreen() {
 
       {/* MY 페이지 */}
       {isMyPageOpen && (
-        <MyPage onBack={() => setIsMyPageOpen(false)} />
+        <MyPage
+          onBack={() => {
+            setIsMyPageOpen(false);
+            setMyPageInitialTab('myRequests'); // 닫을 때 초기화
+          }}
+          initialTab={myPageInitialTab}
+        />
       )}
+
+      {/* 알림 모달 */}
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        onNavigate={(tab) => {
+          setMyPageInitialTab(tab);
+          setIsMyPageOpen(true);
+        }}
+      />
     </View>
     </View>
   );
