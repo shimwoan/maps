@@ -50,8 +50,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // 세션이 없으면 로컬 상태만 초기화
+    if (!session) {
+      setUser(null);
+      setSession(null);
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
+      // 세션 관련 에러는 무시하고 로컬 상태 초기화
+      if (error.message?.includes('session')) {
+        setUser(null);
+        setSession(null);
+        return;
+      }
       console.error('Sign out error:', error);
       throw error;
     }
