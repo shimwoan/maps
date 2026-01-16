@@ -127,6 +127,7 @@ export function HomeScreen() {
         price: r.expected_fee,
         visitType: r.visit_type,
         asType: r.as_type,
+        status: r.status,
       }));
   }, [requests]);
 
@@ -277,19 +278,16 @@ export function HomeScreen() {
               </Text>
             </View>
           ) : (
-            <View
-              paddingHorizontal="$2.5"
-              paddingVertical="$1.5"
-              borderRadius={18}
-              backgroundColor={brandColors.primary}
+            <Text
+              fontSize={14}
+              fontWeight="600"
+              color="#000"
               cursor="pointer"
               style={{ userSelect: 'none' }}
               onPress={() => setIsLoginModalOpen(true)}
             >
-              <Text fontSize={12} fontWeight="600" color="white" style={{ userSelect: 'none' }}>
-                로그인
-              </Text>
-            </View>
+              로그인
+            </Text>
           )}
         </XStack>
       </View>
@@ -343,8 +341,6 @@ export function HomeScreen() {
             shadowRadius={2}
             onPress={() => {
               naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 16);
-              setLocation(currentLocation);
-              setZoom(16);
               setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
             }}
           >
