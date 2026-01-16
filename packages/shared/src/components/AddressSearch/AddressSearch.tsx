@@ -56,24 +56,35 @@ const loadDaumPostcodeScript = (): Promise<void> => {
   });
 };
 
-// Photon API (OpenStreetMap 기반, CORS 지원) - API 키 불필요
+// 카카오 주소 검색 API를 사용한 좌표 변환
 const getCoordinatesFromAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
-  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`;
+  const kakaoApiKey = import.meta.env.VITE_KAKAO_REST_API_KEY;
+
+  if (!kakaoApiKey) {
+    console.error('VITE_KAKAO_REST_API_KEY is not set');
+    return null;
+  }
+
+  const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `KakaoAK ${kakaoApiKey}`,
+      },
+    });
 
     if (!response.ok) {
       return null;
     }
 
     const data = await response.json();
-    const result = data?.features?.[0];
+    const result = data?.documents?.[0];
 
-    if (result?.geometry?.coordinates) {
+    if (result?.y && result?.x) {
       return {
-        lat: result.geometry.coordinates[1],
-        lng: result.geometry.coordinates[0],
+        lat: parseFloat(result.y),
+        lng: parseFloat(result.x),
       };
     }
     return null;
