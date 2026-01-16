@@ -34,10 +34,10 @@ const getMarkerScale = (zoom: number): number => {
 };
 
 // 마커 HTML 생성
-const createMarkerContent = (marker: RequestMarker, isSelected: boolean, isOwn: boolean, zoom: number): string => {
+const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
-  // 진행중: 주황색, 내 의뢰: 초록색, 다른 의뢰: 보라색
-  const primaryColor = isInProgress ? '#F59E0B' : (isOwn ? '#22C55E' : '#6B7CFF');
+  // 진행중: 주황색, 기본: 파란색
+  const primaryColor = isInProgress ? '#F59E0B' : '#3B82F6';
   const bgColor = isSelected ? '#ffffff' : primaryColor;
   const textColor = isSelected ? primaryColor : '#ffffff';
   const borderColor = primaryColor;
