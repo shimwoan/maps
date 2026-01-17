@@ -83,23 +83,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    // 세션이 없으면 로컬 상태만 초기화
-    if (!session) {
-      setUser(null);
-      setSession(null);
-      return;
-    }
+    // 로컬 상태 먼저 초기화
+    setUser(null);
+    setSession(null);
 
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      // 세션 관련 에러는 무시하고 로컬 상태 초기화
-      if (error.message?.includes('session')) {
-        setUser(null);
-        setSession(null);
-        return;
-      }
-      console.error('Sign out error:', error);
-      throw error;
+    // Supabase 로컬 스토리지 키 삭제 (API 호출 실패해도 로그아웃 보장)
+    const storageKey = `sb-xcnzwcgetotupgpvprvv-auth-token`;
+    localStorage.removeItem(storageKey);
+
+    // API 호출은 best-effort (실패해도 무시)
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      // 무시
     }
   };
 

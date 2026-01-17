@@ -200,61 +200,65 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
 
         {/* 하단: 인사말 + 버튼 + 특징 */}
         <YStack gap="$4">
-          {/* 다시 보지 않기 체크박스 */}
-          <XStack
-            alignItems="center"
-            gap="$2"
-            justifyContent="center"
-            cursor="pointer"
-            onPress={() => setSkipIntro(!skipIntro)}
-          >
-            <View
-              width={20}
-              height={20}
-              borderRadius={4}
-              borderWidth={1.5}
-              borderColor={skipIntro ? brandColors.primary : '#ccc'}
-              backgroundColor={skipIntro ? brandColors.primary : 'white'}
-              alignItems="center"
-              justifyContent="center"
-            >
-              {skipIntro && (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </View>
-            <Text fontSize={14} color="#666">
-              다시 보지 않기
-            </Text>
-          </XStack>
-
           {/* 인사말 */}
           <Text fontSize={15} fontWeight="600" color="#333" textAlign="center" paddingVertical="$2">
             {user && <>{getUserName()}님! </>}<Text color="#666" fontWeight="400">오늘도 신속하고 안전하게 협업하세요</Text>
           </Text>
 
-          {/* 시작 버튼 */}
-          <Button
-            size="$5"
-            backgroundColor={brandColors.primary}
-            color="white"
-            fontWeight="700"
-            fontSize={17}
-            width="100%"
-            height={52}
-            borderRadius={14}
-            onPress={() => {
-              if (skipIntro) {
-                storage.setItem(STORAGE_KEYS.SKIP_INTRO, 'true');
-              }
-              onStart();
-            }}
-            hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-            pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
-          >
-            시작하기
-          </Button>
+          {/* 시작 버튼 + 다시 보지 않기 */}
+          <View position="relative">
+            {/* 다시 보지 않기 체크박스 - 버튼 우측 상단 */}
+            <XStack
+              position="absolute"
+              top={-24}
+              right={0}
+              alignItems="center"
+              gap="$1.5"
+              cursor="pointer"
+              onPress={() => setSkipIntro(!skipIntro)}
+            >
+              <View
+                width={14}
+                height={14}
+                borderRadius={3}
+                borderWidth={1}
+                borderColor={skipIntro ? brandColors.primary : '#bbb'}
+                backgroundColor={skipIntro ? brandColors.primary : 'white'}
+                alignItems="center"
+                justifyContent="center"
+              >
+                {skipIntro && (
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </View>
+              <Text fontSize={11} color="#888">
+                다시 보지 않기
+              </Text>
+            </XStack>
+
+            <Button
+              size="$5"
+              backgroundColor={brandColors.primary}
+              color="white"
+              fontWeight="700"
+              fontSize={17}
+              width="100%"
+              height={52}
+              borderRadius={14}
+              onPress={() => {
+                if (skipIntro) {
+                  storage.setItem(STORAGE_KEYS.SKIP_INTRO, 'true');
+                }
+                onStart();
+              }}
+              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+              pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
+            >
+              시작하기
+            </Button>
+          </View>
 
           {/* 하단 특징 */}
           <XStack justifyContent="space-around" alignItems="center" paddingTop="$2">
