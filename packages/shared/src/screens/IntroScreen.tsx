@@ -27,22 +27,28 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
       backgroundColor="#FAFBFC"
       alignItems="center"
       overflow="hidden"
+      // @ts-ignore - safe area for mobile browsers
+      style={{
+        height: '100dvh',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
     >
       <View
         width="100%"
         maxWidth={480}
         height="100%"
-        paddingHorizontal="$5"
-        paddingTop="$6"
-        paddingBottom="$5"
+        paddingHorizontal="$4"
+        paddingTop="$4"
+        paddingBottom="$4"
         justifyContent="space-between"
       >
         {/* 상단: 로고 + 앱 이름 */}
-        <YStack alignItems="center" gap="$3" paddingTop="$4">
+        <YStack alignItems="center" gap="$2" paddingTop="$2">
           <View
-            width={80}
-            height={80}
-            borderRadius={22}
+            width={64}
+            height={64}
+            borderRadius={18}
             backgroundColor={brandColors.primary}
             alignItems="center"
             justifyContent="center"
@@ -51,7 +57,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             shadowOpacity={0.35}
             shadowRadius={12}
           >
-            <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
               {/* 지도 핀 + 연결 아이콘 */}
               {/* 메인 핀 */}
               <path
@@ -108,9 +114,9 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
         >
           <View
             width="100%"
-            maxWidth={320}
-            height={240}
-            borderRadius={24}
+            maxWidth={300}
+            height={200}
+            borderRadius={20}
             backgroundColor="white"
             overflow="hidden"
             shadowColor="#000"
@@ -190,7 +196,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             fontSize={14}
             color="#888"
             textAlign="center"
-            marginTop="$4"
+            marginTop="$3"
             lineHeight={22}
           >
             주변 전문가에게{'\n'}
@@ -199,9 +205,9 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
         </View>
 
         {/* 하단: 인사말 + 버튼 + 특징 */}
-        <YStack gap="$4">
+        <YStack gap="$3">
           {/* 인사말 */}
-          <Text fontSize={15} fontWeight="600" color="#333" textAlign="center" paddingVertical="$2">
+          <Text fontSize={14} fontWeight="600" color="#333" textAlign="center" paddingVertical="$1">
             {user && <>{getUserName()}님! </>}<Text color="#666" fontWeight="400">오늘도 신속하고 안전하게 협업하세요</Text>
           </Text>
 
