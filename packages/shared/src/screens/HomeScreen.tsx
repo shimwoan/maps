@@ -247,24 +247,41 @@ export function HomeScreen() {
         borderBottomColor="#eee"
       >
         <XStack alignItems="center" justifyContent="space-between">
-          <XStack
-            alignItems="center"
-            gap="$1.5"
-            cursor="pointer"
-            onPress={() => setIsRegionModalOpen(true)}
-          >
-            {address ? (
-              <>
-                <Text fontSize={18} fontWeight="700" color="#000000">
-                  {zoom >= MIN_ZOOM_FOR_ADDRESS ? `${address.sigungu} ${address.dong}` : '지역 선택'}
-                </Text>
-                <svg width="16" height="16" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
-                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#000" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </>
-            ) : (
-              <Spinner size="small" color="#333" />
-            )}
+          <XStack alignItems="center" gap="$3">
+            <XStack alignItems="center" gap="$2.5">
+              <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="10" fill={brandColors.primary}/>
+                <path d="M24 8C18.5 8 14 12.5 14 18C14 25.5 24 34 24 34C24 34 34 25.5 34 18C34 12.5 29.5 8 24 8Z" fill="white"/>
+                <circle cx="24" cy="18" r="4" fill={brandColors.primary}/>
+                <circle cx="12" cy="36" r="3" fill="white" opacity="0.9"/>
+                <circle cx="36" cy="36" r="3" fill="white" opacity="0.9"/>
+                <path d="M15 36 L20 31" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
+                <path d="M33 36 L28 31" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
+              </svg>
+              <Text fontSize={20} fontWeight="800" color={brandColors.primary}>
+                협업
+              </Text>
+            </XStack>
+            <View width={1} height={20} backgroundColor="#ddd" />
+            <XStack
+              alignItems="center"
+              gap="$1.5"
+              cursor="pointer"
+              onPress={() => setIsRegionModalOpen(true)}
+            >
+              {address ? (
+                <>
+                  <Text fontSize={16} fontWeight="600" color="#000000">
+                    {zoom >= MIN_ZOOM_FOR_ADDRESS ? `${address.sigungu} ${address.dong}` : '지역 선택'}
+                  </Text>
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#000" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </>
+              ) : (
+                <Spinner size="small" color="#333" />
+              )}
+            </XStack>
           </XStack>
 
           {/* 로그인 상태 - 알림 + MY 아이콘 / 비로그인 - 로그인 버튼 */}
