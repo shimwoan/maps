@@ -39,6 +39,10 @@ export function BottomNavigation({
     onNavigate(mode);
   };
 
+  const activeColor = brandColors.primary;
+  const inactiveColor = '#1a1a1a';
+  const textColor = '#666';
+
   return (
     <View
       position={isPC ? 'absolute' : 'fixed'}
@@ -47,33 +51,34 @@ export function BottomNavigation({
       right={0}
       backgroundColor="white"
       borderTopWidth={1}
-      borderTopColor="#e5e5e5"
+      borderTopColor="#f0f0f0"
       zIndex={200}
-      height={60}
+      height={56}
       justifyContent="center"
       // @ts-ignore
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <XStack alignItems="center" justifyContent="space-around">
+      <XStack alignItems="center" justifyContent="space-around" paddingVertical={8}>
         {/* 홈 */}
         <View
           alignItems="center"
           justifyContent="center"
           cursor="pointer"
+          paddingHorizontal={16}
           onPress={() => handlePress('home')}
         >
           {activeMode === 'home' ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                fill="#000"
+                fill={activeColor}
               />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                stroke="#999"
+                stroke={inactiveColor}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -82,10 +87,10 @@ export function BottomNavigation({
             </svg>
           )}
           <Text
-            fontSize={14}
-            fontWeight="600"
-            color={activeMode === 'home' ? '#000' : '#999'}
-            marginTop="$1.5"
+            fontSize={12}
+            fontWeight="400"
+            color={textColor}
+            marginTop={4}
           >
             홈
           </Text>
@@ -96,25 +101,26 @@ export function BottomNavigation({
           alignItems="center"
           justifyContent="center"
           cursor="pointer"
+          paddingHorizontal={16}
           onPress={() => handlePress('requests')}
         >
           {activeMode === 'requests' ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
-                fill="#000"
+                fill={activeColor}
               />
               <path
                 d="M14 2v6h6"
-                stroke="#000"
+                stroke={activeColor}
                 strokeWidth="1.5"
               />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                stroke="#999"
+                stroke={inactiveColor}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -122,7 +128,7 @@ export function BottomNavigation({
               />
               <path
                 d="M14 2v6h6"
-                stroke="#999"
+                stroke={inactiveColor}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -130,10 +136,10 @@ export function BottomNavigation({
             </svg>
           )}
           <Text
-            fontSize={14}
-            fontWeight="600"
-            color={activeMode === 'requests' ? '#000' : '#999'}
-            marginTop="$1.5"
+            fontSize={12}
+            fontWeight="400"
+            color={textColor}
+            marginTop={4}
           >
             내 의뢰
           </Text>
@@ -144,29 +150,30 @@ export function BottomNavigation({
           alignItems="center"
           justifyContent="center"
           cursor="pointer"
+          paddingHorizontal={16}
           onPress={() => handlePress('profile')}
         >
           {activeMode === 'profile' ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="7" r="4" fill="#000" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="7" r="4" fill={activeColor} />
               <path
                 d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                fill="#000"
+                fill={activeColor}
               />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <circle
                 cx="12"
                 cy="7"
                 r="4"
-                stroke="#999"
+                stroke={inactiveColor}
                 strokeWidth="1.5"
                 fill="none"
               />
               <path
                 d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                stroke="#999"
+                stroke={inactiveColor}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -174,10 +181,10 @@ export function BottomNavigation({
             </svg>
           )}
           <Text
-            fontSize={14}
-            fontWeight="600"
-            color={activeMode === 'profile' ? '#000' : '#999'}
-            marginTop="$1.5"
+            fontSize={12}
+            fontWeight="400"
+            color={textColor}
+            marginTop={4}
           >
             MY
           </Text>
