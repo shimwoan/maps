@@ -71,16 +71,30 @@ export function useRequests() {
           } else if (payload.eventType === 'UPDATE') {
             const updatedRequest = payload.new as Request;
             setRequests(prev => {
-              // pending/accepted가 아니거나 위치값이 없으면 목록에서 제거
-              if (!['pending', 'accepted'].includes(updatedRequest.status) || !updatedRequest.latitude || !updatedRequest.longitude) {
+              const existingRequest = prev.find(r => r.id === updatedRequest.id);
+
+              // 상태가 pending/accepted가 아니면 제거
+              if (!['pending', 'accepted'].includes(updatedRequest.status)) {
                 return prev.filter(r => r.id !== updatedRequest.id);
               }
-              // 기존 목록에 있으면 업데이트, 없으면 추가
-              const exists = prev.some(r => r.id === updatedRequest.id);
-              if (exists) {
-                return prev.map(r => r.id === updatedRequest.id ? updatedRequest : r);
+
+              // 기존 목록에 있으면 업데이트 (위치값은 기존 값 유지 가능)
+              if (existingRequest) {
+                return prev.map(r => r.id === updatedRequest.id ? {
+                  ...existingRequest,
+                  ...updatedRequest,
+                  // 위치값이 없으면 기존 값 유지
+                  latitude: updatedRequest.latitude ?? existingRequest.latitude,
+                  longitude: updatedRequest.longitude ?? existingRequest.longitude,
+                } : r);
               }
-              return [...prev, updatedRequest];
+
+              // 새로운 요청이고 위치값이 있으면 추가
+              if (updatedRequest.latitude && updatedRequest.longitude) {
+                return [...prev, updatedRequest];
+              }
+
+              return prev;
             });
           } else if (payload.eventType === 'DELETE') {
             const deletedRequest = payload.old as Request;
