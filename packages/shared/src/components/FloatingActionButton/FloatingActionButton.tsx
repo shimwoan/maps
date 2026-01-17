@@ -1,4 +1,4 @@
-import { View } from 'tamagui';
+import { View, Text } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
 interface FloatingActionButtonProps {
@@ -11,12 +11,16 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       position="absolute"
       bottom={24}
       right={24}
-      width={56}
-      height={56}
-      borderRadius={28}
+      // @ts-ignore - safe area for mobile browsers
+      style={{ bottom: 'max(24px, calc(24px + env(safe-area-inset-bottom)))' }}
+      paddingHorizontal={20}
+      height={48}
+      borderRadius={24}
       backgroundColor={brandColors.primary}
       alignItems="center"
       justifyContent="center"
+      flexDirection="row"
+      gap={8}
       cursor="pointer"
       onPress={onPress}
       shadowColor="#000"
@@ -32,15 +36,9 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
         scale: 0.95,
       }}
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 5V19M5 12H19"
-          stroke="#fff"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <Text color="#fff" fontSize={15} fontWeight="600">
+        협업요청하기
+      </Text>
     </View>
   );
 }
