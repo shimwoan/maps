@@ -627,47 +627,14 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         {mode === 'profile' && (
           <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
             {/* 프로필 정보 */}
-            <XStack padding="$4" gap="$3" alignItems="center">
-              {hasBusinessCard && profile?.business_card_url ? (
-                <View
-                  width={64}
-                  height={64}
-                  borderRadius={32}
-                  overflow="hidden"
-                  backgroundColor="#f0f0f0"
-                  cursor="pointer"
-                  onPress={() => setEnlargedImageUrl(profile.business_card_url)}
-                >
-                  <img
-                    src={profile.business_card_url}
-                    alt="내 명함"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                </View>
-              ) : (
-                <View
-                  width={64}
-                  height={64}
-                  borderRadius={32}
-                  backgroundColor="#f0f0f0"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="12" cy="7" r="4" stroke="#999" strokeWidth="1.5"/>
-                  </svg>
-                </View>
-              )}
-              <YStack flex={1} gap="$1">
-                <Text fontSize={18} fontWeight="700" color="#000">
-                  {profile?.nickname || user?.user_metadata?.name || '사용자'}
-                </Text>
-                <Text fontSize={13} color="#888">
-                  {user?.email || ''}
-                </Text>
-              </YStack>
-            </XStack>
+            <YStack padding="$4" gap="$1">
+              <Text fontSize={18} fontWeight="700" color="#000">
+                {profile?.nickname || user?.user_metadata?.name || '사용자'}
+              </Text>
+              <Text fontSize={13} color="#888">
+                {user?.email || ''}
+              </Text>
+            </YStack>
 
             {/* 명함 섹션 */}
             <YStack padding="$4" paddingTop="$2" gap="$3">
