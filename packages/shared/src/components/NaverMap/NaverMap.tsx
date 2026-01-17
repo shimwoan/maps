@@ -33,6 +33,28 @@ const getMarkerScale = (zoom: number): number => {
   return 0.4;
 };
 
+// 마커 크기 계산 (줌 레벨에 따라)
+const getMarkerSize = (zoom: number) => {
+  const scale = getMarkerScale(zoom);
+  return {
+    scale,
+    fontSize: Math.round(12 * scale),
+    fontSizeSm: Math.round(11 * scale),
+    fontSizeLg: Math.round(13 * scale),
+    badgeFontSize: Math.round(9 * scale),
+    paddingV: Math.round(6 * scale),
+    paddingH: Math.round(10 * scale),
+    badgePaddingV: Math.round(1 * scale),
+    badgePaddingH: Math.round(4 * scale),
+    borderRadius: Math.round(8 * scale),
+    borderWidth: Math.max(1, Math.round(2 * scale)),
+    arrowWidth: Math.round(16 * scale),
+    arrowHeight: Math.round(8 * scale),
+    // 마커 전체 높이 추정 (anchor 계산용)
+    totalHeight: Math.round(60 * scale),
+  };
+};
+
 // 마커 HTML 생성
 const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
@@ -41,11 +63,11 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
   const bgColor = isSelected ? '#ffffff' : primaryColor;
   const textColor = isSelected ? primaryColor : '#ffffff';
   const borderColor = primaryColor;
-  const scale = getMarkerScale(zoom);
+  const size = getMarkerSize(zoom);
 
   let badge = '';
   if (isInProgress) {
-    badge = `<span style="font-size: 9px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: ${isSelected ? '#fff' : '#fff'}; padding: 1px 4px; border-radius: 3px; margin-right: 4px;">진행중</span>`;
+    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 3px; margin-right: 4px;">진행중</span>`;
   }
 
   return `
@@ -54,25 +76,23 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
       flex-direction: column;
       align-items: center;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-      transform: scale(${scale});
-      transform-origin: bottom center;
     ">
       <div style="
         background: ${bgColor};
         color: ${textColor};
-        border: 2px solid ${borderColor};
-        padding: 6px 10px;
-        border-radius: 8px;
-        font-size: 12px;
+        border: ${size.borderWidth}px solid ${borderColor};
+        padding: ${size.paddingV}px ${size.paddingH}px;
+        border-radius: ${size.borderRadius}px;
+        font-size: ${size.fontSize}px;
         font-weight: 600;
         white-space: nowrap;
         cursor: pointer;
       ">
-        <div style="font-size: 11px; opacity: 0.9; text-align: center;">${badge}${marker.title} | ${marker.asType}</div>
-        <div style="font-size: 13px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
+        <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center;">${badge}${marker.title} | ${marker.asType}</div>
+        <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
       </div>
-      <svg width="16" height="8" viewBox="0 0 16 8" style="margin-top: -2px;">
-        <path d="M0,0 L8,8 L16,0" fill="${bgColor}" stroke="${borderColor}" stroke-width="2" stroke-linejoin="round"/>
+      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 8" style="margin-top: -1px;">
+        <path d="M0,0 L8,8 L16,0" fill="${bgColor}" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linejoin="round"/>
       </svg>
     </div>
   `;
@@ -310,14 +330,17 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       const isSelected = markerData.id === selectedMarkerId;
       const isOwn = currentUserId ? markerData.userId === currentUserId : false;
       const existingMarker = requestMarkersRef.current.get(markerData.id);
-      const scale = getMarkerScale(currentZoom);
-      const anchorY = 56 * scale;
+      const size = getMarkerSize(currentZoom);
+      // anchor: 마커 콘텐츠의 하단 중앙 (삼각형 꼭지점)
+      // 콘텐츠 너비는 가변이므로 size 기반으로 추정
+      const anchorX = Math.round(70 * size.scale); // 대략적인 마커 너비의 절반
+      const anchorY = size.totalHeight;
 
       if (existingMarker) {
         // 기존 마커 업데이트 (선택 상태 또는 줌 변경 시)
         existingMarker.setIcon({
           content: createMarkerContent(markerData, isSelected, isOwn, currentZoom),
-          anchor: new window.naver.maps.Point(50, anchorY),
+          anchor: new window.naver.maps.Point(anchorX, anchorY),
         });
       } else {
         // 새 마커 생성
@@ -326,7 +349,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           map: mapInstanceRef.current!,
           icon: {
             content: createMarkerContent(markerData, isSelected, isOwn, currentZoom),
-            anchor: new window.naver.maps.Point(50, anchorY),
+            anchor: new window.naver.maps.Point(anchorX, anchorY),
           },
         });
 

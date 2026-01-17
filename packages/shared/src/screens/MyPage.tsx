@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { View, Text, XStack, YStack, ScrollView, Spinner, Dialog } from 'tamagui';
 import { Button } from '../components/Button';
 import { ProfileSetupModal } from '../components/ProfileSetupModal';
+import { NotificationModal } from '../components/NotificationModal';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
 import { useRequestApplications, RequestApplication } from '../hooks/useRequestApplications';
 import { useRequests, Request } from '../hooks/useRequests';
+import { useNotifications } from '../hooks/useNotifications';
 
 type TabType = 'myRequests' | 'myApplications';
 
@@ -431,8 +433,10 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const { user, signOut } = useAuth();
   const { profile, hasBusinessCard, refetch: refetchProfile } = useProfile();
+  const { unreadCount } = useNotifications();
   const {
     myApplications,
     applicationsToMyRequests,
@@ -589,14 +593,46 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
             </View>
             <Text fontSize={18} fontWeight="700" color="#000">마이페이지</Text>
           </XStack>
-          <Button
-            size="$2"
-            backgroundColor="transparent"
-            color="#888"
-            onPress={() => signOut()}
-          >
-            로그아웃
-          </Button>
+          <XStack alignItems="center" gap="$2">
+            {/* 알림 버튼 */}
+            <View
+              position="relative"
+              cursor="pointer"
+              padding="$1"
+              onPress={() => setShowNotificationModal(true)}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {unreadCount > 0 && (
+                <View
+                  position="absolute"
+                  top={-2}
+                  right={-2}
+                  minWidth={16}
+                  height={16}
+                  borderRadius={8}
+                  backgroundColor={brandColors.primary}
+                  alignItems="center"
+                  justifyContent="center"
+                  paddingHorizontal={4}
+                >
+                  <Text fontSize={10} fontWeight="700" color="white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <Button
+              size="$2"
+              backgroundColor="transparent"
+              color="#888"
+              onPress={() => signOut()}
+            >
+              로그아웃
+            </Button>
+          </XStack>
         </XStack>
 
         {/* 프로필 섹션 */}
@@ -779,6 +815,13 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
             </View>
           </View>
         )}
+
+        {/* 알림 모달 */}
+        <NotificationModal
+          isOpen={showNotificationModal}
+          onClose={() => setShowNotificationModal(false)}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
       </View>
     </View>
   );
