@@ -88,8 +88,8 @@ export function BottomNavigation({
           )}
           <Text
             fontSize={12}
-            fontWeight="400"
-            color={textColor}
+            fontWeight={activeMode === 'home' ? "600" : "400"}
+            color={activeMode === 'home' ? activeColor : textColor}
             marginTop={4}
           >
             홈
@@ -137,8 +137,8 @@ export function BottomNavigation({
           )}
           <Text
             fontSize={12}
-            fontWeight="400"
-            color={textColor}
+            fontWeight={activeMode === 'requests' ? "600" : "400"}
+            color={activeMode === 'requests' ? activeColor : textColor}
             marginTop={4}
           >
             내 의뢰
@@ -182,8 +182,8 @@ export function BottomNavigation({
           )}
           <Text
             fontSize={12}
-            fontWeight="400"
-            color={textColor}
+            fontWeight={activeMode === 'profile' ? "600" : "400"}
+            color={activeMode === 'profile' ? activeColor : textColor}
             marginTop={4}
           >
             MY

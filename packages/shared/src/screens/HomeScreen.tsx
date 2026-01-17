@@ -275,7 +275,7 @@ export function HomeScreen() {
                 <path d="M15 36 L20 31" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
                 <path d="M33 36 L28 31" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
               </svg>
-              <Text fontSize={20} fontWeight="800" color={brandColors.primary}>
+              <Text fontSize={20} fontWeight="600" color={brandColors.primary}>
                 협업
               </Text>
             </XStack>
