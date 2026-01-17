@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { View, Text } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
@@ -5,10 +6,24 @@ interface FloatingActionButtonProps {
   onPress: () => void;
 }
 
+// PC 디바이스 체크 (터치 미지원 + 모바일 UA 아님)
+const checkIsPC = () => {
+  if (typeof window === 'undefined') return false;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return !isTouchDevice && !mobileUA;
+};
+
 export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
+  const [isPC, setIsPC] = useState(false);
+
+  useEffect(() => {
+    setIsPC(checkIsPC());
+  }, []);
+
   return (
     <View
-      position="absolute"
+      position={isPC ? 'absolute' : 'fixed'}
       right={16}
       zIndex={200}
       // @ts-ignore - safe area for mobile browsers
