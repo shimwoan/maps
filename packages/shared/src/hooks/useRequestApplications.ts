@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -129,9 +129,59 @@ export function useRequestApplications() {
     setIsLoading(false);
   }, [fetchMyApplications, fetchApplicationsToMyRequests]);
 
+  // Realtime 구독을 위한 ref
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  // Realtime 구독
+  useEffect(() => {
+    if (!user) return;
+
+    // 기존 채널이 있으면 제거
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    // Realtime 구독 설정
+    channelRef.current = supabase
+      .channel(`request-applications-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'request_applications',
+        },
+        (payload) => {
+          // 내가 관련된 신청인 경우에만 리페치
+          const newData = payload.new as { applicant_id?: string; request_id?: string };
+          const oldData = payload.old as { applicant_id?: string; request_id?: string };
+
+          // 내가 신청자이거나, 내 의뢰에 대한 신청인 경우 리페치
+          if (
+            newData?.applicant_id === user.id ||
+            oldData?.applicant_id === user.id
+          ) {
+            // 내가 신청자인 경우
+            fetchAll();
+          } else {
+            // 내 의뢰에 대한 신청일 수 있으므로 리페치
+            fetchAll();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [user, fetchAll]);
 
   // 의뢰에 신청하기
   const applyToRequest = async (requestId: string) => {
