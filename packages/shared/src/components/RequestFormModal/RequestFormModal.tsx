@@ -318,8 +318,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                     value={value}
                     onChange={onChange}
                     onCoordinatesChange={(lat, lng) => {
-                      setValue('latitude', lat);
-                      setValue('longitude', lng);
+                      setValue('latitude', lat, { shouldDirty: true });
+                      setValue('longitude', lng, { shouldDirty: true });
                     }}
                     placeholder="주소 검색 버튼을 눌러주세요"
                     hasError={!!errors.address}
