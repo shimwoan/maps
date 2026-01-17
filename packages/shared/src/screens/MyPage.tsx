@@ -4,6 +4,7 @@ import { Button } from '../components/Button';
 import { ProfileSetupModal } from '../components/ProfileSetupModal';
 import { NotificationModal } from '../components/NotificationModal';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { HeaderActions } from '../components/HeaderActions';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
@@ -454,7 +455,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const { user, signOut } = useAuth();
   const { profile, hasBusinessCard, refetch: refetchProfile } = useProfile();
-  const { unreadCount } = useNotifications();
+  useNotifications(); // 알림 컨텍스트 초기화
   const {
     myApplications,
     applicationsToMyRequests,
@@ -592,10 +593,10 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       left={0}
       right={0}
       bottom={0}
-      backgroundColor="#f5f5f5"
+      backgroundColor="#fafafa"
       zIndex={1000}
     >
-      <View width="100%" maxWidth={768} height="100%" alignSelf="center" backgroundColor="#f5f5f5">
+      <View width="100%" maxWidth={768} height="100%" alignSelf="center" backgroundColor="#fafafa">
         {/* 헤더 */}
         <XStack
           backgroundColor="white"
@@ -616,67 +617,56 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               {mode === 'profile' ? 'MY' : '내 의뢰'}
             </Text>
           </XStack>
-          <XStack alignItems="center" gap="$2">
-            {/* 알림 버튼 */}
-            <View
-              position="relative"
-              cursor="pointer"
-              padding="$1"
-              onPress={() => setShowNotificationModal(true)}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              {unreadCount > 0 && (
-                <View
-                  position="absolute"
-                  top={-2}
-                  right={-2}
-                  minWidth={16}
-                  height={16}
-                  borderRadius={8}
-                  backgroundColor="#FF4444"
-                  alignItems="center"
-                  justifyContent="center"
-                  paddingHorizontal={4}
-                >
-                  <Text fontSize={10} fontWeight="700" color="white">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-            {mode === 'profile' && (
-              <Button
-                size="$2"
-                backgroundColor="transparent"
-                color="#888"
-                onPress={() => signOut()}
-              >
-                로그아웃
-              </Button>
-            )}
-          </XStack>
+          <HeaderActions
+            onNotificationPress={() => setShowNotificationModal(true)}
+            onLoginPress={() => {}}
+          />
         </XStack>
 
         {/* 프로필 섹션 - MY 모드에서만 표시 */}
         {mode === 'profile' && (
           <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
-            {/* 로그인/로그아웃 */}
-            <XStack padding="$4" alignItems="center" justifyContent="space-between">
-              <Text fontSize={16} fontWeight="600" color="#000">
-                {profile?.nickname || user?.user_metadata?.name || '사용자'}
-              </Text>
-              <Text
-                fontSize={14}
-                fontWeight="500"
-                color="#666"
-                cursor="pointer"
-                onPress={() => signOut()}
-              >
-                로그아웃
-              </Text>
+            {/* 프로필 정보 */}
+            <XStack padding="$4" gap="$3" alignItems="center">
+              {hasBusinessCard && profile?.business_card_url ? (
+                <View
+                  width={64}
+                  height={64}
+                  borderRadius={32}
+                  overflow="hidden"
+                  backgroundColor="#f0f0f0"
+                  cursor="pointer"
+                  onPress={() => setEnlargedImageUrl(profile.business_card_url)}
+                >
+                  <img
+                    src={profile.business_card_url}
+                    alt="내 명함"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </View>
+              ) : (
+                <View
+                  width={64}
+                  height={64}
+                  borderRadius={32}
+                  backgroundColor="#f0f0f0"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="7" r="4" stroke="#999" strokeWidth="1.5"/>
+                  </svg>
+                </View>
+              )}
+              <YStack flex={1} gap="$1">
+                <Text fontSize={18} fontWeight="700" color="#000">
+                  {profile?.nickname || user?.user_metadata?.name || '사용자'}
+                </Text>
+                <Text fontSize={13} color="#888">
+                  {user?.email || ''}
+                </Text>
+              </YStack>
             </XStack>
 
             {/* 명함 섹션 */}

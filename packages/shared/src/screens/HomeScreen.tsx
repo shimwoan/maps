@@ -10,6 +10,7 @@ import { RequestDetailCard } from '../components/RequestDetailCard';
 import { MyPage } from './MyPage';
 import { NotificationModal } from '../components/NotificationModal';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { HeaderActions } from '../components/HeaderActions';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
 import { useRequestApplications } from '../hooks/useRequestApplications';
@@ -123,7 +124,7 @@ export function HomeScreen() {
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
   const { myApplications, refetch: refetchApplications } = useRequestApplications();
-  const { unreadCount } = useNotifications();
+  useNotifications(); // 알림 컨텍스트 초기화
 
   // 내가 신청한 의뢰 ID 목록
   const appliedRequestIds = useMemo(() => {
@@ -300,72 +301,11 @@ export function HomeScreen() {
             </XStack>
           </XStack>
 
-          {/* 로그인 상태 - 알림 + MY 아이콘 / 비로그인 - 로그인 버튼 */}
-          {user ? (
-            <XStack gap="$2" alignItems="center">
-              {/* 알림 아이콘 */}
-              <View
-                width={36}
-                height={36}
-                borderRadius={18}
-                alignItems="center"
-                justifyContent="center"
-                cursor="pointer"
-                position="relative"
-                onPress={() => setIsNotificationOpen(true)}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                {unreadCount > 0 && (
-                  <View
-                    position="absolute"
-                    top={2}
-                    right={2}
-                    minWidth={16}
-                    height={16}
-                    borderRadius={8}
-                    backgroundColor="#FF4444"
-                    alignItems="center"
-                    justifyContent="center"
-                    paddingHorizontal={4}
-                  >
-                    <Text fontSize={10} fontWeight="700" color="white">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              {/* MY 아이콘 */}
-              <View
-                width={36}
-                height={36}
-                borderRadius={18}
-                backgroundColor={brandColors.primaryLight}
-                alignItems="center"
-                justifyContent="center"
-                cursor="pointer"
-                style={{ userSelect: 'none' }}
-                onPress={() => setIsMyPageOpen(true)}
-              >
-                <Text fontSize={12} fontWeight="700" color={brandColors.primary} style={{ userSelect: 'none' }}>
-                  MY
-                </Text>
-              </View>
-            </XStack>
-          ) : (
-            <Text
-              fontSize={14}
-              fontWeight="600"
-              color="#000"
-              cursor="pointer"
-              style={{ userSelect: 'none' }}
-              onPress={() => setIsLoginModalOpen(true)}
-            >
-              로그인
-            </Text>
-          )}
+          {/* 알림 + 로그인/로그아웃 */}
+          <HeaderActions
+            onNotificationPress={() => setIsNotificationOpen(true)}
+            onLoginPress={() => setIsLoginModalOpen(true)}
+          />
         </XStack>
       </View>
 
