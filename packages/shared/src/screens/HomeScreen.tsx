@@ -584,9 +584,10 @@ export function HomeScreen() {
       <RequestFormModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
-        onSuccess={(latitude, longitude, requestId) => {
+        onSuccess={async (latitude, longitude, requestId) => {
           setIsRequestModalOpen(false);
-          refetchRequests();
+          // 마커 데이터 갱신 후 지도 이동
+          await refetchRequests();
           // 새로 등록된 의뢰 위치로 지도 이동 및 마커 선택
           if (latitude && longitude) {
             naverMapRef.current?.moveTo(latitude, longitude, 16);

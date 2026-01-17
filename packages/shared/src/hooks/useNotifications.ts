@@ -113,6 +113,16 @@ export function useNotifications() {
 
   // 알림 읽음 처리
   const markAsRead = useCallback(async (notificationId: string) => {
+    // 이미 읽은 알림인지 먼저 확인
+    const notification = notifications.find(n => n.id === notificationId);
+    if (!notification || notification.is_read) return;
+
+    // 낙관적 업데이트 (UI 먼저 반영)
+    setNotifications(prev =>
+      prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+
     try {
       const { error } = await supabase
         .from('notifications')
@@ -120,15 +130,15 @@ export function useNotifications() {
         .eq('id', notificationId);
 
       if (error) throw error;
-
-      setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
+      // 실패 시 롤백
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, is_read: false } : n)
+      );
+      setUnreadCount(prev => prev + 1);
     }
-  }, []);
+  }, [notifications]);
 
   // 모든 알림 읽음 처리
   const markAllAsRead = useCallback(async () => {
