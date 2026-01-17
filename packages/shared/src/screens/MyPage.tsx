@@ -3,6 +3,7 @@ import { View, Text, XStack, YStack, ScrollView, Spinner, Dialog } from 'tamagui
 import { Button } from '../components/Button';
 import { ProfileSetupModal } from '../components/ProfileSetupModal';
 import { NotificationModal } from '../components/NotificationModal';
+import { BottomNavigation } from '../components/BottomNavigation';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
@@ -11,10 +12,13 @@ import { useRequests, Request } from '../hooks/useRequests';
 import { useNotifications } from '../contexts/NotificationContext';
 
 type TabType = 'myRequests' | 'myApplications';
+type PageMode = 'requests' | 'profile';
 
 interface MyPageProps {
   onBack: () => void;
+  onNavigate?: (mode: 'home' | 'requests' | 'profile') => void;
   initialTab?: TabType;
+  mode?: PageMode;
 }
 
 // 금액 포맷팅
@@ -443,7 +447,7 @@ function MyApplicationCard({
   );
 }
 
-export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
+export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = 'requests' }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
@@ -608,7 +612,9 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
                 <path d="M15 18l-6-6 6-6" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </View>
-            <Text fontSize={18} fontWeight="700" color="#000">마이페이지</Text>
+            <Text fontSize={18} fontWeight="700" color="#000">
+              {mode === 'profile' ? 'MY' : '내 의뢰'}
+            </Text>
           </XStack>
           <XStack alignItems="center" gap="$2">
             {/* 알림 버튼 */}
@@ -641,160 +647,179 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
                 </View>
               )}
             </View>
-            <Button
-              size="$2"
-              backgroundColor="transparent"
-              color="#888"
-              onPress={() => signOut()}
-            >
-              로그아웃
-            </Button>
+            {mode === 'profile' && (
+              <Button
+                size="$2"
+                backgroundColor="transparent"
+                color="#888"
+                onPress={() => signOut()}
+              >
+                로그아웃
+              </Button>
+            )}
           </XStack>
         </XStack>
 
-        {/* 프로필 섹션 */}
-        <XStack
-          backgroundColor="white"
-          padding="$3"
-          gap="$3"
-          alignItems="center"
-          borderBottomWidth={1}
-          borderBottomColor="#eee"
-        >
-          {hasBusinessCard && profile?.business_card_url ? (
+        {/* 프로필 섹션 - MY 모드에서만 표시 */}
+        {mode === 'profile' && (
+          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
+            {/* 로그인/로그아웃 */}
+            <XStack padding="$4" alignItems="center" justifyContent="space-between">
+              <Text fontSize={16} fontWeight="600" color="#000">
+                {profile?.nickname || user?.user_metadata?.name || '사용자'}
+              </Text>
+              <Text
+                fontSize={14}
+                fontWeight="500"
+                color="#666"
+                cursor="pointer"
+                onPress={() => signOut()}
+              >
+                로그아웃
+              </Text>
+            </XStack>
+
+            {/* 명함 섹션 */}
+            <YStack padding="$4" paddingTop="$2" gap="$3">
+              <Text fontSize={14} fontWeight="600" color="#333">내 명함</Text>
+              {hasBusinessCard && profile?.business_card_url ? (
+                <View
+                  borderRadius={12}
+                  overflow="hidden"
+                  backgroundColor="#f5f5f5"
+                  cursor="pointer"
+                  onPress={() => setEnlargedImageUrl(profile.business_card_url)}
+                >
+                  <img
+                    src={profile.business_card_url}
+                    alt="내 명함"
+                    style={{ width: '100%', maxHeight: 200, objectFit: 'contain' }}
+                  />
+                </View>
+              ) : (
+                <View
+                  height={120}
+                  borderRadius={12}
+                  backgroundColor="#f5f5f5"
+                  alignItems="center"
+                  justifyContent="center"
+                  borderWidth={1}
+                  borderColor="#e0e0e0"
+                  borderStyle="dashed"
+                >
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="5" width="18" height="14" rx="2" stroke="#bbb" strokeWidth="1.5"/>
+                    <circle cx="9" cy="10" r="2" stroke="#bbb" strokeWidth="1.5"/>
+                    <path d="M7 16c0-1.5 1-2 2-2s2 .5 2 2" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M14 9h4M14 12h4" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <Text fontSize={13} color="#999" marginTop="$2">
+                    명함을 등록해주세요
+                  </Text>
+                </View>
+              )}
+              <Button
+                size="$4"
+                backgroundColor={brandColors.primary}
+                color="white"
+                fontWeight="600"
+                borderRadius={10}
+                onPress={() => setShowProfileModal(true)}
+                hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+              >
+                {hasBusinessCard ? '명함 수정' : '명함 등록'}
+              </Button>
+            </YStack>
+          </YStack>
+        )}
+
+        {/* 탭 - requests 모드에서만 표시 */}
+        {mode === 'requests' && (
+          <XStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
             <View
-              width={48}
-              height={48}
-              borderRadius={8}
-              overflow="hidden"
-              backgroundColor="#f0f0f0"
-              cursor="pointer"
-              onPress={() => setEnlargedImageUrl(profile.business_card_url)}
-            >
-              <img
-                src={profile.business_card_url}
-                alt="내 명함"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </View>
-          ) : (
-            <View
-              width={48}
-              height={48}
-              borderRadius={8}
-              backgroundColor="#f0f0f0"
+              flex={1}
+              paddingVertical="$3"
               alignItems="center"
-              justifyContent="center"
+              borderBottomWidth={2}
+              borderBottomColor={activeTab === 'myRequests' ? brandColors.primary : 'transparent'}
+              cursor="pointer"
+              onPress={() => setActiveTab('myRequests')}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="5" width="18" height="14" rx="2" stroke="#999" strokeWidth="1.5"/>
-                <circle cx="9" cy="10" r="2" stroke="#999" strokeWidth="1.5"/>
-                <path d="M7 16c0-1.5 1-2 2-2s2 .5 2 2" stroke="#999" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M14 9h4M14 12h4" stroke="#999" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
+              <Text
+                fontSize={14}
+                fontWeight="600"
+                color={activeTab === 'myRequests' ? brandColors.primary : '#888'}
+              >
+                내가 요청한 의뢰
+              </Text>
             </View>
-          )}
-          <YStack flex={1} gap="$1">
-            <Text fontSize={15} fontWeight="600" color="#000">
-              {profile?.nickname || user?.user_metadata?.name || '사용자'}
-            </Text>
-            <Text fontSize={12} color="#888">
-              {hasBusinessCard ? '명함 등록됨' : '명함을 등록해주세요'}
-            </Text>
-          </YStack>
-          <Button
-            size="$2"
-            backgroundColor="#f0f0f0"
-            color="#333"
-            onPress={() => setShowProfileModal(true)}
-          >
-            {hasBusinessCard ? '명함 수정' : '명함 등록'}
-          </Button>
-        </XStack>
-
-        {/* 탭 */}
-        <XStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
-          <View
-            flex={1}
-            paddingVertical="$3"
-            alignItems="center"
-            borderBottomWidth={2}
-            borderBottomColor={activeTab === 'myRequests' ? brandColors.primary : 'transparent'}
-            cursor="pointer"
-            onPress={() => setActiveTab('myRequests')}
-          >
-            <Text
-              fontSize={14}
-              fontWeight="600"
-              color={activeTab === 'myRequests' ? brandColors.primary : '#888'}
+            <View
+              flex={1}
+              paddingVertical="$3"
+              alignItems="center"
+              borderBottomWidth={2}
+              borderBottomColor={activeTab === 'myApplications' ? brandColors.primary : 'transparent'}
+              cursor="pointer"
+              onPress={() => setActiveTab('myApplications')}
             >
-              내 의뢰
-            </Text>
-          </View>
-          <View
-            flex={1}
-            paddingVertical="$3"
-            alignItems="center"
-            borderBottomWidth={2}
-            borderBottomColor={activeTab === 'myApplications' ? brandColors.primary : 'transparent'}
-            cursor="pointer"
-            onPress={() => setActiveTab('myApplications')}
-          >
-            <Text
-              fontSize={14}
-              fontWeight="600"
-              color={activeTab === 'myApplications' ? brandColors.primary : '#888'}
-            >
-              신청한 의뢰
-            </Text>
-          </View>
-        </XStack>
+              <Text
+                fontSize={14}
+                fontWeight="600"
+                color={activeTab === 'myApplications' ? brandColors.primary : '#888'}
+              >
+                신청한 의뢰
+              </Text>
+            </View>
+          </XStack>
+        )}
 
-        {/* 컨텐츠 */}
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          {/* @ts-ignore - safe area padding for mobile */}
-          <YStack padding="$3" gap="$3" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 24px))' }}>
-            {isLoading || isLoadingMyRequests ? (
-              <View paddingVertical="$6" alignItems="center">
-                <Spinner size="large" color={brandColors.primary} />
-              </View>
-            ) : activeTab === 'myRequests' ? (
-              // 내 의뢰 탭
-              myRequests.length === 0 ? (
+        {/* 컨텐츠 - requests 모드에서만 표시 */}
+        {mode === 'requests' && (
+          <ScrollView flex={1} showsVerticalScrollIndicator={false}>
+            {/* @ts-ignore - safe area padding for mobile */}
+            <YStack padding="$3" gap="$3" paddingBottom={90}>
+              {isLoading || isLoadingMyRequests ? (
                 <View paddingVertical="$6" alignItems="center">
-                  <Text fontSize={14} color="#888">등록한 의뢰가 없습니다</Text>
+                  <Spinner size="large" color={brandColors.primary} />
                 </View>
+              ) : activeTab === 'myRequests' ? (
+                // 내 의뢰 탭
+                myRequests.length === 0 ? (
+                  <View paddingVertical="$6" alignItems="center">
+                    <Text fontSize={14} color="#888">등록한 의뢰가 없습니다</Text>
+                  </View>
+                ) : (
+                  myRequests.map((req) => (
+                    <MyRequestCard
+                      key={req.id}
+                      request={req}
+                      applications={applicationsByRequest[req.id] || []}
+                      onAccept={handleAccept}
+                      onReject={handleReject}
+                      onComplete={handleComplete}
+                      onImageClick={(url) => setEnlargedImageUrl(url)}
+                    />
+                  ))
+                )
               ) : (
-                myRequests.map((req) => (
-                  <MyRequestCard
-                    key={req.id}
-                    request={req}
-                    applications={applicationsByRequest[req.id] || []}
-                    onAccept={handleAccept}
-                    onReject={handleReject}
-                    onComplete={handleComplete}
-                    onImageClick={(url) => setEnlargedImageUrl(url)}
-                  />
-                ))
-              )
-            ) : (
-              // 신청한 의뢰 탭
-              myApplications.length === 0 ? (
-                <View paddingVertical="$6" alignItems="center">
-                  <Text fontSize={14} color="#888">신청한 의뢰가 없습니다</Text>
-                </View>
-              ) : (
-                myApplications.map((app) => (
-                  <MyApplicationCard
-                    key={app.id}
-                    application={app}
-                    onCancel={handleCancel}
-                  />
-                ))
-              )
-            )}
-          </YStack>
-        </ScrollView>
+                // 신청한 의뢰 탭
+                myApplications.length === 0 ? (
+                  <View paddingVertical="$6" alignItems="center">
+                    <Text fontSize={14} color="#888">신청한 의뢰가 없습니다</Text>
+                  </View>
+                ) : (
+                  myApplications.map((app) => (
+                    <MyApplicationCard
+                      key={app.id}
+                      application={app}
+                      onCancel={handleCancel}
+                    />
+                  ))
+                )
+              )}
+            </YStack>
+          </ScrollView>
+        )}
 
         {/* 프로필 수정 모달 */}
         <ProfileSetupModal
@@ -840,6 +865,20 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
           isOpen={showNotificationModal}
           onClose={() => setShowNotificationModal(false)}
           onNavigate={(tab) => setActiveTab(tab)}
+        />
+
+        {/* 하단 네비게이션 */}
+        <BottomNavigation
+          activeMode={mode}
+          onNavigate={(navMode) => {
+            if (navMode === 'home') {
+              onBack();
+            } else if (onNavigate) {
+              onNavigate(navMode);
+            }
+          }}
+          onLoginRequired={() => {}}
+          isLoggedIn={!!user}
         />
       </View>
     </View>

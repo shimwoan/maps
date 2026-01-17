@@ -9,6 +9,7 @@ import { RequestFormModal } from '../components/RequestFormModal';
 import { RequestDetailCard } from '../components/RequestDetailCard';
 import { MyPage } from './MyPage';
 import { NotificationModal } from '../components/NotificationModal';
+import { BottomNavigation } from '../components/BottomNavigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
 import { useRequestApplications } from '../hooks/useRequestApplications';
@@ -106,13 +107,14 @@ export function HomeScreen() {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [address, setAddress] = useState<Address | null>(null);
-  const [zoom, setZoom] = useState(14);
+  const [zoom, setZoom] = useState(10);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isMyPageOpen, setIsMyPageOpen] = useState(false);
   const [myPageInitialTab, setMyPageInitialTab] = useState<'myRequests' | 'myApplications'>('myRequests');
+  const [myPageMode, setMyPageMode] = useState<'requests' | 'profile'>('requests');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedAsTypeFilter, setSelectedAsTypeFilter] = useState<AsType | null>(null);
   const skipAddressUpdateRef = useRef(false);
@@ -255,7 +257,14 @@ export function HomeScreen() {
       >
         <XStack alignItems="center" justifyContent="space-between">
           <XStack alignItems="center" gap="$3">
-            <XStack alignItems="center" gap="$2.5">
+            <XStack
+              alignItems="center"
+              gap="$2.5"
+              cursor="pointer"
+              tag="a"
+              href="/"
+              style={{ textDecoration: 'none' }}
+            >
               <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
                 <rect width="48" height="48" rx="10" fill={brandColors.primary}/>
                 <path d="M24 8C18.5 8 14 12.5 14 18C14 25.5 24 34 24 34C24 34 34 25.5 34 18C34 12.5 29.5 8 24 8Z" fill="white"/>
@@ -642,9 +651,21 @@ export function HomeScreen() {
         <MyPage
           onBack={() => {
             setIsMyPageOpen(false);
-            setMyPageInitialTab('myRequests'); // 닫을 때 초기화
+            setMyPageInitialTab('myRequests');
+            setMyPageMode('requests');
+          }}
+          onNavigate={(navMode) => {
+            if (navMode === 'home') {
+              setIsMyPageOpen(false);
+            } else if (navMode === 'requests') {
+              setMyPageMode('requests');
+              setMyPageInitialTab('myRequests');
+            } else if (navMode === 'profile') {
+              setMyPageMode('profile');
+            }
           }}
           initialTab={myPageInitialTab}
+          mode={myPageMode}
         />
       )}
 
@@ -653,9 +674,30 @@ export function HomeScreen() {
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         onNavigate={(tab) => {
+          setMyPageMode('requests');
           setMyPageInitialTab(tab);
           setIsMyPageOpen(true);
         }}
+      />
+
+      {/* 하단 네비게이션 */}
+      <BottomNavigation
+        activeMode={!isMyPageOpen ? 'home' : myPageMode}
+        onNavigate={(mode) => {
+          if (mode === 'home') {
+            setIsMyPageOpen(false);
+            setMyPageInitialTab('myRequests');
+          } else if (mode === 'requests') {
+            setMyPageMode('requests');
+            setMyPageInitialTab('myRequests');
+            setIsMyPageOpen(true);
+          } else if (mode === 'profile') {
+            setMyPageMode('profile');
+            setIsMyPageOpen(true);
+          }
+        }}
+        onLoginRequired={() => setIsLoginModalOpen(true)}
+        isLoggedIn={!!user}
       />
     </View>
     </View>
