@@ -58,15 +58,18 @@ const getMarkerSize = (zoom: number) => {
 // 마커 HTML 생성
 const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn: boolean, isApplied: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
-  // 신청중: 초록색, 진행중: 주황색, 기본: 파란색
-  const primaryColor = isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : '#3B82F6';
+  const isCompleted = marker.status === 'completed';
+  // 완료: 회색, 신청중: 초록색, 진행중: 주황색, 기본: 파란색
+  const primaryColor = isCompleted ? '#9CA3AF' : isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : '#3B82F6';
   const bgColor = isSelected ? '#ffffff' : primaryColor;
   const textColor = isSelected ? primaryColor : '#ffffff';
   const borderColor = primaryColor;
   const size = getMarkerSize(zoom);
 
   let badge = '';
-  if (isApplied) {
+  if (isCompleted) {
+    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">완료</span>`;
+  } else if (isApplied) {
     badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">신청중</span>`;
   } else if (isInProgress) {
     badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">협업중</span>`;

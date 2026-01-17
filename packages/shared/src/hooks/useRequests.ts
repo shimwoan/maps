@@ -19,6 +19,7 @@ export interface Request {
   description: string | null;
   status: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export function useRequests() {
@@ -30,15 +31,29 @@ export function useRequests() {
   const fetchRequests = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // 활성 상태 의뢰 조회
+      const { data: activeData, error: activeError } = await supabase
         .from('requests')
         .select('*')
         .in('status', ['pending', 'applied', 'accepted'])
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
 
-      if (error) throw error;
-      setRequests(data || []);
+      if (activeError) throw activeError;
+
+      // 완료된 의뢰 중 24시간 이내 것만 조회
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: completedData, error: completedError } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('status', 'completed')
+        .gte('updated_at', oneDayAgo)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
+
+      if (completedError) throw completedError;
+
+      setRequests([...(activeData || []), ...(completedData || [])]);
     } catch (err) {
       setError(err as Error);
       console.error('Failed to fetch requests:', err);
@@ -72,18 +87,18 @@ export function useRequests() {
             const updatedRequest = payload.new as Request;
             setRequests(prev => {
               const existingRequest = prev.find(r => r.id === updatedRequest.id);
+              const validStatuses = ['pending', 'applied', 'accepted', 'completed'];
 
-              // 상태가 pending/applied/accepted가 아니면 제거
-              if (!['pending', 'applied', 'accepted'].includes(updatedRequest.status)) {
+              // 유효하지 않은 상태면 제거
+              if (!validStatuses.includes(updatedRequest.status)) {
                 return prev.filter(r => r.id !== updatedRequest.id);
               }
 
-              // 기존 목록에 있으면 업데이트 (위치값은 기존 값 유지 가능)
+              // 기존 목록에 있으면 업데이트
               if (existingRequest) {
                 return prev.map(r => r.id === updatedRequest.id ? {
                   ...existingRequest,
                   ...updatedRequest,
-                  // 위치값이 없으면 기존 값 유지
                   latitude: updatedRequest.latitude ?? existingRequest.latitude,
                   longitude: updatedRequest.longitude ?? existingRequest.longitude,
                 } : r);

@@ -70,12 +70,14 @@ function MyRequestCard({
   onAccept,
   onReject,
   onComplete,
+  onImageClick,
 }: {
   request: Request;
   applications: RequestApplication[];
   onAccept: (appId: string, reqId: string) => void;
   onReject: (appId: string) => void;
   onComplete: (reqId: string) => Promise<void>;
+  onImageClick: (url: string) => void;
 }) {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -160,7 +162,8 @@ function MyRequestCard({
             <img
               src={acceptedApp.applicant_profile.business_card_url}
               alt="명함"
-              style={{ width: 'fit-content', maxWidth: '200px', borderRadius: 8 }}
+              style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer' }}
+              onClick={() => onImageClick(acceptedApp.applicant_profile?.business_card_url || '')}
             />
           )}
         </YStack>
@@ -189,7 +192,8 @@ function MyRequestCard({
                   <img
                     src={app.applicant_profile.business_card_url}
                     alt="명함"
-                    style={{ width: 'fit-content', borderRadius: 8 }}
+                    style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer' }}
+                    onClick={() => onImageClick(app.applicant_profile?.business_card_url || '')}
                   />
                 ) : (
                   <View
@@ -432,7 +436,7 @@ function MyApplicationCard({
 export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const { user, signOut } = useAuth();
   const { profile, hasBusinessCard, refetch: refetchProfile } = useProfile();
@@ -510,10 +514,10 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
       .eq('status', 'accepted')
       .single();
 
-    // 의뢰 상태 업데이트
+    // 의뢰 상태 업데이트 (updated_at도 설정하여 24시간 필터링에 사용)
     const { error: reqError } = await supabase
       .from('requests')
-      .update({ status: 'completed' })
+      .update({ status: 'completed', updated_at: new Date().toISOString() })
       .eq('id', reqId);
 
     if (reqError) throw reqError;
@@ -521,7 +525,7 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
     // 해당 의뢰의 수락된 신청도 완료 상태로 업데이트
     const { error: appError } = await supabase
       .from('request_applications')
-      .update({ status: 'completed' })
+      .update({ status: 'completed', updated_at: new Date().toISOString() })
       .eq('request_id', reqId)
       .eq('status', 'accepted');
 
@@ -655,7 +659,7 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
               overflow="hidden"
               backgroundColor="#f0f0f0"
               cursor="pointer"
-              onPress={() => setShowImageModal(true)}
+              onPress={() => setEnlargedImageUrl(profile.business_card_url)}
             >
               <img
                 src={profile.business_card_url}
@@ -738,7 +742,8 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
 
         {/* 컨텐츠 */}
         <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <YStack padding="$3" gap="$3">
+          {/* @ts-ignore - safe area padding for mobile */}
+          <YStack padding="$3" gap="$3" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 24px))' }}>
             {isLoading || isLoadingMyRequests ? (
               <View paddingVertical="$6" alignItems="center">
                 <Spinner size="large" color={brandColors.primary} />
@@ -758,6 +763,7 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
                     onAccept={handleAccept}
                     onReject={handleReject}
                     onComplete={handleComplete}
+                    onImageClick={(url) => setEnlargedImageUrl(url)}
                   />
                 ))
               )
@@ -792,7 +798,7 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
         />
 
         {/* 명함 원본 이미지 보기 */}
-        {showImageModal && profile?.business_card_url && (
+        {enlargedImageUrl && (
           <View
             position="absolute"
             top={0}
@@ -804,11 +810,11 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
             alignItems="center"
             justifyContent="center"
             cursor="pointer"
-            onPress={() => setShowImageModal(false)}
+            onPress={() => setEnlargedImageUrl(null)}
           >
             <img
-              src={profile.business_card_url}
-              alt="내 명함"
+              src={enlargedImageUrl}
+              alt="명함"
               style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: 8 }}
             />
             <View position="absolute" top={16} right={16}>
