@@ -8,13 +8,12 @@ interface FloatingActionButtonProps {
 export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
   return (
     <View
-      position="fixed"
+      position="absolute"
       right={16}
-      zIndex={1000}
+      zIndex={200}
       // @ts-ignore - safe area for mobile browsers
       style={{
         bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
-        right: '16px',
       }}
       paddingHorizontal={20}
       height={48}
