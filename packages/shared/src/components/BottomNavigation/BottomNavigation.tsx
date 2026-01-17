@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { View, Text, XStack } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
@@ -10,12 +11,26 @@ interface BottomNavigationProps {
   isLoggedIn: boolean;
 }
 
+// PC 디바이스 체크 (터치 미지원 + 모바일 UA 아님)
+const checkIsPC = () => {
+  if (typeof window === 'undefined') return false;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return !isTouchDevice && !mobileUA;
+};
+
 export function BottomNavigation({
   activeMode,
   onNavigate,
   onLoginRequired,
   isLoggedIn,
 }: BottomNavigationProps) {
+  const [isPC, setIsPC] = useState(false);
+
+  useEffect(() => {
+    setIsPC(checkIsPC());
+  }, []);
+
   const handlePress = (mode: PageMode) => {
     if (mode !== 'home' && !isLoggedIn) {
       onLoginRequired?.();
@@ -26,7 +41,7 @@ export function BottomNavigation({
 
   return (
     <View
-      position="absolute"
+      position={isPC ? 'absolute' : 'fixed'}
       bottom={0}
       left={0}
       right={0}
