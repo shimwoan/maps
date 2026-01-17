@@ -452,30 +452,29 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
   const [myRequests, setMyRequests] = useState<Request[]>([]);
   const [isLoadingMyRequests, setIsLoadingMyRequests] = useState(true);
 
+  // 내 의뢰 로드 함수
+  const fetchMyRequests = async () => {
+    if (!user) return;
+    const { supabase } = await import('../lib/supabase');
+    const { data } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    setMyRequests(data || []);
+    setIsLoadingMyRequests(false);
+  };
+
   // 내 의뢰 로드 (pending이 아닌 것도 포함)
   useEffect(() => {
-    if (user) {
-      import('../lib/supabase').then(({ supabase }) => {
-        supabase
-          .from('requests')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .then(({ data }) => {
-            setMyRequests(data || []);
-            setIsLoadingMyRequests(false);
-          });
-      });
-    }
+    fetchMyRequests();
   }, [user]);
 
   const handleAccept = async (appId: string, reqId: string) => {
     try {
       await acceptApplication(appId, reqId);
-      // 로컬 상태 업데이트 - 의뢰 상태를 accepted로 변경
-      setMyRequests(prev => prev.map(r =>
-        r.id === reqId ? { ...r, status: 'accepted' } : r
-      ));
+      // 서버에서 최신 데이터 다시 로드
+      await fetchMyRequests();
     } catch (err) {
       console.error('Failed to accept:', err);
     }
