@@ -1,8 +1,8 @@
 import { Button as TamaguiButton, styled } from 'tamagui';
-import type { GetProps } from 'tamagui';
+import type { GetProps, TamaguiComponent } from 'tamagui';
 
 // 호버/프레스 시 배경색 변화 완전 제거
-export const Button = styled(TamaguiButton, {
+export const Button: TamaguiComponent = styled(TamaguiButton, {
   unstyled: true,
   alignItems: 'center',
   justifyContent: 'center',

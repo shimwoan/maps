@@ -6,7 +6,7 @@
 
 // 플랫폼 감지 (react-native import 없이)
 const isWeb = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-const isNative = !isWeb && typeof global !== 'undefined';
+const isNative = !isWeb && typeof globalThis !== 'undefined';
 
 export interface StorageInterface {
   getItem: (key: string) => string | null;
