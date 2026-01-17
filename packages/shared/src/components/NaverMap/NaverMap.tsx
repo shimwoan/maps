@@ -96,8 +96,10 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
         <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center;">${badge}${marker.title} | ${marker.asType}</div>
         <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
       </div>
-      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 8" style="margin-top: -1px;">
-        <path d="M0,0 L8,8 L16,0" fill="${bgColor}" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linejoin="round"/>
+      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 10" style="margin-top: -${size.borderWidth}px;">
+        <path d="M0,0 L8,10 L16,0" fill="${bgColor}"/>
+        <path d="M0,0 L8,10" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
+        <path d="M16,0 L8,10" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
       </svg>
     </div>
   `;
