@@ -28,7 +28,7 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       zIndex={200}
       // @ts-ignore - safe area for mobile browsers
       style={{
-        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
       }}
       paddingHorizontal={20}
       height={48}
