@@ -15,6 +15,8 @@ export * from './screens';
 
 // Contexts
 export { AuthProvider, useAuth } from './contexts/AuthContext';
+export { NotificationProvider, useNotifications } from './contexts/NotificationContext';
+export type { Notification } from './contexts/NotificationContext';
 
 // Hooks
 export * from './hooks';

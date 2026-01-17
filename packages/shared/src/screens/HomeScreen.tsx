@@ -11,7 +11,7 @@ import { MyPage } from './MyPage';
 import { NotificationModal } from '../components/NotificationModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotifications } from '../contexts/NotificationContext';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
 import { AS_TYPES, type AsType } from '../components/RequestFormModal/types';

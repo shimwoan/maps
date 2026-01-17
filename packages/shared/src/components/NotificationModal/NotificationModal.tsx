@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, YStack, XStack, ScrollView, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
-import { useNotifications, type Notification } from '../../hooks/useNotifications';
+import { useNotifications, type Notification } from '../../contexts/NotificationContext';
 
 interface NotificationModalProps {
   isOpen: boolean;

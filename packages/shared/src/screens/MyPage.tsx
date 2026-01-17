@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
 import { useRequestApplications, RequestApplication } from '../hooks/useRequestApplications';
 import { useRequests, Request } from '../hooks/useRequests';
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotifications } from '../contexts/NotificationContext';
 
 type TabType = 'myRequests' | 'myApplications';
 
