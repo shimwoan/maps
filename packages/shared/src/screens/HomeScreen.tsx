@@ -120,7 +120,7 @@ export function HomeScreen() {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
-  const { myApplications } = useRequestApplications();
+  const { myApplications, refetch: refetchApplications } = useRequestApplications();
   const { unreadCount } = useNotifications();
 
   // 내가 신청한 의뢰 ID 목록
@@ -632,6 +632,7 @@ export function HomeScreen() {
           onAccept={() => {
             // 마커 상태 즉시 업데이트를 위해 데이터 새로고침
             refetchRequests();
+            refetchApplications();
           }}
         />
       )}

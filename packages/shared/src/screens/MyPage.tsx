@@ -138,12 +138,22 @@ function MyRequestCard({
         <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
           <XStack alignItems="center" justifyContent="space-between">
             <XStack alignItems="center" gap="$2">
+              {/* @ts-ignore */}
               <View
                 width={8}
                 height={8}
                 borderRadius={4}
                 backgroundColor="#22C55E"
+                style={{
+                  animation: 'pulse-green 1.5s ease-in-out infinite',
+                }}
               />
+              <style>{`
+                @keyframes pulse-green {
+                  0%, 100% { opacity: 1; transform: scale(1); }
+                  50% { opacity: 0.6; transform: scale(1.2); }
+                }
+              `}</style>
               <Text fontSize={13} color="#22C55E" fontWeight="600">
                 {acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중
               </Text>

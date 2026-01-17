@@ -349,6 +349,8 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           content: createMarkerContent(markerData, isSelected, isOwn, isApplied, currentZoom),
           anchor: new window.naver.maps.Point(anchorX, anchorY),
         });
+        // 선택된 마커는 zIndex를 높여서 가장 앞에 표시
+        existingMarker.setZIndex(isSelected ? 1000 : 1);
       } else {
         // 새 마커 생성
         const newMarker = new window.naver.maps.Marker({
@@ -358,6 +360,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
             content: createMarkerContent(markerData, isSelected, isOwn, isApplied, currentZoom),
             anchor: new window.naver.maps.Point(anchorX, anchorY),
           },
+          zIndex: isSelected ? 1000 : 1,
         });
 
         // 클릭 이벤트 추가
