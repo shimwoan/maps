@@ -218,7 +218,8 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
         </XStack>
 
         {/* 알림 목록 */}
-        <ScrollView maxHeight={500}>
+        {/* @ts-ignore - scrollbar styling */}
+        <ScrollView maxHeight={500} style={{ scrollbarWidth: 'thin', scrollbarColor: '#ccc transparent' }}>
           {isLoading ? (
             <View padding="$6" alignItems="center">
               <Spinner size="large" color={brandColors.primary} />
