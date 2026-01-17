@@ -192,58 +192,54 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
           </View>
 
           {/* 설명 텍스트 */}
-          <Text
-            fontSize={14}
-            color="#888"
-            textAlign="center"
-            marginTop="$3"
-            lineHeight={22}
-          >
-            주변 전문가에게{'\n'}
-            <Text fontWeight="600" color="#555">실시간으로 작업을 요청</Text>하세요
-          </Text>
+          <YStack alignItems="center" gap="$2" marginTop="$3">
+            <Text
+              fontSize={14}
+              color="#888"
+              textAlign="center"
+              lineHeight={22}
+            >
+              주변 전문가에게{'\n'}
+              <Text fontWeight="600" color="#555">실시간으로 작업을 요청</Text>하세요
+            </Text>
+            <Text fontSize={13} color="#666" textAlign="center">
+              {user && <Text fontWeight="600" color="#333">{getUserName()}님! </Text>}오늘도 신속하고 안전하게 협업하세요
+            </Text>
+          </YStack>
         </View>
 
-        {/* 하단: 인사말 + 버튼 + 특징 */}
+        {/* 하단: 버튼 + 특징 */}
         <YStack gap="$3">
-          {/* 인사말 */}
-          <Text fontSize={14} fontWeight="600" color="#333" textAlign="center" paddingVertical="$1">
-            {user && <>{getUserName()}님! </>}<Text color="#666" fontWeight="400">오늘도 신속하고 안전하게 협업하세요</Text>
-          </Text>
-
-          {/* 시작 버튼 + 다시 보지 않기 */}
-          <View position="relative">
-            {/* 다시 보지 않기 체크박스 - 버튼 우측 상단 */}
-            <XStack
-              position="absolute"
-              top={-24}
-              right={0}
-              alignItems="center"
-              gap="$1.5"
-              cursor="pointer"
-              onPress={() => setSkipIntro(!skipIntro)}
-            >
-              <View
-                width={14}
-                height={14}
-                borderRadius={3}
-                borderWidth={1}
-                borderColor={skipIntro ? brandColors.primary : '#bbb'}
-                backgroundColor={skipIntro ? brandColors.primary : 'white'}
+          {/* 다시 보지 않기 + 시작 버튼 */}
+          <YStack gap="$2">
+            <XStack justifyContent="flex-end" paddingHorizontal="$1">
+              <XStack
                 alignItems="center"
-                justifyContent="center"
+                gap="$1.5"
+                cursor="pointer"
+                onPress={() => setSkipIntro(!skipIntro)}
               >
-                {skipIntro && (
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </View>
-              <Text fontSize={11} color="#888">
-                다시 보지 않기
-              </Text>
+                <View
+                  width={14}
+                  height={14}
+                  borderRadius={3}
+                  borderWidth={1}
+                  borderColor={skipIntro ? brandColors.primary : '#bbb'}
+                  backgroundColor={skipIntro ? brandColors.primary : 'white'}
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  {skipIntro && (
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </View>
+                <Text fontSize={11} color="#888">
+                  다시 보지 않기
+                </Text>
+              </XStack>
             </XStack>
-
             <Button
               size="$5"
               backgroundColor={brandColors.primary}
@@ -264,7 +260,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             >
               시작하기
             </Button>
-          </View>
+          </YStack>
 
           {/* 하단 특징 */}
           <XStack justifyContent="space-around" alignItems="center" paddingTop="$2">

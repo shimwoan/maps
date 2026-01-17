@@ -33,7 +33,7 @@ export function useRequests() {
       const { data, error } = await supabase
         .from('requests')
         .select('*')
-        .in('status', ['pending', 'accepted'])
+        .in('status', ['pending', 'applied', 'accepted'])
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
 
@@ -64,8 +64,8 @@ export function useRequests() {
         (payload) => {
           if (payload.eventType === 'INSERT') {
             const newRequest = payload.new as Request;
-            // pending 또는 accepted 상태이고 위치값이 있는 경우에만 추가
-            if (['pending', 'accepted'].includes(newRequest.status) && newRequest.latitude && newRequest.longitude) {
+            // pending, applied, accepted 상태이고 위치값이 있는 경우에만 추가
+            if (['pending', 'applied', 'accepted'].includes(newRequest.status) && newRequest.latitude && newRequest.longitude) {
               setRequests(prev => [...prev, newRequest]);
             }
           } else if (payload.eventType === 'UPDATE') {
@@ -73,8 +73,8 @@ export function useRequests() {
             setRequests(prev => {
               const existingRequest = prev.find(r => r.id === updatedRequest.id);
 
-              // 상태가 pending/accepted가 아니면 제거
-              if (!['pending', 'accepted'].includes(updatedRequest.status)) {
+              // 상태가 pending/applied/accepted가 아니면 제거
+              if (!['pending', 'applied', 'accepted'].includes(updatedRequest.status)) {
                 return prev.filter(r => r.id !== updatedRequest.id);
               }
 
