@@ -8,11 +8,14 @@ interface FloatingActionButtonProps {
 export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
   return (
     <View
-      position="absolute"
-      bottom={24}
-      right={24}
+      position="fixed"
+      right={16}
+      zIndex={1000}
       // @ts-ignore - safe area for mobile browsers
-      style={{ bottom: 'max(24px, calc(24px + env(safe-area-inset-bottom)))' }}
+      style={{
+        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        right: '16px',
+      }}
       paddingHorizontal={20}
       height={48}
       borderRadius={24}
@@ -24,9 +27,9 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       cursor="pointer"
       onPress={onPress}
       shadowColor="#000"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.25}
-      shadowRadius={4}
+      shadowOffset={{ width: 0, height: 4 }}
+      shadowOpacity={0.3}
+      shadowRadius={8}
       hoverStyle={{
         backgroundColor: brandColors.primaryHover,
         scale: 1.05,
