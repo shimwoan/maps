@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -184,15 +184,69 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, [user, fetchNotifications]);
 
-  // 초기 로드 및 30초마다 폴링
+  // Realtime 구독을 위한 ref
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // 초기 로드 및 Realtime 구독
   useEffect(() => {
     fetchNotifications();
 
     if (!user) return;
 
-    const interval = setInterval(fetchNotifications, 30000);
+    // 기존 채널이 있으면 제거
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
 
-    return () => clearInterval(interval);
+    // Realtime 구독 설정
+    channelRef.current = supabase
+      .channel(`notifications-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            // 새 알림 추가
+            const newNotification = payload.new as Notification;
+            setNotifications(prev => [newNotification, ...prev]);
+            if (!newNotification.is_read) {
+              setUnreadCount(prev => prev + 1);
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            // 알림 업데이트 (읽음 처리 등)
+            const updatedNotification = payload.new as Notification;
+            setNotifications(prev =>
+              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+            );
+            // 읽음 처리된 경우 카운트 업데이트
+            const oldNotification = payload.old as { is_read?: boolean };
+            if (!oldNotification.is_read && updatedNotification.is_read) {
+              setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+          } else if (payload.eventType === 'DELETE') {
+            // 알림 삭제
+            const deletedId = (payload.old as { id: string }).id;
+            const deletedNotification = notifications.find(n => n.id === deletedId);
+            setNotifications(prev => prev.filter(n => n.id !== deletedId));
+            if (deletedNotification && !deletedNotification.is_read) {
+              setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
   }, [user, fetchNotifications]);
 
   return (
