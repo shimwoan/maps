@@ -1,40 +1,43 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { useState, useRef } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HomeScreen, IntroScreen, AuthProvider, useAuth, storage, STORAGE_KEYS } from '@monorepo/shared';
 
-function IntroPage() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+// OAuth 리다이렉트 감지 (URL에 인증 관련 해시가 있는 경우)
+const checkOAuthReturn = () => {
+  const hash = window.location.hash;
+  return hash.includes('access_token') || hash.includes('error');
+};
 
-  const skipIntro = storage.getItem(STORAGE_KEYS.SKIP_INTRO) === 'true';
-  const shouldRedirect = user || skipIntro;
-
-  useEffect(() => {
-    if (loading) return;
-
-    // 로그인 상태이거나 "다시 보지 않기" 체크 시 /home으로 리다이렉트
-    if (shouldRedirect) {
-      navigate('/home', { replace: true });
-    }
-  }, [loading, shouldRedirect, navigate]);
-
-  // 인증 로딩 중이거나 리다이렉트 예정이면 빈 화면 표시 (깜박임 방지)
-  if (loading || shouldRedirect) {
-    return null;
-  }
-
-  const handleStart = () => {
-    navigate('/home');
-  };
-
-  return <IntroScreen onStart={handleStart} />;
-}
-
-function HomePage() {
+function MainPage() {
   const { loading } = useAuth();
+  const skipIntro = storage.getItem(STORAGE_KEYS.SKIP_INTRO) === 'true';
+  const introPassedRef = useRef(false); // 현재 세션에서 인트로 통과 여부
+
+  const [showIntro, setShowIntro] = useState(() => {
+    // 다시 보지 않기 체크 시 인트로 스킵
+    if (skipIntro) {
+      return false;
+    }
+    // OAuth 리다이렉트면 인트로 스킵 (URL 해시로만 판단)
+    if (checkOAuthReturn()) {
+      return false;
+    }
+    return true;
+  });
+
+  // 인트로 완료
+  const handleIntroComplete = () => {
+    introPassedRef.current = true;
+    setShowIntro(false);
+  };
 
   if (loading) {
     return null;
+  }
+
+  // 인트로 표시
+  if (showIntro) {
+    return <IntroScreen onStart={handleIntroComplete} />;
   }
 
   return <HomeScreen />;
@@ -45,8 +48,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<IntroPage />} />
-          <Route path="/home" element={<HomePage />} />
+          <Route path="/*" element={<MainPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
