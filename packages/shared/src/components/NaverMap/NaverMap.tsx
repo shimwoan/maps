@@ -38,10 +38,10 @@ const getMarkerSize = (zoom: number) => {
   const scale = getMarkerScale(zoom);
   return {
     scale,
-    fontSize: Math.round(13 * scale),
-    fontSizeSm: Math.round(12 * scale),
-    fontSizeLg: Math.round(15 * scale),
-    badgeFontSize: Math.round(10 * scale),
+    fontSize: Math.round(14 * scale),
+    fontSizeSm: Math.round(13 * scale),
+    fontSizeLg: Math.round(16 * scale),
+    badgeFontSize: Math.round(11 * scale),
     paddingV: Math.round(10 * scale),
     paddingH: Math.round(14 * scale),
     badgePaddingV: Math.round(2 * scale),
@@ -50,48 +50,9 @@ const getMarkerSize = (zoom: number) => {
     borderWidth: Math.max(2, Math.round(2.5 * scale)),
     arrowWidth: Math.round(20 * scale),
     arrowHeight: Math.round(10 * scale),
-    iconSize: Math.round(28 * scale),
     // 마커 전체 높이 추정 (anchor 계산용)
-    totalHeight: Math.round(85 * scale),
+    totalHeight: Math.round(75 * scale),
   };
-};
-
-// 카테고리별 아이콘 SVG
-const getCategoryIcon = (asType: string, size: number, color: string): string => {
-  const icons: Record<string, string> = {
-    '복합기/OA': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <path d="M7 3h10v5H7z" fill="${color}" opacity="0.3"/>
-      <rect x="4" y="8" width="16" height="8" rx="1" fill="${color}"/>
-      <path d="M7 16h10v5H7z" fill="white" stroke="${color}" stroke-width="1"/>
-      <circle cx="17" cy="12" r="1.5" fill="#22C55E"/>
-    </svg>`,
-    '전기/통신': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="${color}"/>
-    </svg>`,
-    '가전/설비': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="${color}"/>
-    </svg>`,
-    '인테리어': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="${color}"/>
-      <path d="M9 22V12h6v10" fill="white" opacity="0.5"/>
-    </svg>`,
-    '청소': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <path d="M12 2v5" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
-      <path d="M12 7l5 15H7l5-15z" fill="${color}"/>
-    </svg>`,
-    '소프트웨어': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="3" width="20" height="14" rx="2" fill="${color}"/>
-      <rect x="4" y="5" width="16" height="10" fill="white" opacity="0.3"/>
-      <path d="M8 21h8M12 17v4" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
-    </svg>`,
-    '운반/설치': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
-      <path d="M1 3h15v13H1z" fill="${color}"/>
-      <path d="M16 8h4l3 3v5h-7V8z" fill="${color}" opacity="0.7"/>
-      <circle cx="5.5" cy="18.5" r="2.5" fill="${color}" stroke="white" stroke-width="1.5"/>
-      <circle cx="18.5" cy="18.5" r="2.5" fill="${color}" stroke="white" stroke-width="1.5"/>
-    </svg>`,
-  };
-  return icons[asType] || icons['복합기/OA'];
 };
 
 // 마커 HTML 생성
@@ -102,28 +63,12 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
   const bgColor = isSelected ? '#ffffff' : primaryColor;
   const textColor = isSelected ? primaryColor : '#ffffff';
   const borderColor = primaryColor;
-  const iconColor = isSelected ? primaryColor : '#ffffff';
   const size = getMarkerSize(zoom);
 
   let badge = '';
   if (isInProgress) {
-    badge = `<div style="
-      position: absolute;
-      top: -${Math.round(8 * size.scale)}px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: ${size.badgeFontSize}px;
-      background: #F59E0B;
-      color: #fff;
-      padding: ${size.badgePaddingV}px ${size.badgePaddingH}px;
-      border-radius: ${Math.round(10 * size.scale)}px;
-      white-space: nowrap;
-      font-weight: 700;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    ">협업중</div>`;
+    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">협업중</span>`;
   }
-
-  const categoryIcon = getCategoryIcon(marker.asType, size.iconSize, iconColor);
 
   return `
     <div style="
@@ -133,7 +78,6 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
       filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
     ">
       <div style="
-        position: relative;
         background: ${bgColor};
         color: ${textColor};
         border: ${size.borderWidth}px solid ${borderColor};
@@ -143,25 +87,9 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
         font-weight: 600;
         white-space: nowrap;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: ${Math.round(10 * size.scale)}px;
       ">
-        ${badge}
-        <div style="
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: ${size.iconSize}px;
-          height: ${size.iconSize}px;
-          flex-shrink: 0;
-        ">
-          ${categoryIcon}
-        </div>
-        <div style="display: flex; flex-direction: column; gap: ${Math.round(2 * size.scale)}px;">
-          <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9;">${marker.title}</div>
-          <div style="font-size: ${size.fontSizeLg}px; font-weight: 700;">${formatPrice(marker.price)}원</div>
-        </div>
+        <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center;">${badge}${marker.title} | ${marker.asType}</div>
+        <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
       </div>
       <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 8" style="margin-top: -1px;">
         <path d="M0,0 L8,8 L16,0" fill="${bgColor}" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linejoin="round"/>
@@ -405,7 +333,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       const size = getMarkerSize(currentZoom);
       // anchor: 마커 콘텐츠의 하단 중앙 (삼각형 꼭지점)
       // 콘텐츠 너비는 가변이므로 size 기반으로 추정
-      const anchorX = Math.round(90 * size.scale); // 대략적인 마커 너비의 절반
+      const anchorX = Math.round(75 * size.scale); // 대략적인 마커 너비의 절반
       const anchorY = size.totalHeight;
 
       if (existingMarker) {
