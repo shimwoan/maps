@@ -56,17 +56,19 @@ const getMarkerSize = (zoom: number) => {
 };
 
 // 마커 HTML 생성
-const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn: boolean, zoom: number): string => {
+const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn: boolean, isApplied: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
-  // 진행중: 주황색, 기본: 파란색
-  const primaryColor = isInProgress ? '#F59E0B' : '#3B82F6';
+  // 신청중: 초록색, 진행중: 주황색, 기본: 파란색
+  const primaryColor = isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : '#3B82F6';
   const bgColor = isSelected ? '#ffffff' : primaryColor;
   const textColor = isSelected ? primaryColor : '#ffffff';
   const borderColor = primaryColor;
   const size = getMarkerSize(zoom);
 
   let badge = '';
-  if (isInProgress) {
+  if (isApplied) {
+    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">신청중</span>`;
+  } else if (isInProgress) {
     badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">협업중</span>`;
   }
 
@@ -160,6 +162,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   markers = [],
   selectedMarkerId = null,
   currentUserId = null,
+  appliedRequestIds = [],
   onMarkerClick,
   onMapClick,
 }, ref) {
@@ -329,6 +332,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     markers.forEach(markerData => {
       const isSelected = markerData.id === selectedMarkerId;
       const isOwn = currentUserId ? markerData.userId === currentUserId : false;
+      const isApplied = appliedRequestIds.includes(markerData.id);
       const existingMarker = requestMarkersRef.current.get(markerData.id);
       const size = getMarkerSize(currentZoom);
       // anchor: 마커 콘텐츠의 하단 중앙 (삼각형 꼭지점)
@@ -339,7 +343,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       if (existingMarker) {
         // 기존 마커 업데이트 (선택 상태 또는 줌 변경 시)
         existingMarker.setIcon({
-          content: createMarkerContent(markerData, isSelected, isOwn, currentZoom),
+          content: createMarkerContent(markerData, isSelected, isOwn, isApplied, currentZoom),
           anchor: new window.naver.maps.Point(anchorX, anchorY),
         });
       } else {
@@ -348,7 +352,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           position: new window.naver.maps.LatLng(markerData.latitude, markerData.longitude),
           map: mapInstanceRef.current!,
           icon: {
-            content: createMarkerContent(markerData, isSelected, isOwn, currentZoom),
+            content: createMarkerContent(markerData, isSelected, isOwn, isApplied, currentZoom),
             anchor: new window.naver.maps.Point(anchorX, anchorY),
           },
         });
@@ -361,7 +365,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         requestMarkersRef.current.set(markerData.id, newMarker);
       }
     });
-  }, [markers, selectedMarkerId, currentUserId, currentZoom, mapReady]);
+  }, [markers, selectedMarkerId, currentUserId, appliedRequestIds, currentZoom, mapReady]);
 
   return (
     <div

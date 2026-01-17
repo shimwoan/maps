@@ -11,6 +11,7 @@ import { MyPage } from './MyPage';
 import { NotificationModal } from '../components/NotificationModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
+import { useRequestApplications } from '../hooks/useRequestApplications';
 import { useNotifications } from '../contexts/NotificationContext';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
@@ -119,7 +120,13 @@ export function HomeScreen() {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
+  const { myApplications } = useRequestApplications();
   const { unreadCount } = useNotifications();
+
+  // 내가 신청한 의뢰 ID 목록
+  const appliedRequestIds = useMemo(() => {
+    return myApplications.map(app => app.request_id);
+  }, [myApplications]);
 
   // 의뢰를 마커 형식으로 변환 (필터 적용)
   const markers: RequestMarker[] = useMemo(() => {
@@ -494,6 +501,7 @@ export function HomeScreen() {
           markers={markers}
           selectedMarkerId={selectedRequestId}
           currentUserId={user?.id || null}
+          appliedRequestIds={appliedRequestIds}
           onMarkerClick={(id) => setSelectedRequestId(id)}
           onMapClick={() => setSelectedRequestId(null)}
         />

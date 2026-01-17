@@ -28,6 +28,7 @@ export interface NaverMapProps {
   markers?: RequestMarker[];
   selectedMarkerId?: string | null;
   currentUserId?: string | null;
+  appliedRequestIds?: string[];  // 현재 사용자가 신청한 의뢰 ID 목록
   onMarkerClick?: (markerId: string) => void;
   onMapClick?: () => void;
 }
