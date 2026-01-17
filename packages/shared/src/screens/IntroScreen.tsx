@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { View, Text, YStack, XStack } from 'tamagui';
 import { Button } from '../components/Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
-import { storage, STORAGE_KEYS } from '../lib/storage';
 
 interface IntroScreenProps {
   onStart: () => void;
@@ -11,7 +9,6 @@ interface IntroScreenProps {
 
 export function IntroScreen({ onStart }: IntroScreenProps) {
   const { user } = useAuth();
-  const [skipIntro, setSkipIntro] = useState(false);
 
   const getUserName = () => {
     if (user?.user_metadata?.name) return user.user_metadata.name;
@@ -210,57 +207,22 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
 
         {/* 하단: 버튼 + 특징 */}
         <YStack gap="$3">
-          {/* 다시 보지 않기 + 시작 버튼 */}
-          <YStack gap="$2">
-            <XStack justifyContent="flex-end" paddingHorizontal="$1">
-              <XStack
-                alignItems="center"
-                gap="$1.5"
-                cursor="pointer"
-                onPress={() => setSkipIntro(!skipIntro)}
-              >
-                <View
-                  width={14}
-                  height={14}
-                  borderRadius={3}
-                  borderWidth={1}
-                  borderColor={skipIntro ? brandColors.primary : '#bbb'}
-                  backgroundColor={skipIntro ? brandColors.primary : 'white'}
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  {skipIntro && (
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
-                      <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </View>
-                <Text fontSize={11} color="#888">
-                  다시 보지 않기
-                </Text>
-              </XStack>
-            </XStack>
-            <Button
-              size="$5"
-              backgroundColor={brandColors.primary}
-              color="white"
-              fontWeight="700"
-              fontSize={17}
-              width="100%"
-              height={52}
-              borderRadius={14}
-              onPress={() => {
-                if (skipIntro) {
-                  storage.setItem(STORAGE_KEYS.SKIP_INTRO, 'true');
-                }
-                onStart();
-              }}
-              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-              pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
-            >
-              시작하기
-            </Button>
-          </YStack>
+          {/* 시작 버튼 */}
+          <Button
+            size="$5"
+            backgroundColor={brandColors.primary}
+            color="white"
+            fontWeight="700"
+            fontSize={17}
+            width="100%"
+            height={52}
+            borderRadius={14}
+            onPress={onStart}
+            hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+            pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
+          >
+            시작하기
+          </Button>
 
           {/* 하단 특징 */}
           <XStack justifyContent="space-around" alignItems="center" paddingTop="$2">

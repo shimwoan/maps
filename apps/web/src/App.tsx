@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { HomeScreen, IntroScreen, AuthProvider, NotificationProvider, useAuth, storage, STORAGE_KEYS } from '@monorepo/shared';
+import { HomeScreen, IntroScreen, AuthProvider, NotificationProvider, useAuth } from '@monorepo/shared';
 
 // OAuth 리다이렉트 감지 (URL에 인증 관련 해시가 있는 경우)
 const checkOAuthReturn = () => {
@@ -10,14 +10,9 @@ const checkOAuthReturn = () => {
 
 function MainPage() {
   const { loading } = useAuth();
-  const skipIntro = storage.getItem(STORAGE_KEYS.SKIP_INTRO) === 'true';
   const introPassedRef = useRef(false); // 현재 세션에서 인트로 통과 여부
 
   const [showIntro, setShowIntro] = useState(() => {
-    // 다시 보지 않기 체크 시 인트로 스킵
-    if (skipIntro) {
-      return false;
-    }
     // OAuth 리다이렉트면 인트로 스킵 (URL 해시로만 판단)
     if (checkOAuthReturn()) {
       return false;

@@ -129,7 +129,6 @@ export const storageSync = {
 
 // 스토리지 키 상수
 export const STORAGE_KEYS = {
-  SKIP_INTRO: 'skipIntro',
   INTRO_SEEN: 'introSeen',
   USER_PREFERENCES: 'userPreferences',
   AUTH_TOKEN: 'authToken',
