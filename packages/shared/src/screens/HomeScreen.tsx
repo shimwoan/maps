@@ -629,6 +629,10 @@ export function HomeScreen() {
         <RequestDetailCard
           request={selectedRequest}
           onClose={() => setSelectedRequestId(null)}
+          onAccept={() => {
+            // 마커 상태 즉시 업데이트를 위해 데이터 새로고침
+            refetchRequests();
+          }}
         />
       )}
 
