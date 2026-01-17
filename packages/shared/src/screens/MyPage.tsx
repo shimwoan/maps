@@ -472,6 +472,10 @@ export function MyPage({ onBack, initialTab = 'myRequests' }: MyPageProps) {
   const handleAccept = async (appId: string, reqId: string) => {
     try {
       await acceptApplication(appId, reqId);
+      // 로컬 상태 업데이트 - 의뢰 상태를 accepted로 변경
+      setMyRequests(prev => prev.map(r =>
+        r.id === reqId ? { ...r, status: 'accepted' } : r
+      ));
     } catch (err) {
       console.error('Failed to accept:', err);
     }
