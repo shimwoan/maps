@@ -13,10 +13,14 @@ export interface Notification {
   created_at: string;
 }
 
+const PAGE_SIZE = 20;
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
 
   const fetchNotifications = useCallback(async () => {
@@ -28,23 +32,59 @@ export function useNotifications() {
     }
 
     try {
+      // 읽지 않은 알림 수 조회
+      const { count: unread } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      setUnreadCount(unread || 0);
+
+      // 첫 페이지 조회
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(PAGE_SIZE);
 
       if (error) throw error;
 
       setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {
       setIsLoading(false);
     }
   }, [user]);
+
+  // 더 보기
+  const loadMore = useCallback(async () => {
+    if (!user || isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const lastNotification = notifications[notifications.length - 1];
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .lt('created_at', lastNotification.created_at)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
+
+      if (error) throw error;
+
+      setNotifications(prev => [...prev, ...(data || [])]);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
+    } catch (err) {
+      console.error('Failed to load more notifications:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [user, notifications, isLoadingMore, hasMore]);
 
   // 알림 생성 (다른 사용자에게)
   const createNotification = useCallback(async (
@@ -125,6 +165,9 @@ export function useNotifications() {
     notifications,
     unreadCount,
     isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     createNotification,
     markAsRead,
     markAllAsRead,

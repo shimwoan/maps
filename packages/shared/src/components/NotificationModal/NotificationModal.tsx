@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, YStack, XStack, ScrollView, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -122,8 +123,21 @@ function NotificationItem({
   );
 }
 
+const INITIAL_DISPLAY_COUNT = 3;
+
 export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationModalProps) {
-  const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount } = useNotifications();
+  const { notifications, isLoading, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead, unreadCount } = useNotifications();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // 표시할 알림: 펼치기 전에는 3개만, 펼친 후에는 전체
+  const displayedNotifications = isExpanded ? notifications : notifications.slice(0, INITIAL_DISPLAY_COUNT);
+  const hasMoreToShow = !isExpanded && notifications.length > INITIAL_DISPLAY_COUNT;
+
+  // 모달 닫힐 때 펼침 상태 초기화
+  const handleClose = () => {
+    setIsExpanded(false);
+    onClose();
+  };
 
   const handleNotificationClick = (notification: Notification) => {
     // 읽음 처리
@@ -141,7 +155,7 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
         onNavigate('myApplications');
       }
     }
-    onClose();
+    handleClose();
   };
 
   if (!isOpen) return null;
@@ -155,7 +169,7 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
       bottom={0}
       backgroundColor="transparent"
       zIndex={500}
-      onPress={onClose}
+      onPress={handleClose}
     >
       <View
         position="absolute"
@@ -181,9 +195,16 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
           alignItems="center"
           justifyContent="space-between"
         >
-          <Text fontSize={16} fontWeight="700" color="#000">
-            알림
-          </Text>
+          <XStack alignItems="center" gap="$2">
+            <Text fontSize={16} fontWeight="700" color="#000">
+              알림
+            </Text>
+            {notifications.length > 0 && (
+              <Text fontSize={12} color="#999">
+                ({notifications.length}개)
+              </Text>
+            )}
+          </XStack>
           {unreadCount > 0 && (
             <Button
               size="$2"
@@ -197,7 +218,7 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
         </XStack>
 
         {/* 알림 목록 */}
-        <ScrollView maxHeight={400}>
+        <ScrollView maxHeight={500}>
           {isLoading ? (
             <View padding="$6" alignItems="center">
               <Spinner size="large" color={brandColors.primary} />
@@ -214,13 +235,49 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
             </View>
           ) : (
             <YStack>
-              {notifications.map((notification) => (
+              {displayedNotifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
                   onClick={handleNotificationClick}
                 />
               ))}
+              {/* 더 보기 버튼 - 로컬에서 더 보여줄 것이 있을 때 */}
+              {hasMoreToShow && (
+                <View padding="$3" alignItems="center">
+                  <Button
+                    size="$3"
+                    backgroundColor="#f5f5f5"
+                    color="#666"
+                    width="100%"
+                    onPress={() => setIsExpanded(true)}
+                  >
+                    {notifications.length - INITIAL_DISPLAY_COUNT}개 더 보기
+                  </Button>
+                </View>
+              )}
+              {/* 서버에서 더 불러오기 버튼 - 펼친 상태에서만 */}
+              {isExpanded && hasMore && (
+                <View padding="$3" alignItems="center">
+                  <Button
+                    size="$3"
+                    backgroundColor="#f5f5f5"
+                    color="#666"
+                    width="100%"
+                    onPress={loadMore}
+                    disabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? (
+                      <XStack gap="$2" alignItems="center">
+                        <Spinner size="small" color="#666" />
+                        <Text color="#666">로딩 중...</Text>
+                      </XStack>
+                    ) : (
+                      '이전 알림 더 보기'
+                    )}
+                  </Button>
+                </View>
+              )}
             </YStack>
           )}
         </ScrollView>
