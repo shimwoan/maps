@@ -44,7 +44,6 @@ function formatDate(dateStr: string): string {
 }
 
 export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailCardProps) {
-  const [position, setPosition] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
@@ -113,31 +112,27 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
 
   return (
     <Sheet
-      forceRemoveScrollEnabled
-      modal={false}
       open={true}
       onOpenChange={(open: boolean) => !open && onClose()}
       snapPointsMode="fit"
-      position={position}
-      onPositionChange={setPosition}
       dismissOnSnapToBottom
       zIndex={200}
-      animation="quick"
+      animation="medium"
     >
       <Sheet.Frame
         backgroundColor="white"
         borderTopLeftRadius={20}
         borderTopRightRadius={20}
-        shadowColor="#000"
-        shadowOffset={{ width: 0, height: -2 }}
-        shadowOpacity={0.1}
-        shadowRadius={8}
         maxWidth={768}
         alignSelf="center"
         width="100%"
+        // @ts-ignore - 하단 네비게이션 높이(60px) + safe area 고려
+        style={{ paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
-
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <View alignSelf="center" marginVertical="$2">
+          <View width={36} height={4} backgroundColor="#ddd" borderRadius={2} />
+        </View>
+        <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
           <YStack paddingHorizontal="$4" paddingBottom="$5" paddingTop="$4" gap="$3">
             {/* 상단: 방문유형 + AS종류 태그 */}
             <XStack gap="$2" alignItems="center">
