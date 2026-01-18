@@ -54,12 +54,13 @@ export function BottomSheet({
       <Sheet
         open={isOpen}
         onOpenChange={(open: boolean) => !open && onClose()}
-        animation="quick"
+        animation="medium"
         zIndex={zIndex}
         modal
         dismissOnSnapToBottom
-        snapPoints={[85]}
+        snapPoints={[65]}
         snapPointsMode="percent"
+        forceRemoveScrollEnabled
       >
         <Sheet.Overlay
           animation="quick"
