@@ -33,73 +33,160 @@ const getMarkerScale = (zoom: number): number => {
   return 0.6;
 };
 
-// 마커 크기 계산 (줌 레벨에 따라)
+// 마커 크기 계산 (줌 레벨에 따라) - 세로형
 const getMarkerSize = (zoom: number) => {
   const scale = getMarkerScale(zoom);
   return {
     scale,
-    fontSize: Math.round(14 * scale),
-    fontSizeSm: Math.round(13 * scale),
-    fontSizeLg: Math.round(16 * scale),
-    badgeFontSize: Math.round(11 * scale),
-    paddingV: Math.round(10 * scale),
-    paddingH: Math.round(14 * scale),
-    badgePaddingV: Math.round(2 * scale),
-    badgePaddingH: Math.round(6 * scale),
-    borderRadius: Math.round(12 * scale),
-    borderWidth: Math.max(2, Math.round(2.5 * scale)),
-    arrowWidth: Math.round(20 * scale),
-    arrowHeight: Math.round(10 * scale),
-    // 마커 전체 높이 추정 (anchor 계산용)
-    totalHeight: Math.round(75 * scale),
+    width: Math.round(110 * scale),
+    fontSize: Math.round(12 * scale),
+    fontSizeSm: Math.round(11 * scale),
+    fontSizeLg: Math.round(12 * scale),
+    badgeFontSize: Math.round(10 * scale),
+    borderRadius: Math.round(8 * scale),
+    borderWidth: 2,
+    arrowWidth: Math.round(12 * scale),
+    arrowHeight: Math.round(7 * scale),
+    iconSize: Math.round(14 * scale),
+    totalHeight: Math.round(90 * scale),
   };
 };
 
-// 마커 HTML 생성
+// 카테고리별 아이콘 SVG
+const getCategoryIcon = (asType: string, size: number, color: string): string => {
+  const icons: Record<string, string> = {
+    '복합기/OA': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="${color}" stroke-width="1.5"/><rect x="4" y="8" width="16" height="8" rx="1" fill="${color}"/><path d="M7 16h10v5H7z" fill="white" stroke="${color}" stroke-width="1"/></svg>`,
+    '전기/통신': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="${color}" stroke-width="1.5"/></svg>`,
+    '가전/설비': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="${color}" stroke="${color}" stroke-width="1"/></svg>`,
+    '인테리어': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="${color}" stroke="${color}" stroke-width="1.5"/></svg>`,
+    '청소': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M12 2v5" stroke="${color}" stroke-width="2" stroke-linecap="round"/><path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="${color}" stroke-width="1.5"/></svg>`,
+    '소프트웨어': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" fill="${color}"/><rect x="4" y="5" width="16" height="10" fill="#60A5FA"/></svg>`,
+    '운반/설치': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M1 3h15v13H1z" fill="${color}" stroke="${color}" stroke-width="1"/><path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="${color}" stroke-width="1"/></svg>`,
+  };
+  return icons[asType] || icons['복합기/OA'];
+};
+
+// 마커 HTML 생성 - 세로형
 const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn: boolean, isApplied: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
   const isCompleted = marker.status === 'completed';
-  // 완료: 회색, 신청중: 초록색, 진행중: 주황색, 기본: 파란색
-  const primaryColor = isCompleted ? '#9CA3AF' : isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : '#3B82F6';
-  const bgColor = isSelected ? '#ffffff' : primaryColor;
-  const textColor = isSelected ? primaryColor : '#ffffff';
-  const borderColor = primaryColor;
+  const isUrgent = marker.isUrgent;
+
+  // 긴급인 경우 빨간색 테마, 아니면 상태에 따른 색상
+  // 상태에 따른 border 색상: 긴급(빨강), 완료(회색), 신청중(초록), 진행중(주황), 기본(파랑)
+  const borderColor = isUrgent && !isCompleted ? '#EF4444' : isCompleted ? '#9CA3AF' : isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : '#3B82F6';
   const size = getMarkerSize(zoom);
 
-  let badge = '';
+  // 상태 텍스트 (짧게)
+  let statusText = '';
+  let statusBgColor = '';
+  let statusTextColor = '#fff';
   if (isCompleted) {
-    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">완료</span>`;
+    statusText = '완료';
+    statusBgColor = '#9CA3AF';
   } else if (isApplied) {
-    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">신청중</span>`;
+    statusText = '신청';
+    statusBgColor = '#22C55E';
   } else if (isInProgress) {
-    badge = `<span style="font-size: ${size.badgeFontSize}px; background: ${isSelected ? primaryColor : 'rgba(255,255,255,0.3)'}; color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">협업중</span>`;
+    statusText = '진행중';
+    statusBgColor = '#F59E0B';
+  } else {
+    statusText = '대기';
+    statusBgColor = '#fff';
+    statusTextColor = '#666';
   }
+
+  // 긴급 배지 HTML (긴급이고 완료가 아닌 경우에만)
+  const urgentBadge = isUrgent && !isCompleted ? `
+    <div style="
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      background: #EF4444;
+      color: #fff;
+      font-size: ${size.badgeFontSize}px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+      animation: urgentPulse 1.5s ease-in-out infinite;
+    ">긴급</div>
+  ` : '';
 
   return `
     <div style="
       display: flex;
       flex-direction: column;
       align-items: center;
-      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,${isUrgent && !isCompleted ? '0.2' : '0.12'}));
     ">
       <div style="
-        background: ${bgColor};
-        color: ${textColor};
+        position: relative;
+        background: ${isUrgent && !isCompleted ? '#FEF2F2' : '#ffffff'};
         border: ${size.borderWidth}px solid ${borderColor};
-        padding: ${size.paddingV}px ${size.paddingH}px;
+        padding: 6px 8px;
         border-radius: ${size.borderRadius}px;
-        font-size: ${size.fontSize}px;
-        font-weight: 600;
-        white-space: nowrap;
+        width: ${size.width}px;
+        box-sizing: border-box;
         cursor: pointer;
+        ${isSelected ? `box-shadow: 0 0 0 3px ${borderColor}40;` : ''}
       ">
-        <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center;">${badge}${marker.title} | ${marker.asType}</div>
-        <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
+        ${urgentBadge}
+
+        <!-- 상태 띠 (우측 상단) -->
+        <div style="
+          position: absolute;
+          top: 0;
+          right: 0;
+          background: ${statusBgColor};
+          color: ${statusTextColor};
+          font-size: ${size.badgeFontSize}px;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-bottom-left-radius: 6px;
+          border-top-right-radius: ${size.borderRadius - 2}px;
+        ">${statusText}</div>
+
+        <!-- 카테고리 아이콘 + 카테고리명 -->
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-bottom: 6px;
+          margin-top: 2px;
+          white-space: nowrap;
+        ">
+          ${getCategoryIcon(marker.asType, size.iconSize, isUrgent && !isCompleted ? '#DC2626' : '#888')}
+          <span style="font-size: ${size.fontSizeSm}px; color: ${isUrgent && !isCompleted ? '#DC2626' : '#888'}; font-weight: 500;">${marker.asType}</span>
+        </div>
+
+        <!-- 제목 (2줄 제한) -->
+        <div style="
+          font-size: ${size.fontSize}px;
+          color: ${isUrgent && !isCompleted ? '#B91C1C' : '#222'};
+          font-weight: 600;
+          line-height: 1.4;
+          max-height: ${Math.round(size.fontSize * 1.4 * 2)}px;
+          margin-bottom: 4px;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        ">${marker.title}</div>
+
+        <!-- 가격 -->
+        <div style="
+          font-size: ${size.fontSizeLg}px;
+          color: ${borderColor};
+          font-weight: 700;
+        ">${formatPrice(marker.price)}원</div>
       </div>
-      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 10" style="margin-top: -${size.borderWidth}px;">
-        <path d="M0,0 L8,10 L16,0" fill="${bgColor}"/>
-        <path d="M0,0 L8,10" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
-        <path d="M16,0 L8,10" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
+
+      <!-- 화살표 -->
+      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 14 8" style="margin-top: -${size.borderWidth}px;">
+        <path d="M0,0 L7,8 L14,0" fill="${isUrgent && !isCompleted ? '#FEF2F2' : '#ffffff'}"/>
+        <path d="M0,0 L7,8" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
+        <path d="M14,0 L7,8" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
       </svg>
     </div>
   `;
@@ -119,6 +206,16 @@ const injectStyles = () => {
       100% {
         transform: translate(-50%, -50%) scale(2.5);
         opacity: 0;
+      }
+    }
+    @keyframes urgentPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.9;
       }
     }
     .current-location-marker {
@@ -149,6 +246,26 @@ const injectStyles = () => {
       background: rgba(229, 57, 53, 0.4);
       border-radius: 50%;
       animation: pulse 2s ease-out infinite;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+// 긴급 스타일 CSS 삽입 (마커용)
+const injectUrgentStyles = () => {
+  if (document.getElementById('naver-map-urgent-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'naver-map-urgent-styles';
+  style.textContent = `
+    @keyframes urgentPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.9;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -242,6 +359,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         });
         mapInstanceRef.current = map;
         setMapReady(true);
+        injectUrgentStyles();
         onMapReady?.();
 
         window.naver.maps.Event.addListener(map, 'idle', () => {
@@ -341,8 +459,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
       const existingMarker = requestMarkersRef.current.get(markerData.id);
       const size = getMarkerSize(currentZoom);
       // anchor: 마커 콘텐츠의 하단 중앙 (삼각형 꼭지점)
-      // 콘텐츠 너비는 가변이므로 size 기반으로 추정
-      const anchorX = Math.round(75 * size.scale); // 대략적인 마커 너비의 절반
+      const anchorX = Math.round(size.width / 2) + size.borderWidth;
       const anchorY = size.totalHeight;
 
       if (existingMarker) {

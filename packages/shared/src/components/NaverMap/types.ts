@@ -8,6 +8,7 @@ export interface RequestMarker {
   visitType: string;
   asType: string;
   status: string;
+  isUrgent: boolean;
 }
 
 export interface NaverMapProps {
