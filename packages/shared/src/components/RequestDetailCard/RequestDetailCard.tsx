@@ -9,6 +9,119 @@ import { useRequestApplications } from '../../hooks/useRequestApplications';
 import { LoginModal } from '../LoginModal';
 import { ProfileSetupModal } from '../ProfileSetupModal';
 
+// 이미지 슬라이더 컴포넌트
+function ImageSlider({ images, onImageClick }: { images: string[]; onImageClick?: (url: string) => void }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (images.length === 0) return null;
+
+  const handlePrev = (e: any) => {
+    e.stopPropagation();
+    setCurrentIndex(prev => (prev > 0 ? prev - 1 : images.length - 1));
+  };
+
+  const handleNext = (e: any) => {
+    e.stopPropagation();
+    setCurrentIndex(prev => (prev < images.length - 1 ? prev + 1 : 0));
+  };
+
+  return (
+    <View width="100%" marginBottom="$3">
+      <View
+        position="relative"
+        width="100%"
+        height={200}
+        borderRadius={12}
+        overflow="hidden"
+        backgroundColor="#f5f5f5"
+        cursor="pointer"
+        onPress={() => onImageClick?.(images[currentIndex])}
+      >
+        <img
+          src={images[currentIndex]}
+          alt={`증상 이미지 ${currentIndex + 1}`}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+          }}
+        />
+        {images.length > 1 && (
+          <>
+            {/* 이전 버튼 */}
+            <View
+              position="absolute"
+              left={8}
+              top="50%"
+              // @ts-ignore
+              style={{ transform: 'translateY(-50%)' }}
+              width={32}
+              height={32}
+              borderRadius={16}
+              backgroundColor="rgba(0,0,0,0.5)"
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
+              onPress={handlePrev}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M15 18l-6-6 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </View>
+            {/* 다음 버튼 */}
+            <View
+              position="absolute"
+              right={8}
+              top="50%"
+              // @ts-ignore
+              style={{ transform: 'translateY(-50%)' }}
+              width={32}
+              height={32}
+              borderRadius={16}
+              backgroundColor="rgba(0,0,0,0.5)"
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
+              onPress={handleNext}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M9 18l6-6-6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </View>
+            {/* 인디케이터 */}
+            <XStack
+              position="absolute"
+              bottom={8}
+              left={0}
+              right={0}
+              justifyContent="center"
+              gap={6}
+            >
+              {images.map((_, index) => (
+                <View
+                  key={index}
+                  width={8}
+                  height={8}
+                  borderRadius={4}
+                  backgroundColor={index === currentIndex ? 'white' : 'rgba(255,255,255,0.5)'}
+                  cursor="pointer"
+                  onPress={() => setCurrentIndex(index)}
+                />
+              ))}
+            </XStack>
+          </>
+        )}
+      </View>
+      {/* 이미지 카운터 */}
+      {images.length > 1 && (
+        <Text fontSize={12} color="#888" textAlign="center" marginTop="$2">
+          {currentIndex + 1} / {images.length}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 interface RequestDetailCardProps {
   request: Request | null;
   onClose: () => void;
@@ -48,6 +161,7 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { user } = useAuth();
   const { hasBusinessCard, refetch: refetchProfile } = useProfile();
   const { applyToRequest, myApplications } = useRequestApplications();
@@ -134,19 +248,19 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
         </View>
         <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
           <YStack paddingHorizontal="$4" paddingBottom="$5" paddingTop="$4" gap="$3">
-            {/* 상단: 방문유형 + AS종류 태그 */}
+            {/* 상단: AS종류 + 긴급 태그 */}
             <XStack gap="$2" alignItems="center">
-              <View
-                backgroundColor={brandColors.primaryLight}
-                paddingHorizontal="$2"
-                paddingVertical="$1"
-                borderRadius={4}
-              >
-                <Text fontSize={12} fontWeight="600" color={brandColors.primary}>
-                  {request.visit_type}
-                </Text>
-              </View>
-              <Text fontSize={14} color="#666">{request.as_type}</Text>
+              <Text fontSize={16} fontWeight="600" color="#333">{request.as_type}</Text>
+              {request.is_urgent && (
+                <View
+                  backgroundColor="#EF4444"
+                  paddingHorizontal={8}
+                  paddingVertical={2}
+                  borderRadius={4}
+                >
+                  <Text fontSize={12} fontWeight="700" color="white">긴급</Text>
+                </View>
+              )}
             </XStack>
 
             {/* 제목 + 금액 */}
@@ -159,34 +273,51 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
               </Text>
             </YStack>
 
+            {/* 증상 이미지 슬라이더 */}
+            {request.symptom_images && request.symptom_images.length > 0 && (
+              <ImageSlider images={request.symptom_images} onImageClick={setPreviewImage} />
+            )}
+
             {/* 상세 정보 */}
-            <YStack gap="$2" backgroundColor="#f9f9f9" padding="$3" borderRadius={12}>
-              <XStack justifyContent="space-between">
-                <Text fontSize={13} color="#888">주소</Text>
-                <Text fontSize={13} color="#333" flex={1} textAlign="right">
+            <YStack gap="$3" backgroundColor="#f9f9f9" padding="$4" borderRadius={12}>
+              <XStack>
+                <Text fontSize={14} color="#888" width={100}>주소</Text>
+                <Text fontSize={14} color="#333" flex={1}>
                   {request.address}
                   {request.address_detail ? ` ${request.address_detail}` : ''}
                 </Text>
               </XStack>
-              <XStack justifyContent="space-between">
-                <Text fontSize={13} color="#888">일정</Text>
-                <Text fontSize={13} color="#333">
+              {request.model && (request.as_type === '복합기/OA' || request.as_type === '가전/설비') && (
+                <XStack>
+                  <Text fontSize={14} color="#888" width={100}>기종</Text>
+                  <Text fontSize={14} color="#333" flex={1}>{request.model}</Text>
+                </XStack>
+              )}
+              {request.symptom && (
+                <XStack>
+                  <Text fontSize={14} color="#888" width={100}>증상</Text>
+                  <Text fontSize={14} color="#333" flex={1}>{request.symptom}</Text>
+                </XStack>
+              )}
+              <XStack>
+                <Text fontSize={14} color="#888" width={100}>예상소요시간</Text>
+                <Text fontSize={14} color="#333" flex={1}>{request.duration}</Text>
+              </XStack>
+              <XStack>
+                <Text fontSize={14} color="#888" width={100}>처리요청시간</Text>
+                <Text fontSize={14} color="#333" flex={1}>
                   {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
                 </Text>
               </XStack>
-              <XStack justifyContent="space-between">
-                <Text fontSize={13} color="#888">소요시간</Text>
-                <Text fontSize={13} color="#333">{request.duration}</Text>
-              </XStack>
-              <XStack justifyContent="space-between">
-                <Text fontSize={13} color="#888">필요인원</Text>
-                <Text fontSize={13} color="#333">{request.required_personnel}명</Text>
+              <XStack>
+                <Text fontSize={14} color="#888" width={100}>필요인원</Text>
+                <Text fontSize={14} color="#333" flex={1}>{request.required_personnel}명</Text>
               </XStack>
             </YStack>
 
             {/* 설명 */}
             {request.description && (
-              <Text fontSize={14} color="#666" lineHeight={20}>
+              <Text fontSize={14} color="#666" lineHeight={22}>
                 {request.description}
               </Text>
             )}
@@ -250,6 +381,52 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
         onClose={() => setShowProfileModal(false)}
         onSuccess={handleProfileSuccess}
       />
+
+      {/* 이미지 미리보기 모달 */}
+      {previewImage && (
+        <View
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          backgroundColor="rgba(0,0,0,0.9)"
+          zIndex={10000}
+          alignItems="center"
+          justifyContent="center"
+          cursor="pointer"
+          onPress={() => setPreviewImage(null)}
+        >
+          <View
+            position="absolute"
+            top={16}
+            right={16}
+            width={40}
+            height={40}
+            borderRadius={20}
+            backgroundColor="rgba(255,255,255,0.2)"
+            alignItems="center"
+            justifyContent="center"
+            cursor="pointer"
+            onPress={() => setPreviewImage(null)}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </View>
+          <img
+            src={previewImage}
+            alt="미리보기"
+            style={{
+              maxWidth: '90%',
+              maxHeight: '90%',
+              objectFit: 'contain',
+              borderRadius: 8,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </View>
+      )}
     </Sheet>
   );
 }
