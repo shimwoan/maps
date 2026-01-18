@@ -108,7 +108,7 @@ export function HomeScreen() {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [address, setAddress] = useState<Address | null>(null);
-  const [zoom, setZoom] = useState(10);
+  const [zoom, setZoom] = useState(12);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -201,7 +201,7 @@ export function HomeScreen() {
       setLocation(loc);
       if (granted) {
         setCurrentLocation(loc);
-        setZoom(16);
+        setZoom(12);
       }
       setIsLocationLoading(false);
       // 초기 로딩 후 카메라 변경 시 중복 호출 방지
@@ -257,7 +257,7 @@ export function HomeScreen() {
         right={0}
         zIndex={100}
         backgroundColor="white"
-        paddingHorizontal="$3"
+        paddingHorizontal={18}
         height={51}
         justifyContent="center"
         borderBottomWidth={1}
@@ -736,8 +736,8 @@ export function HomeScreen() {
             onPress={() => {
               skipAddressUpdateRef.current = true;
               setLocation(currentLocation);
-              setZoom(16);
-              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 16);
+              setZoom(12);
+              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 12);
               setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
             }}
           >

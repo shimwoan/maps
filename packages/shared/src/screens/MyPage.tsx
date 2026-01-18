@@ -601,7 +601,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         <XStack
           backgroundColor="white"
           height={51}
-          paddingHorizontal="$4"
+          paddingHorizontal={18}
           alignItems="center"
           justifyContent="space-between"
           borderBottomWidth={1}
