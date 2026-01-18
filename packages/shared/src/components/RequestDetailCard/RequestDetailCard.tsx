@@ -230,12 +230,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
       <BottomSheet
         isOpen={true}
         onClose={onClose}
-        mode="percent"
-        snapPoint={60}
-        scrollable
         zIndex={200}
       >
-        <YStack paddingHorizontal="$4" gap="$3" paddingBottom="$4">
+        <YStack gap="$3" paddingBottom="$4">
           {/* 상단: AS종류 + 상태 배지 + 긴급 태그 */}
           <XStack gap="$2" alignItems="center">
             <Text fontSize={16} fontWeight="600" color="#333">{request.as_type}</Text>

@@ -166,8 +166,8 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      disableDrag={isCropping}
       zIndex={100001}
+      title={isEdit ? '명함 수정' : '명함 등록'}
     >
       {isCropping && imageSrc ? (
         // 크롭 모드
@@ -244,17 +244,12 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
         </YStack>
       ) : (
         // 기본 모드 - 이미지 선택
-        <YStack gap="$4" marginTop="$3">
-          <YStack gap="$2" alignItems="center">
-            <Text fontSize={20} fontWeight="700" color="#000">
-              {isEdit ? '명함 수정' : '명함 등록'}
-            </Text>
-            <Text fontSize={14} color="#666" textAlign="center">
-              {isEdit
-                ? '새로운 명함 이미지를 업로드해주세요.'
-                : '작업을 수락하려면 명함 이미지를 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
-            </Text>
-          </YStack>
+        <YStack gap="$4">
+          <Text fontSize={14} color="#666" textAlign="center">
+            {isEdit
+              ? '새로운 명함 이미지를 업로드해주세요.'
+              : '작업을 수락하려면 명함 이미지를 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
+          </Text>
 
           {/* 이미지 업로드 영역 */}
           <View

@@ -1,21 +1,13 @@
-import { Sheet, XStack, View } from 'tamagui';
+import { Dialog, Sheet, XStack, View, YStack, Text, useMedia } from 'tamagui';
 
 interface BottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   zIndex?: number;
-  disableDrag?: boolean;
   showCloseButton?: boolean;
   maxWidth?: number;
-  /** 'fit' for auto-height, 'percent' for fixed percentage */
-  mode?: 'fit' | 'percent';
-  /** Snap point percentage when mode is 'percent' (e.g., 60 for 60%) */
-  snapPoint?: number;
-  /** Enable ScrollView for scrollable content */
-  scrollable?: boolean;
-  /** Add padding for bottom navigation */
-  hasBottomNav?: boolean;
+  title?: string;
 }
 
 export function BottomSheet({
@@ -23,96 +15,144 @@ export function BottomSheet({
   onClose,
   children,
   zIndex = 100000,
-  disableDrag = false,
   showCloseButton = true,
   maxWidth = 768,
-  mode = 'fit',
-  snapPoint = 60,
-  scrollable = false,
-  hasBottomNav = false,
+  title,
 }: BottomSheetProps) {
+  const media = useMedia();
+  const isMobile = media.sm;
+
   const handleCloseClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     onClose();
   };
 
-  const renderContent = () => {
-    if (scrollable) {
-      return (
-        <Sheet.ScrollView showsVerticalScrollIndicator={false} bounces={false} flex={1}>
-          {children}
-        </Sheet.ScrollView>
-      );
-    }
-    return children;
-  };
-
-  return (
-    <Sheet
-      modal
-      forceRemoveScrollEnabled={isOpen}
-      open={isOpen}
-      onOpenChange={(open: boolean) => !open && onClose()}
-      snapPointsMode={mode === 'fit' ? 'fit' : 'percent'}
-      snapPoints={mode === 'percent' ? [snapPoint] : undefined}
-      dismissOnSnapToBottom
-      moveOnKeyboardChange
-      disableDrag={disableDrag}
-      zIndex={zIndex}
-      animation="quick"
+  const CloseButton = () => (
+    <View
+      position="absolute"
+      right={0}
+      top={0}
+      width={28}
+      height={28}
+      borderRadius={14}
+      backgroundColor="white"
+      alignItems="center"
+      justifyContent="center"
+      cursor="pointer"
+      onPress={handleCloseClick}
+      hoverStyle={{ backgroundColor: '#f0f0f0' }}
     >
-      <Sheet.Overlay
-        animation="quick"
-        enterStyle={{ opacity: 0 }}
-        exitStyle={{ opacity: 0 }}
-        backgroundColor="rgba(0,0,0,0.5)"
-        zIndex={0}
-      />
-      <Sheet.Frame
-        backgroundColor="white"
-        borderTopLeftRadius={20}
-        borderTopRightRadius={20}
-        paddingHorizontal={mode === 'fit' ? '$4' : undefined}
-        paddingBottom={mode === 'fit' ? '$2' : undefined}
-        paddingTop="$2"
-        maxWidth={maxWidth}
-        alignSelf="center"
-        width="100%"
-        // @ts-ignore
-        style={hasBottomNav ? { paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px))' } : undefined}
-      >
-        {/* 핸들 + X 버튼 */}
-        <XStack
-          alignItems="center"
-          justifyContent="center"
-          position="relative"
-          paddingVertical="$3"
-          paddingHorizontal={mode === 'percent' ? '$4' : undefined}
-        >
-          <View width={36} height={4} backgroundColor="#ddd" borderRadius={2} />
-          {showCloseButton && (
-            <View
-              position="absolute"
-              right={mode === 'percent' ? 12 : 0}
-              width={28}
-              height={28}
-              borderRadius={14}
-              backgroundColor="white"
-              alignItems="center"
-              justifyContent="center"
-              cursor="pointer"
-              onPress={handleCloseClick}
-              hoverStyle={{ backgroundColor: '#e0e0e0' }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </View>
-          )}
-        </XStack>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </View>
+  );
 
-        {renderContent()}
-      </Sheet.Frame>
-    </Sheet>
+  // 모바일: Sheet (바텀시트)
+  if (isMobile) {
+    return (
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open: boolean) => !open && onClose()}
+        animation="quick"
+        zIndex={zIndex}
+        modal
+        dismissOnSnapToBottom
+        snapPointsMode="fit"
+      >
+        <Sheet.Overlay
+          animation="quick"
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+          backgroundColor="rgba(0,0,0,0.5)"
+          zIndex={0}
+        />
+        <Sheet.Frame
+          backgroundColor="white"
+          borderTopLeftRadius={20}
+          borderTopRightRadius={20}
+          paddingBottom="$4"
+        >
+          {/* Sheet 헤더 */}
+          <XStack
+            alignItems="center"
+            justifyContent="center"
+            position="relative"
+            paddingVertical="$3"
+            paddingHorizontal="$4"
+          >
+            <View width={36} height={4} backgroundColor="#ddd" borderRadius={2} />
+            {title && (
+              <View position="absolute" left="$4">
+                <Text fontSize={18} fontWeight="700" color="#000">
+                  {title}
+                </Text>
+              </View>
+            )}
+            {showCloseButton && <CloseButton />}
+          </XStack>
+          <Sheet.ScrollView>
+            <YStack paddingHorizontal="$4">
+              {children}
+            </YStack>
+          </Sheet.ScrollView>
+        </Sheet.Frame>
+      </Sheet>
+    );
+  }
+
+  // 데스크톱: Dialog (중앙 모달)
+  return (
+    <Dialog modal open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          key="overlay"
+          animation="quick"
+          opacity={0.5}
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+          backgroundColor="rgba(0,0,0,0.5)"
+        />
+        <Dialog.Content
+          bordered
+          elevate
+          key="content"
+          animation={[
+            'quick',
+            {
+              opacity: {
+                overshootClamping: true,
+              },
+            },
+          ]}
+          enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+          exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+          backgroundColor="white"
+          borderRadius={16}
+          padding="$4"
+          maxWidth={maxWidth}
+          width="90%"
+          maxHeight="85vh"
+        >
+          {/* Dialog 헤더 */}
+          <XStack
+            alignItems="center"
+            justifyContent="center"
+            position="relative"
+            paddingBottom="$3"
+          >
+            {title && (
+              <Dialog.Title fontSize={18} fontWeight="700" color="#000">
+                {title}
+              </Dialog.Title>
+            )}
+            {showCloseButton && <CloseButton />}
+          </XStack>
+          <YStack maxHeight="70vh" overflow="auto">
+            {children}
+          </YStack>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog>
   );
 }
