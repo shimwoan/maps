@@ -1,6 +1,7 @@
 /* react-modal-sheet 기본 스타일 */
 .react-modal-sheet-backdrop {
   background-color: rgba(0, 0, 0, 0.5) !important;
+  transition: opacity 0.15s ease-out !important;
 }
 
 .react-modal-sheet-container {

@@ -602,7 +602,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       right={0}
       bottom={0}
       backgroundColor="#fafafa"
-      zIndex={1000}
     >
       <View width="100%" maxWidth={768} height="100%" alignSelf="center" backgroundColor="#fafafa">
         {/* 헤더 */}
@@ -847,14 +846,15 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           isLoggedIn={!!user}
         />
 
-        {/* 의뢰 상세 모달 */}
-        {selectedDetailRequest && (
-          <RequestDetailCard
-            request={selectedDetailRequest}
-            onClose={() => setSelectedDetailRequest(null)}
-          />
-        )}
       </View>
+
+      {/* 의뢰 상세 모달 - 컨테이너 밖에서 렌더링 */}
+      {selectedDetailRequest && (
+        <RequestDetailCard
+          request={selectedDetailRequest}
+          onClose={() => setSelectedDetailRequest(null)}
+        />
+      )}
     </View>
   );
 }

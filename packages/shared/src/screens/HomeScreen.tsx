@@ -249,7 +249,8 @@ export function HomeScreen() {
   return (
     <View position="relative" width="100%" height="100vh" overflow="hidden" backgroundColor="#fff" alignItems="center">
     <View position="relative" width="100%" maxWidth={768} height="100%" overflow="hidden" backgroundColor="#f5f5f5">
-      {/* 상단 주소 표시 */}
+      {/* 상단 주소 표시 - 홈에서만 표시 */}
+      {!isMyPageOpen && (
       <View
         position="absolute"
         top={0}
@@ -322,8 +323,10 @@ export function HomeScreen() {
           />
         </XStack>
       </View>
+      )}
 
-      {/* 필터 영역 - 드롭다운 버튼 스타일 */}
+      {/* 필터 영역 - 드롭다운 버튼 스타일 (MY 페이지에서는 숨김) */}
+      {!isMyPageOpen && (
       <View
         position="absolute"
         top={51}
@@ -488,6 +491,7 @@ export function HomeScreen() {
           </XStack>
         </ScrollView>
       </View>
+      )}
 
       {/* 필터 모달 */}
       {filterModalType && (
@@ -710,8 +714,8 @@ export function HomeScreen() {
         />
       )}
 
-      {/* 지도 컨트롤 버튼들 */}
-      {!isLocationLoading && location && (
+      {/* 지도 컨트롤 버튼들 - 홈에서만 표시 */}
+      {!isLocationLoading && location && !isMyPageOpen && (
         <View
           position="absolute"
           top={120}
@@ -798,8 +802,8 @@ export function HomeScreen() {
         currentAddress={address}
       />
 
-      {/* 우측 하단 + 버튼 (의뢰 등록) */}
-      <FloatingActionButton onPress={handleFabPress} />
+      {/* 우측 하단 + 버튼 (의뢰 등록) - 홈에서만 표시 */}
+      {!isMyPageOpen && <FloatingActionButton onPress={handleFabPress} />}
 
       {/* 로그인 모달 */}
       <LoginModal
@@ -826,19 +830,6 @@ export function HomeScreen() {
         }}
         defaultAddress=""
       />
-
-      {/* 선택된 의뢰 상세 카드 */}
-      {selectedRequest && (
-        <RequestDetailCard
-          request={selectedRequest}
-          onClose={() => setSelectedRequestId(null)}
-          onAccept={() => {
-            // 마커 상태 즉시 업데이트를 위해 데이터 새로고침
-            refetchRequests();
-            refetchApplications();
-          }}
-        />
-      )}
 
       {/* MY 페이지 */}
       {isMyPageOpen && (
@@ -894,6 +885,19 @@ export function HomeScreen() {
         isLoggedIn={!!user}
       />
     </View>
+
+      {/* 선택된 의뢰 상세 카드 - 컨테이너 밖에서 렌더링 */}
+      {selectedRequest && (
+        <RequestDetailCard
+          request={selectedRequest}
+          onClose={() => setSelectedRequestId(null)}
+          onAccept={() => {
+            // 마커 상태 즉시 업데이트를 위해 데이터 새로고침
+            refetchRequests();
+            refetchApplications();
+          }}
+        />
+      )}
     </View>
   );
 }
