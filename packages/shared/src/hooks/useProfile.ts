@@ -7,6 +7,7 @@ export interface Profile {
   user_id: string;
   business_card_url: string | null;
   nickname: string | null;
+  phone: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -93,13 +94,41 @@ export function useProfile() {
   };
 
   const hasBusinessCard = !!profile?.business_card_url;
+  const hasPhone = !!profile?.phone;
+
+  const updatePhone = async (phone: string) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          phone,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+      return data;
+    } catch (err) {
+      console.error('Failed to update phone:', err);
+      throw err;
+    }
+  };
 
   return {
     profile,
     isLoading,
     hasBusinessCard,
+    hasPhone,
     updateBusinessCard,
     uploadBusinessCard,
+    updatePhone,
     refetch: fetchProfile,
   };
 }
