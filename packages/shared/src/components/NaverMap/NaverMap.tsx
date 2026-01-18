@@ -33,22 +33,23 @@ const getMarkerScale = (zoom: number): number => {
   return 0.6;
 };
 
-// 마커 크기 계산 (줌 레벨에 따라) - 세로형
+// 마커 크기 계산 - 고정 80x80
 const getMarkerSize = (zoom: number) => {
   const scale = getMarkerScale(zoom);
   return {
     scale,
-    width: Math.round(110 * scale),
-    fontSize: Math.round(12 * scale),
-    fontSizeSm: Math.round(11 * scale),
-    fontSizeLg: Math.round(12 * scale),
-    badgeFontSize: Math.round(10 * scale),
-    borderRadius: Math.round(8 * scale),
-    borderWidth: 2,
-    arrowWidth: Math.round(12 * scale),
-    arrowHeight: Math.round(7 * scale),
-    iconSize: Math.round(14 * scale),
-    totalHeight: Math.round(90 * scale),
+    width: 86, // 고정 86px
+    height: 86, // 고정 86px
+    fontSize: 11,
+    fontSizeSm: 10,
+    fontSizeLg: 12,
+    badgeFontSize: 9,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    arrowWidth: 12,
+    arrowHeight: 7,
+    iconSize: 14,
+    totalHeight: 93, // 86 + 7 (arrow)
   };
 };
 
@@ -84,32 +85,26 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
   if (isCompleted) {
     statusText = '완료';
     statusBgColor = '#9CA3AF';
-  } else if (isApplied) {
-    statusText = '신청';
-    statusBgColor = '#22C55E';
   } else if (isInProgress) {
-    statusText = '진행중';
+    statusText = '진행';
     statusBgColor = '#F59E0B';
   } else {
+    // pending, applied 모두 대기로 표시
     statusText = '대기';
     statusBgColor = '#fff';
-    statusTextColor = '#666';
+    statusTextColor = '#3B82F6';
   }
 
-  // 긴급 배지 HTML (긴급이고 완료가 아닌 경우에만)
+  // 긴급 배지 HTML (상태 배지 옆에 표시)
   const urgentBadge = isUrgent && !isCompleted ? `
     <div style="
-      position: absolute;
-      top: -8px;
-      left: -8px;
       background: #EF4444;
       color: #fff;
       font-size: ${size.badgeFontSize}px;
-      font-weight: 700;
+      font-weight: 600;
       padding: 2px 6px;
       border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
-      animation: urgentPulse 1.5s ease-in-out infinite;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     ">긴급</div>
   ` : '';
 
@@ -122,71 +117,85 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
     ">
       <div style="
         position: relative;
-        background: ${isUrgent && !isCompleted ? '#FEF2F2' : '#ffffff'};
+        background: #ffffff;
         border: ${size.borderWidth}px solid ${borderColor};
-        padding: 6px 8px;
+        padding: 10px 8px 6px 8px;
         border-radius: ${size.borderRadius}px;
         width: ${size.width}px;
+        height: ${size.height}px;
+        min-height: ${size.height}px;
+        max-height: ${size.height}px;
         box-sizing: border-box;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
         ${isSelected ? `box-shadow: 0 0 0 3px ${borderColor}40;` : ''}
       ">
-        ${urgentBadge}
-
-        <!-- 상태 띠 (우측 상단) -->
+        <!-- 상태 배지 + 긴급 배지 (좌측 상단) -->
         <div style="
           position: absolute;
-          top: 0;
-          right: 0;
-          background: ${statusBgColor};
-          color: ${statusTextColor};
-          font-size: ${size.badgeFontSize}px;
-          font-weight: 600;
-          padding: 2px 6px;
-          border-bottom-left-radius: 6px;
-          border-top-right-radius: ${size.borderRadius - 2}px;
-        ">${statusText}</div>
-
-        <!-- 카테고리 아이콘 + 카테고리명 -->
-        <div style="
+          top: -10px;
+          left: -5px;
           display: flex;
-          align-items: center;
           gap: 4px;
-          margin-bottom: 6px;
-          margin-top: 2px;
-          white-space: nowrap;
         ">
-          ${getCategoryIcon(marker.asType, size.iconSize, isUrgent && !isCompleted ? '#DC2626' : '#888')}
-          <span style="font-size: ${size.fontSizeSm}px; color: ${isUrgent && !isCompleted ? '#DC2626' : '#888'}; font-weight: 500;">${marker.asType}</span>
+          <div style="
+            background: ${statusBgColor};
+            color: ${statusTextColor};
+            font-size: ${size.badgeFontSize}px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            ${statusText === '대기' ? 'border: 1px solid #e5e7eb;' : ''}
+          ">${statusText}</div>
+          ${urgentBadge}
         </div>
 
-        <!-- 제목 (2줄 제한) -->
-        <div style="
-          font-size: ${size.fontSize}px;
-          color: ${isUrgent && !isCompleted ? '#B91C1C' : '#222'};
-          font-weight: 600;
-          line-height: 1.4;
-          max-height: ${Math.round(size.fontSize * 1.4 * 2)}px;
-          margin-bottom: 4px;
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-        ">${marker.title}</div>
+        <!-- 상단 콘텐츠 -->
+        <div style="flex: 1; overflow: hidden;">
+          <!-- 카테고리 아이콘 + 카테고리명 -->
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+          ">
+            ${getCategoryIcon(marker.asType, size.iconSize, '#888')}
+            <span style="font-size: ${size.fontSizeSm}px; color: #888; font-weight: 500;">${marker.asType}</span>
+          </div>
 
-        <!-- 가격 -->
+          <!-- 제목 (2줄 제한) -->
+          <div style="
+            font-size: ${size.fontSize}px;
+            color: #222;
+            font-weight: 600;
+            line-height: 1.3;
+            max-height: ${Math.round(size.fontSize * 1.3 * 2)}px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+          ">${marker.title}</div>
+        </div>
+
+        <!-- 가격 (항상 하단) -->
         <div style="
-          font-size: ${size.fontSizeLg}px;
-          color: ${borderColor};
-          font-weight: 700;
+          font-size: ${size.fontSizeSm}px;
+          color: #666;
+          font-weight: normal;
+          margin-top: auto;
         ">${formatPrice(marker.price)}원</div>
       </div>
 
       <!-- 화살표 -->
-      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 14 8" style="margin-top: -${size.borderWidth}px;">
-        <path d="M0,0 L7,8 L14,0" fill="${isUrgent && !isCompleted ? '#FEF2F2' : '#ffffff'}"/>
-        <path d="M0,0 L7,8" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
-        <path d="M14,0 L7,8" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
+      <svg width="${size.arrowWidth}" height="${size.arrowHeight + 3}" viewBox="0 -3 14 11" style="margin-top: -${size.borderWidth + 2}px; position: relative; z-index: 1;">
+        <rect x="0" y="-3" width="14" height="4" fill="#ffffff"/>
+        <path d="M0,0 L7,8 L14,0" fill="#ffffff"/>
+        <path d="M1,0 L7,7" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
+        <path d="M13,0 L7,7" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
       </svg>
     </div>
   `;
@@ -274,7 +283,7 @@ const injectUrgentStyles = () => {
 export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap({
   latitude,
   longitude,
-  zoom = 14,
+  zoom = 12,
   style,
   onMapReady,
   onCameraChange,
