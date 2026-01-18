@@ -1,4 +1,4 @@
-import { Dialog, Sheet, XStack, View, YStack, Text, useMedia } from 'tamagui';
+import { Dialog, Sheet, XStack, View, YStack, Text, useMedia, useWindowDimensions } from 'tamagui';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const media = useMedia();
   const isMobile = media.sm;
+  const { height: windowHeight } = useWindowDimensions();
 
   const handleCloseClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
@@ -72,6 +73,7 @@ export function BottomSheet({
           borderTopLeftRadius={20}
           borderTopRightRadius={20}
           paddingBottom="$4"
+          maxHeight={windowHeight * 0.85}
         >
           {/* Sheet 헤더 - 드래그 핸들 영역 */}
           <XStack
@@ -91,9 +93,11 @@ export function BottomSheet({
             )}
             {showCloseButton && <CloseButton />}
           </XStack>
-          <YStack paddingHorizontal="$4" paddingBottom="$2">
-            {children}
-          </YStack>
+          <Sheet.ScrollView>
+            <YStack paddingHorizontal="$4" paddingBottom="$2">
+              {children}
+            </YStack>
+          </Sheet.ScrollView>
         </Sheet.Frame>
       </Sheet>
     );
