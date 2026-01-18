@@ -46,7 +46,6 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       shadowRadius={8}
       hoverStyle={{
         backgroundColor: brandColors.primaryHover,
-        scale: 1.05,
       }}
       pressStyle={{
         backgroundColor: brandColors.primaryPressed,
@@ -54,7 +53,7 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       }}
     >
       <Text color="#fff" fontSize={15} fontWeight="600">
-        협업요청하기
+        외주 요청하기
       </Text>
     </View>
   );
