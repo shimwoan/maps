@@ -119,6 +119,8 @@ function MyRequestCard({
       onPress={onCardPress}
       hoverStyle={{ backgroundColor: isCompleted ? '#f0f0f0' : '#fafafa' }}
       pressStyle={{ scale: 0.99 }}
+      // @ts-ignore - iOS 스와이프 백 방지
+      style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize={16} fontWeight="700" color={isCompleted ? '#888' : '#000'} flex={1} numberOfLines={1}>
@@ -353,6 +355,8 @@ function MyApplicationCard({
       gap="$2"
       borderWidth={1}
       borderColor="#eee"
+      // @ts-ignore - iOS 스와이프 백 방지
+      style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize={16} fontWeight="700" color="#000" flex={1} numberOfLines={1}>
@@ -606,10 +610,42 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       right={0}
       bottom={0}
       backgroundColor="#fafafa"
+      // @ts-ignore - iOS 스와이프 백 방지
+      style={{ overscrollBehavior: 'none', touchAction: 'pan-y' }}
     >
-      <View width="100%" maxWidth={768} height="100%" alignSelf="center" backgroundColor="#fafafa">
-        {/* 헤더 */}
+      {/* iOS Safari 스와이프 백 방지 글로벌 CSS */}
+      <style>{`
+        .mypage-container {
+          touch-action: pan-y !important;
+          overscroll-behavior: none !important;
+          -webkit-overflow-scrolling: touch;
+        }
+        .mypage-container * {
+          touch-action: pan-y !important;
+          overscroll-behavior-x: none !important;
+        }
+        .mypage-scroll {
+          touch-action: pan-y !important;
+          overscroll-behavior: contain !important;
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
+      <View
+        width="100%"
+        maxWidth={768}
+        height="100%"
+        alignSelf="center"
+        backgroundColor="#fafafa"
+        // @ts-ignore
+        className="mypage-container"
+      >
+        {/* 헤더 - 상단 고정 */}
         <XStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          zIndex={100}
           backgroundColor="white"
           height={51}
           paddingHorizontal={18}
@@ -636,7 +672,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
         {/* 프로필 섹션 - MY 모드에서만 표시 */}
         {mode === 'profile' && (
-          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
+          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
             {/* 프로필 정보 */}
             <YStack padding="$4" gap="$1">
               <Text fontSize={18} fontWeight="700" color="#000">
@@ -703,7 +739,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
         {/* 탭 - requests 모드에서만 표시 */}
         {mode === 'requests' && (
-          <XStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
+          <XStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
             <View
               flex={1}
               paddingVertical="$3"
@@ -743,7 +779,14 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
         {/* 컨텐츠 - requests 모드에서만 표시 */}
         {mode === 'requests' && (
-          <ScrollView flex={1} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            flex={1}
+            showsVerticalScrollIndicator={false}
+            // @ts-ignore - iOS 스와이프 백 방지
+            style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+            // @ts-ignore
+            className="mypage-scroll"
+          >
             {/* @ts-ignore - safe area padding for mobile */}
             <YStack padding="$3" gap="$3" paddingBottom={90}>
               {isLoading || isLoadingMyRequests ? (
