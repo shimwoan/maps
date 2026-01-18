@@ -117,7 +117,12 @@ export function HomeScreen() {
   const [myPageInitialTab, setMyPageInitialTab] = useState<'myRequests' | 'myApplications'>('myRequests');
   const [myPageMode, setMyPageMode] = useState<'requests' | 'profile'>('requests');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [selectedAsTypeFilter, setSelectedAsTypeFilter] = useState<AsType | null>(null);
+  const [selectedAsTypeFilters, setSelectedAsTypeFilters] = useState<AsType[]>([]);
+  const [selectedStatusFilters, setSelectedStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
+    const [isRealtimeFilter, setIsRealtimeFilter] = useState(false);
+  const [filterModalType, setFilterModalType] = useState<'status' | 'asType' | null>(null);
+  const [tempStatusFilters, setTempStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
+  const [tempAsTypeFilters, setTempAsTypeFilters] = useState<AsType[]>([]);
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,7 +140,8 @@ export function HomeScreen() {
   const markers: RequestMarker[] = useMemo(() => {
     return requests
       .filter(r => r.latitude && r.longitude)
-      .filter(r => !selectedAsTypeFilter || r.as_type === selectedAsTypeFilter)
+      .filter(r => selectedAsTypeFilters.length === 0 || selectedAsTypeFilters.includes(r.as_type as AsType))
+      .filter(r => selectedStatusFilters.length === 0 || selectedStatusFilters.includes(r.status as 'pending' | 'accepted' | 'completed'))
       .map(r => ({
         id: r.id,
         userId: r.user_id,
@@ -147,7 +153,7 @@ export function HomeScreen() {
         asType: r.as_type,
         status: r.status,
       }));
-  }, [requests, selectedAsTypeFilter]);
+  }, [requests, selectedAsTypeFilters, selectedStatusFilters]);
 
   // 선택된 의뢰 정보
   const selectedRequest = useMemo(() => {
@@ -309,127 +315,368 @@ export function HomeScreen() {
         </XStack>
       </View>
 
-      {/* AS 종류 필터 */}
+      {/* 필터 영역 - 드롭다운 버튼 스타일 */}
       <View
         position="absolute"
         top={51}
         left={0}
         right={0}
         zIndex={99}
+        height={48}
         backgroundColor="white"
         borderBottomWidth={1}
-        borderBottomColor="#eee"
-        height={56}
-        justifyContent="center"
+        borderBottomColor="#f0f0f0"
       >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 12, alignItems: 'center', height: 56 }}
+          contentContainerStyle={{ paddingHorizontal: 12, alignItems: 'center', height: 48 }}
         >
           <XStack gap="$2" alignItems="center">
-            {/* 전체 보기 칩 */}
-            <View
-              paddingHorizontal="$3.5"
-              height={32}
-              borderRadius={16}
-              backgroundColor={selectedAsTypeFilter === null ? brandColors.primaryLight : 'white'}
+            {/* 상태 필터 버튼 */}
+            <XStack
+              paddingHorizontal={14}
+              height={34}
+              borderRadius={17}
+              backgroundColor={selectedStatusFilters.length > 0 ? brandColors.primaryLight : 'white'}
               borderWidth={1}
-              borderColor={selectedAsTypeFilter === null ? brandColors.primary : '#ddd'}
+              borderColor={selectedStatusFilters.length > 0 ? brandColors.primary : '#ddd'}
               cursor="pointer"
-              justifyContent="center"
               alignItems="center"
-              onPress={() => setSelectedAsTypeFilter(null)}
+              justifyContent="center"
+              gap={6}
+              onPress={() => {
+                setTempStatusFilters(selectedStatusFilters);
+                setFilterModalType('status');
+              }}
             >
               <Text
                 fontSize={13}
-                fontWeight="600"
-                color={selectedAsTypeFilter === null ? brandColors.primary : '#666'}
+                fontWeight="500"
+                color={selectedStatusFilters.length > 0 ? brandColors.primary : '#333'}
               >
-                전체
+                {selectedStatusFilters.length === 0
+                  ? '상태 전체'
+                  : selectedStatusFilters.map(s => s === 'pending' ? '요청' : s === 'accepted' ? '수락' : '완료').join(',')}
               </Text>
-            </View>
-            {/* AS 종류 칩들 */}
-            {AS_TYPES.map((type) => {
-              const isSelected = selectedAsTypeFilter === type;
-              return (
-                <XStack
-                  key={type}
-                  paddingHorizontal="$3"
-                  height={32}
-                  borderRadius={16}
-                  backgroundColor={isSelected ? brandColors.primaryLight : 'white'}
-                  borderWidth={1}
-                  borderColor={isSelected ? brandColors.primary : '#ddd'}
-                  cursor="pointer"
-                  alignItems="center"
-                  justifyContent="center"
-                  gap="$1.5"
-                  onPress={() => setSelectedAsTypeFilter(type)}
-                >
-                  {/* 아이콘 */}
-                  {type === '복합기/OA' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      {/* 용지 입력 트레이 (상단) */}
-                      <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-                      {/* 프린터 본체 */}
-                      <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-                      {/* 출력 용지 */}
-                      <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
-                      {/* 상태 표시등 */}
-                      <circle cx="17" cy="12" r="1.5" fill="#22C55E"/>
-                    </svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke={selectedStatusFilters.length > 0 ? brandColors.primary : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </XStack>
+
+            {/* AS 종류 필터 버튼 */}
+            <XStack
+              paddingHorizontal={14}
+              height={34}
+              borderRadius={17}
+              backgroundColor={selectedAsTypeFilters.length > 0 ? brandColors.primaryLight : 'white'}
+              borderWidth={1}
+              borderColor={selectedAsTypeFilters.length > 0 ? brandColors.primary : '#ddd'}
+              cursor="pointer"
+              alignItems="center"
+              justifyContent="center"
+              gap={6}
+              onPress={() => {
+                setTempAsTypeFilters(selectedAsTypeFilters);
+                setFilterModalType('asType');
+              }}
+            >
+              {selectedAsTypeFilters.length === 0 ? (
+                <Text fontSize={13} fontWeight="500" color="#333">
+                  종류 전체
+                </Text>
+              ) : (
+                <XStack alignItems="center" gap={4}>
+                  {selectedAsTypeFilters.slice(0, 1).map((type) => (
+                    <XStack key={type} alignItems="center" gap={4}>
+                      {type === '복합기/OA' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
+                          <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
+                          <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
+                        </svg>
+                      )}
+                      {type === '전기/통신' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+                        </svg>
+                      )}
+                      {type === '가전/설비' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
+                        </svg>
+                      )}
+                      {type === '인테리어' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1"/>
+                        </svg>
+                      )}
+                      {type === '청소' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 2v5" stroke="#92400E" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1"/>
+                        </svg>
+                      )}
+                      {type === '소프트웨어' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <rect x="2" y="3" width="20" height="14" rx="2" fill="#4B5563" stroke="#374151" strokeWidth="1"/>
+                          <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
+                        </svg>
+                      )}
+                      {type === '운반/설치' && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M1 3h15v13H1z" fill="#FB923C" stroke="#EA580C" strokeWidth="1"/>
+                          <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#EA580C" strokeWidth="1"/>
+                        </svg>
+                      )}
+                      <Text fontSize={13} fontWeight="500" color={brandColors.primary}>
+                        {type}
+                      </Text>
+                    </XStack>
+                  ))}
+                  {selectedAsTypeFilters.length > 1 && (
+                    <Text fontSize={12} fontWeight="500" color={brandColors.primary}>
+                      외 {selectedAsTypeFilters.length - 1}개
+                    </Text>
                   )}
-                  {type === '전기/통신' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {type === '가전/설비' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {type === '인테리어' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M9 22V12h6v10" fill="#5EEAD4" stroke="#0D9488" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {type === '청소' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 2v5" stroke="#92400E" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {type === '소프트웨어' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <rect x="2" y="3" width="20" height="14" rx="2" fill="#4B5563" stroke="#374151" strokeWidth="1"/>
-                      <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
-                      <path d="M8 21h8M12 17v4" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                  {type === '운반/설치' && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M1 3h15v13H1z" fill="#FB923C" stroke="#EA580C" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#EA580C" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="5.5" cy="18.5" r="2.5" fill="#374151" stroke="#1F2937" strokeWidth="1"/>
-                      <circle cx="18.5" cy="18.5" r="2.5" fill="#374151" stroke="#1F2937" strokeWidth="1"/>
-                    </svg>
-                  )}
-                  <Text
-                    fontSize={13}
-                    fontWeight="500"
-                    color={isSelected ? brandColors.primary : '#666'}
-                  >
-                    {type}
-                  </Text>
                 </XStack>
-              );
-            })}
+              )}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke={selectedAsTypeFilters.length > 0 ? brandColors.primary : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </XStack>
+
+            {/* 구분선 */}
+            <View width={1} height={24} backgroundColor="#e0e0e0" marginHorizontal={4} />
+
+            {/* 실시간 토글 */}
+            <XStack
+              paddingHorizontal={12}
+              height={34}
+              borderRadius={17}
+              backgroundColor={isRealtimeFilter ? '#DBEAFE' : 'white'}
+              borderWidth={1}
+              borderColor={isRealtimeFilter ? '#3B82F6' : '#ddd'}
+              cursor="pointer"
+              alignItems="center"
+              justifyContent="center"
+              gap={6}
+              onPress={() => setIsRealtimeFilter(!isRealtimeFilter)}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
+                <circle cx="12" cy="12" r="8" stroke="#3B82F6" strokeWidth="2" fill="none" opacity="0.5"/>
+              </svg>
+              <Text
+                fontSize={13}
+                fontWeight="500"
+                color={isRealtimeFilter ? '#2563EB' : '#666'}
+                style={{ userSelect: 'none' }}
+              >
+                실시간
+              </Text>
+            </XStack>
+
           </XStack>
         </ScrollView>
       </View>
+
+      {/* 필터 모달 */}
+      {filterModalType && (
+        <View
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          backgroundColor="rgba(0,0,0,0.4)"
+          zIndex={500}
+          alignItems="center"
+          justifyContent="center"
+          onPress={() => setFilterModalType(null)}
+        >
+          <View
+            width="90%"
+            maxWidth={360}
+            backgroundColor="white"
+            borderRadius={16}
+            overflow="hidden"
+            onPress={(e: React.MouseEvent) => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <XStack
+              paddingHorizontal={20}
+              paddingVertical={16}
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Text fontSize={18} fontWeight="700" color="#000">
+                {filterModalType === 'status' ? '상태' : 'AS 종류'}
+              </Text>
+              <View
+                padding={4}
+                cursor="pointer"
+                onPress={() => setFilterModalType(null)}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </View>
+            </XStack>
+
+            {/* 모달 내용 */}
+            <View padding={20}>
+              {filterModalType === 'status' ? (
+                <XStack flexWrap="wrap" gap={10}>
+                  {[
+                    { key: 'pending', label: '요청' },
+                    { key: 'accepted', label: '수락' },
+                    { key: 'completed', label: '완료' },
+                  ].map((item) => {
+                    const isSelected = tempStatusFilters.includes(item.key as 'pending' | 'accepted' | 'completed');
+                    return (
+                      <View
+                        key={item.key}
+                        flex={1}
+                        minWidth={90}
+                        height={44}
+                        borderRadius={8}
+                        backgroundColor={isSelected ? brandColors.primary : '#f5f5f5'}
+                        alignItems="center"
+                        justifyContent="center"
+                        cursor="pointer"
+                        onPress={() => {
+                          if (isSelected) {
+                            setTempStatusFilters(tempStatusFilters.filter(s => s !== item.key));
+                          } else {
+                            setTempStatusFilters([...tempStatusFilters, item.key as 'pending' | 'accepted' | 'completed']);
+                          }
+                        }}
+                      >
+                        {isSelected && (
+                          <View position="absolute" left={8} top={0} bottom={0} justifyContent="center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </View>
+                        )}
+                        <Text
+                          fontSize={14}
+                          fontWeight="600"
+                          color={isSelected ? 'white' : '#333'}
+                        >
+                          {item.label}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </XStack>
+              ) : (
+                <View
+                  // @ts-ignore
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}
+                >
+                  {AS_TYPES.map((type) => {
+                    const isSelected = tempAsTypeFilters.includes(type);
+                    return (
+                      <View
+                        key={type}
+                        height={48}
+                        borderRadius={8}
+                        backgroundColor={isSelected ? brandColors.primary : '#f5f5f5'}
+                        alignItems="center"
+                        justifyContent="center"
+                        cursor="pointer"
+                        onPress={() => {
+                          if (isSelected) {
+                            setTempAsTypeFilters(tempAsTypeFilters.filter(t => t !== type));
+                          } else {
+                            setTempAsTypeFilters([...tempAsTypeFilters, type]);
+                          }
+                        }}
+                      >
+                        <XStack alignItems="center" gap={4}>
+                          {type === '복합기/OA' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
+                              <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
+                              <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
+                            </svg>
+                          )}
+                          {type === '전기/통신' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+                            </svg>
+                          )}
+                          {type === '가전/설비' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
+                            </svg>
+                          )}
+                          {type === '인테리어' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1"/>
+                            </svg>
+                          )}
+                          {type === '청소' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M12 2v5" stroke="#92400E" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1"/>
+                            </svg>
+                          )}
+                          {type === '소프트웨어' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <rect x="2" y="3" width="20" height="14" rx="2" fill="#4B5563" stroke="#374151" strokeWidth="1"/>
+                              <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
+                            </svg>
+                          )}
+                          {type === '운반/설치' && (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d="M1 3h15v13H1z" fill="#FB923C" stroke="#EA580C" strokeWidth="1"/>
+                              <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#EA580C" strokeWidth="1"/>
+                            </svg>
+                          )}
+                          <Text
+                            fontSize={12}
+                            fontWeight="600"
+                            color={isSelected ? 'white' : '#333'}
+                          >
+                            {type}
+                          </Text>
+                        </XStack>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+
+            {/* 적용 버튼 */}
+            <View
+              margin={20}
+              marginTop={0}
+              height={48}
+              borderRadius={8}
+              backgroundColor={brandColors.primary}
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
+              onPress={() => {
+                if (filterModalType === 'status') {
+                  setSelectedStatusFilters(tempStatusFilters);
+                } else {
+                  setSelectedAsTypeFilters(tempAsTypeFilters);
+                }
+                setFilterModalType(null);
+              }}
+            >
+              <Text fontSize={16} fontWeight="600" color="white">
+                적용
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* 지도 */}
       {isLocationLoading || !location ? (
