@@ -27,7 +27,7 @@ export function HeaderActions({ onNotificationPress, onLoginPress }: HeaderActio
   }
 
   return (
-    <XStack gap="$3" alignItems="center">
+    <XStack gap="$2" alignItems="center">
       {/* 알림 아이콘 */}
       <View
         width={36}
