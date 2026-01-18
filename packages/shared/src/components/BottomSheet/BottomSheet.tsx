@@ -54,13 +54,10 @@ export function BottomSheet({
       <Sheet
         open={isOpen}
         onOpenChange={(open: boolean) => !open && onClose()}
-        animation="medium"
+        animation="quick"
         zIndex={zIndex}
         modal
         dismissOnSnapToBottom
-        snapPoints={[65]}
-        snapPointsMode="percent"
-        forceRemoveScrollEnabled
       >
         <Sheet.Overlay
           animation="quick"
@@ -68,15 +65,16 @@ export function BottomSheet({
           exitStyle={{ opacity: 0 }}
           backgroundColor="rgba(0,0,0,0.5)"
           zIndex={0}
+          onPress={onClose}
         />
         <Sheet.Frame
           backgroundColor="white"
           borderTopLeftRadius={20}
           borderTopRightRadius={20}
           paddingBottom="$4"
-          flex={1}
+          maxHeight="70%"
         >
-          {/* Sheet 헤더 */}
+          {/* Sheet 헤더 - 드래그 핸들 영역 */}
           <XStack
             alignItems="center"
             justifyContent="center"
@@ -94,11 +92,9 @@ export function BottomSheet({
             )}
             {showCloseButton && <CloseButton />}
           </XStack>
-          <Sheet.ScrollView flex={1} bounces={false}>
-            <YStack paddingHorizontal="$4" paddingBottom="$2">
-              {children}
-            </YStack>
-          </Sheet.ScrollView>
+          <YStack paddingHorizontal="$4" paddingBottom="$2" overflow="scroll">
+            {children}
+          </YStack>
         </Sheet.Frame>
       </Sheet>
     );
