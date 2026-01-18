@@ -58,7 +58,8 @@ export function BottomSheet({
         zIndex={zIndex}
         modal
         dismissOnSnapToBottom
-        snapPointsMode="fit"
+        snapPoints={[85]}
+        snapPointsMode="percent"
       >
         <Sheet.Overlay
           animation="quick"
@@ -72,6 +73,7 @@ export function BottomSheet({
           borderTopLeftRadius={20}
           borderTopRightRadius={20}
           paddingBottom="$4"
+          flex={1}
         >
           {/* Sheet 헤더 */}
           <XStack
@@ -91,8 +93,8 @@ export function BottomSheet({
             )}
             {showCloseButton && <CloseButton />}
           </XStack>
-          <Sheet.ScrollView>
-            <YStack paddingHorizontal="$4">
+          <Sheet.ScrollView flex={1} bounces={false}>
+            <YStack paddingHorizontal="$4" paddingBottom="$2">
               {children}
             </YStack>
           </Sheet.ScrollView>
