@@ -600,7 +600,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         {/* 헤더 */}
         <XStack
           backgroundColor="white"
-          paddingVertical="$3"
+          height={51}
           paddingHorizontal="$4"
           alignItems="center"
           justifyContent="space-between"
