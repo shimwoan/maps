@@ -13,12 +13,16 @@ export interface RequestFormData {
   addressDetail: string;
   latitude: number | null;
   longitude: number | null;
+  model: string;
+  symptom: string;
+  symptomImages: string[];
   expectedFee: number;
   duration: string;
   scheduleDate: string;
   scheduleTime: string;
   requiredPersonnel: number;
   description: string;
+  isUrgent: boolean;
 }
 
 export interface RequestFormModalProps {

@@ -11,6 +11,9 @@ export interface Request {
   address_detail: string | null;
   latitude: number | null;
   longitude: number | null;
+  model: string | null;
+  symptom: string | null;
+  symptom_images: string[] | null;
   expected_fee: number;
   duration: string;
   schedule_date: string;
@@ -18,6 +21,7 @@ export interface Request {
   required_personnel: number;
   description: string | null;
   status: string;
+  is_urgent: boolean;
   created_at: string;
   updated_at?: string;
 }
