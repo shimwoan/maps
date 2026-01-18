@@ -49,15 +49,17 @@ export function BottomSheet({
 
   return (
     <Sheet
+      modal
       forceRemoveScrollEnabled={isOpen}
       open={isOpen}
       onOpenChange={(open: boolean) => !open && onClose()}
       snapPointsMode={mode === 'fit' ? 'fit' : 'percent'}
       snapPoints={mode === 'percent' ? [snapPoint] : undefined}
-      dismissOnSnapToBottom={!disableDrag}
+      dismissOnSnapToBottom
+      moveOnKeyboardChange
       disableDrag={disableDrag}
       zIndex={zIndex}
-      animation="medium"
+      animation="quick"
     >
       <Sheet.Overlay
         animation="quick"
@@ -71,7 +73,7 @@ export function BottomSheet({
         borderTopLeftRadius={20}
         borderTopRightRadius={20}
         paddingHorizontal={mode === 'fit' ? '$4' : undefined}
-        paddingBottom={mode === 'fit' ? '$4' : undefined}
+        paddingBottom={mode === 'fit' ? '$2' : undefined}
         paddingTop="$2"
         maxWidth={maxWidth}
         alignSelf="center"

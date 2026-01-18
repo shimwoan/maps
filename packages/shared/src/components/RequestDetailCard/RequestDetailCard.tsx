@@ -233,11 +233,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
         mode="percent"
         snapPoint={60}
         scrollable
-        hasBottomNav
         zIndex={200}
       >
-        {/* @ts-ignore */}
-        <YStack paddingHorizontal="$4" gap="$3" style={{ paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}>
+        <YStack paddingHorizontal="$4" gap="$3" paddingBottom="$4">
           {/* 상단: AS종류 + 상태 배지 + 긴급 태그 */}
           <XStack gap="$2" alignItems="center">
             <Text fontSize={16} fontWeight="600" color="#333">{request.as_type}</Text>
