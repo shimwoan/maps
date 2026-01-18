@@ -51,21 +51,21 @@ function formatDate(dateStr: string): string {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-// 상태 라벨
-function getStatusLabel(status: string): { label: string; color: string } {
+// 상태 라벨 (지도 마커와 동일한 스타일)
+function getStatusLabel(status: string): { label: string; color: string; bgColor: string } {
   switch (status) {
     case 'pending':
-      return { label: '대기중', color: '#888' };
+      return { label: '대기', color: '#3B82F6', bgColor: '#fff' };
     case 'applied':
-      return { label: '신청있음', color: brandColors.primary };
+      return { label: '신청있음', color: brandColors.primary, bgColor: brandColors.primaryLight };
     case 'accepted':
-      return { label: '진행중', color: '#22C55E' };
+      return { label: '진행중', color: '#fff', bgColor: '#F59E0B' };
     case 'rejected':
-      return { label: '거절됨', color: '#ff4444' };
+      return { label: '거절됨', color: '#fff', bgColor: '#ff4444' };
     case 'completed':
-      return { label: '완료', color: '#666' };
+      return { label: '완료', color: '#fff', bgColor: '#9CA3AF' };
     default:
-      return { label: status, color: '#888' };
+      return { label: status, color: '#888', bgColor: '#f0f0f0' };
   }
 }
 
@@ -125,10 +125,12 @@ function MyRequestCard({
           {request.title}
         </Text>
         <View
-          backgroundColor={status.color + '20'}
+          backgroundColor={status.bgColor}
           paddingHorizontal="$2"
           paddingVertical="$1"
           borderRadius={4}
+          borderWidth={status.bgColor === '#fff' ? 1 : 0}
+          borderColor="#e5e7eb"
         >
           <Text fontSize={11} fontWeight="600" color={status.color}>
             {status.label}
@@ -357,10 +359,12 @@ function MyApplicationCard({
           {req.title}
         </Text>
         <View
-          backgroundColor={appStatus.color + '20'}
+          backgroundColor={appStatus.bgColor}
           paddingHorizontal="$2"
           paddingVertical="$1"
           borderRadius={4}
+          borderWidth={appStatus.bgColor === '#fff' ? 1 : 0}
+          borderColor="#e5e7eb"
         >
           <Text fontSize={11} fontWeight="600" color={appStatus.color}>
             {appStatus.label}

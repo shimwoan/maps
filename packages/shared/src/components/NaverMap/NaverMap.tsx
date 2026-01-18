@@ -86,7 +86,7 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
     statusText = '완료';
     statusBgColor = '#9CA3AF';
   } else if (isInProgress) {
-    statusText = '진행';
+    statusText = '진행중';
     statusBgColor = '#F59E0B';
   } else {
     // pending, applied 모두 대기로 표시
