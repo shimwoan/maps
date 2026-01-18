@@ -7,3 +7,4 @@ export * from './RequestFormModal';
 export * from './RequestDetailCard';
 export * from './ProfileSetupModal';
 export * from './Button';
+export * from './BottomSheet';

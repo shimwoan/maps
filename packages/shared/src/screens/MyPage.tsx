@@ -5,6 +5,7 @@ import { ProfileSetupModal } from '../components/ProfileSetupModal';
 import { NotificationModal } from '../components/NotificationModal';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { HeaderActions } from '../components/HeaderActions';
+import { RequestDetailCard } from '../components/RequestDetailCard';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
@@ -76,6 +77,7 @@ function MyRequestCard({
   onReject,
   onComplete,
   onImageClick,
+  onCardPress,
 }: {
   request: Request;
   applications: RequestApplication[];
@@ -83,6 +85,7 @@ function MyRequestCard({
   onReject: (appId: string) => void;
   onComplete: (reqId: string) => Promise<void>;
   onImageClick: (url: string) => void;
+  onCardPress: () => void;
 }) {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -112,6 +115,10 @@ function MyRequestCard({
       borderWidth={1}
       borderColor={isCompleted ? '#e0e0e0' : '#eee'}
       opacity={isCompleted ? 0.7 : 1}
+      cursor="pointer"
+      onPress={onCardPress}
+      hoverStyle={{ backgroundColor: isCompleted ? '#f0f0f0' : '#fafafa' }}
+      pressStyle={{ scale: 0.99 }}
     >
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize={16} fontWeight="700" color={isCompleted ? '#888' : '#000'} flex={1} numberOfLines={1}>
@@ -453,6 +460,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [selectedDetailRequest, setSelectedDetailRequest] = useState<Request | null>(null);
   const { user, signOut } = useAuth();
   const { profile, hasBusinessCard, refetch: refetchProfile } = useProfile();
   useNotifications(); // 알림 컨텍스트 초기화
@@ -755,6 +763,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       onReject={handleReject}
                       onComplete={handleComplete}
                       onImageClick={(url) => setEnlargedImageUrl(url)}
+                      onCardPress={() => setSelectedDetailRequest(req)}
                     />
                   ))
                 )
@@ -837,6 +846,14 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           onLoginRequired={() => {}}
           isLoggedIn={!!user}
         />
+
+        {/* 의뢰 상세 모달 */}
+        {selectedDetailRequest && (
+          <RequestDetailCard
+            request={selectedDetailRequest}
+            onClose={() => setSelectedDetailRequest(null)}
+          />
+        )}
       </View>
     </View>
   );
