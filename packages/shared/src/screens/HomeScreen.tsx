@@ -152,6 +152,7 @@ export function HomeScreen() {
         visitType: r.visit_type,
         asType: r.as_type,
         status: r.status,
+        isUrgent: r.is_urgent,
       }));
   }, [requests, selectedAsTypeFilters, selectedStatusFilters]);
 
@@ -294,7 +295,14 @@ export function HomeScreen() {
             >
               {address ? (
                 <>
-                  <Text fontSize={16} fontWeight="600" color="#000000">
+                  <Text
+                    fontSize={14}
+                    fontWeight="600"
+                    color="#000000"
+                    numberOfLines={1}
+                    // @ts-ignore
+                    style={{ maxWidth: 'min(116px, 30vw)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
                     {zoom >= MIN_ZOOM_FOR_ADDRESS ? `${address.sigungu} ${address.dong}` : '지역 선택'}
                   </Text>
                   <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style={{ marginTop: '-1px' }}>
@@ -357,7 +365,7 @@ export function HomeScreen() {
               >
                 {selectedStatusFilters.length === 0
                   ? '상태 전체'
-                  : selectedStatusFilters.map(s => s === 'pending' ? '요청' : s === 'accepted' ? '수락' : '완료').join(',')}
+                  : selectedStatusFilters.map(s => s === 'pending' ? '대기' : s === 'accepted' ? '진행중' : '완료').join(',')}
               </Text>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M6 9l6 6 6-6" stroke={selectedStatusFilters.length > 0 ? brandColors.primary : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -527,10 +535,10 @@ export function HomeScreen() {
             {/* 모달 내용 */}
             <View padding={20}>
               {filterModalType === 'status' ? (
-                <XStack flexWrap="wrap" gap={10}>
+                <XStack gap={10}>
                   {[
-                    { key: 'pending', label: '요청' },
-                    { key: 'accepted', label: '수락' },
+                    { key: 'pending', label: '대기' },
+                    { key: 'accepted', label: '진행중' },
                     { key: 'completed', label: '완료' },
                   ].map((item) => {
                     const isSelected = tempStatusFilters.includes(item.key as 'pending' | 'accepted' | 'completed');
@@ -538,7 +546,6 @@ export function HomeScreen() {
                       <View
                         key={item.key}
                         flex={1}
-                        minWidth={90}
                         height={44}
                         borderRadius={8}
                         backgroundColor={isSelected ? brandColors.primary : '#f5f5f5'}
@@ -817,7 +824,7 @@ export function HomeScreen() {
             setSelectedRequestId(requestId);
           }
         }}
-        defaultAddress={address ? `${address.sido} ${address.sigungu} ${address.dong}`.trim() : ''}
+        defaultAddress=""
       />
 
       {/* 선택된 의뢰 상세 카드 */}
