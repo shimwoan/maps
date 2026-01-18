@@ -1,0 +1,17 @@
+/* react-modal-sheet 기본 스타일 */
+.react-modal-sheet-backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.react-modal-sheet-container {
+  background-color: white !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.react-modal-sheet-content {
+  overflow: auto !important;
+}
+
+.react-modal-sheet-drag-indicator {
+  display: none !important;
+}
