@@ -251,6 +251,14 @@ export function useRequestApplications() {
       .eq('id', requestId)
       .single();
 
+    // 같은 의뢰의 다른 신청자들 조회 (거절 처리 및 알림용)
+    const { data: otherApps } = await supabase
+      .from('request_applications')
+      .select('id, applicant_id')
+      .eq('request_id', requestId)
+      .neq('id', applicationId)
+      .eq('status', 'pending');
+
     // 신청 상태를 accepted로
     const { error: appError } = await supabase
       .from('request_applications')
@@ -258,6 +266,27 @@ export function useRequestApplications() {
       .eq('id', applicationId);
 
     if (appError) throw appError;
+
+    // 다른 신청자들은 rejected로 처리
+    if (otherApps && otherApps.length > 0) {
+      const otherAppIds = otherApps.map(a => a.id);
+      await supabase
+        .from('request_applications')
+        .update({ status: 'rejected', updated_at: new Date().toISOString() })
+        .in('id', otherAppIds);
+
+      // 거절된 신청자들에게 알림 전송
+      if (requestData) {
+        const notifications = otherApps.map(app => ({
+          user_id: app.applicant_id,
+          type: 'application_rejected',
+          title: '작업 신청 거절됨',
+          message: `"${requestData.title}" 의뢰에 다른 수행자가 선정되었습니다.`,
+          request_id: requestId,
+        }));
+        await supabase.from('notifications').insert(notifications);
+      }
+    }
 
     // 의뢰 상태를 accepted로
     const { error: reqError } = await supabase
@@ -267,7 +296,7 @@ export function useRequestApplications() {
 
     if (reqError) throw reqError;
 
-    // 수행자에게 알림 전송
+    // 수락된 수행자에게 알림 전송
     if (appData && requestData) {
       await supabase.from('notifications').insert({
         user_id: appData.applicant_id,
