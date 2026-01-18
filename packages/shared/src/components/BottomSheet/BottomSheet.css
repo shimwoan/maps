@@ -6,6 +6,7 @@
 .react-modal-sheet-container {
   background-color: white !important;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
+  max-height: calc(90% - env(safe-area-inset-top) - 34px) !important;
 }
 
 .react-modal-sheet-content {

@@ -6,7 +6,6 @@ interface BottomSheetProps {
   onClose: () => void;
   children: React.ReactNode;
   zIndex?: number;
-  showCloseButton?: boolean;
   title?: string;
 }
 
@@ -15,14 +14,8 @@ export function BottomSheet({
   onClose,
   children,
   zIndex = 100000,
-  showCloseButton = true,
   title,
 }: BottomSheetProps) {
-  const handleCloseClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onClose();
-  };
-
   return (
     <Sheet
       isOpen={isOpen}
@@ -54,28 +47,6 @@ export function BottomSheet({
                 <span style={{ fontSize: 18, fontWeight: 700, color: '#000' }}>
                   {title}
                 </span>
-              </div>
-            )}
-            {showCloseButton && (
-              <div
-                onClick={handleCloseClick}
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 0,
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
-                  backgroundColor: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
               </div>
             )}
           </div>
