@@ -67,7 +67,6 @@ export function useRequests() {
   }, []);
 
   useEffect(() => {
-    console.log('[Realtime] useRequests useEffect 시작');
     // 초기 데이터 로드
     fetchRequests();
 
@@ -84,7 +83,6 @@ export function useRequests() {
 
       // 고유한 채널 이름 생성 (타임스탬프 포함)
       const channelName = `requests-realtime-${Date.now()}`;
-      console.log('[Realtime] 채널 구독 시도:', channelName);
 
       // Supabase Realtime 구독
       channelRef.current = supabase
@@ -97,23 +95,9 @@ export function useRequests() {
             table: 'requests',
           },
           (payload) => {
-            console.log('[Realtime] requests 이벤트 수신:', payload.eventType, payload);
             if (payload.eventType === 'INSERT') {
               const newRequest = payload.new as Request;
-              console.log('[Realtime] INSERT 데이터:', {
-                status: newRequest.status,
-                latitude: newRequest.latitude,
-                longitude: newRequest.longitude,
-                hasValidStatus: ['pending', 'applied', 'accepted'].includes(newRequest.status),
-                hasLocation: !!(newRequest.latitude && newRequest.longitude)
-              });
-              // pending, applied, accepted 상태이고 위치값이 있는 경우에만 추가
-              if (['pending', 'applied', 'accepted'].includes(newRequest.status) && newRequest.latitude && newRequest.longitude) {
-                console.log('[Realtime] 새 request 추가됨:', newRequest.id);
-                setRequests(prev => [...prev, newRequest]);
-              } else {
-                console.log('[Realtime] 조건 불충족으로 추가 안됨');
-              }
+              setRequests(prev => [...prev, newRequest]);
             } else if (payload.eventType === 'UPDATE') {
               const updatedRequest = payload.new as Request;
               setRequests(prev => {
@@ -148,30 +132,21 @@ export function useRequests() {
             }
           }
         )
-        .subscribe((status, err) => {
-          console.log('[Realtime] 구독 상태 변경:', status, err);
+        .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
-            console.log('[Realtime] requests 채널 연결 성공');
-            retryCount = 0; // 성공 시 재시도 카운트 리셋
+            retryCount = 0;
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            console.error('[Realtime] requests 채널 연결 실패:', status, err);
-            // 재연결 시도
             if (retryCount < maxRetries) {
               retryCount++;
-              const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // 지수 백오프, 최대 30초
-              console.log(`[Realtime] ${delay}ms 후 재연결 시도 (${retryCount}/${maxRetries})`);
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
               retryTimeout = setTimeout(() => {
                 setupSubscription();
               }, delay);
             } else {
-              console.error('[Realtime] 최대 재시도 횟수 초과, 폴링으로 전환');
-              // 폴링 폴백: 30초마다 데이터 새로고침
               retryTimeout = setInterval(() => {
                 fetchRequests();
               }, 30000);
             }
-          } else if (status === 'CLOSED') {
-            console.log('[Realtime] requests 채널 연결 종료');
           }
         });
     };
