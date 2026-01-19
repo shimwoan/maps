@@ -245,6 +245,7 @@ export function HomeScreen() {
     injectRealtimeStyles();
   }, []);
 
+
   // 실시간 알림 추가 함수
   const addRealtimeNotification = useCallback((message: string, type: 'new' | 'matched' | 'completed') => {
     const notification: RealtimeNotification = {
@@ -276,50 +277,71 @@ export function HomeScreen() {
 
   // 실시간 현황 구독
   useEffect(() => {
-    const channelName = `realtime-status-${Date.now()}`;
+    const setupRealtimeSubscription = () => {
+      // 기존 채널이 있으면 제거
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+        realtimeChannelRef.current = null;
+      }
 
-    realtimeChannelRef.current = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'requests',
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            // 새 의뢰 등록
-            const newRequest = payload.new as { address: string; as_type: string; title: string };
-            const district = extractDistrict(newRequest.address);
-            addRealtimeNotification(
-              `${district} [${newRequest.as_type}] 새 의뢰 등록`,
-              'new'
-            );
-          } else if (payload.eventType === 'UPDATE') {
-            const newData = payload.new as { status: string; address: string; as_type: string; title: string };
-            const oldData = payload.old as { status: string };
-            const district = extractDistrict(newData.address);
+      const channelName = `realtime-status-${Date.now()}`;
 
-            if (oldData.status !== 'accepted' && newData.status === 'accepted') {
-              // 매칭 완료
+      realtimeChannelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'requests',
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              // 새 의뢰 등록
+              const newRequest = payload.new as { address: string; as_type: string; title: string };
+              const district = extractDistrict(newRequest.address);
               addRealtimeNotification(
-                `${district} [${newData.as_type}] 매칭 완료`,
-                'matched'
+                `${district} [${newRequest.as_type}] 새 의뢰 등록`,
+                'new'
               );
-            } else if (oldData.status !== 'completed' && newData.status === 'completed') {
-              // 의뢰 완료
-              addRealtimeNotification(
-                `${district} [${newData.as_type}] 작업 완료`,
-                'completed'
-              );
+            } else if (payload.eventType === 'UPDATE') {
+              const newData = payload.new as { status: string; address: string; as_type: string; title: string };
+              const oldData = payload.old as { status: string };
+              const district = extractDistrict(newData.address);
+
+              if (oldData.status !== 'accepted' && newData.status === 'accepted') {
+                // 매칭 완료
+                addRealtimeNotification(
+                  `${district} [${newData.as_type}] 매칭 완료`,
+                  'matched'
+                );
+              } else if (oldData.status !== 'completed' && newData.status === 'completed') {
+                // 의뢰 완료
+                addRealtimeNotification(
+                  `${district} [${newData.as_type}] 작업 완료`,
+                  'completed'
+                );
+              }
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    };
+
+    setupRealtimeSubscription();
+
+    // 백그라운드에서 포그라운드로 돌아올 때 재연결
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[RealtimeStatus] 화면 활성화 - Realtime 재연결');
+        setupRealtimeSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (realtimeChannelRef.current) {
         supabase.removeChannel(realtimeChannelRef.current);
         realtimeChannelRef.current = null;

@@ -212,7 +212,19 @@ export function useRequestApplications() {
 
     setupSubscription();
 
+    // 백그라운드에서 포그라운드로 돌아올 때 Realtime 재연결
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[useRequestApplications] 화면 활성화 - Realtime 재연결');
+        fetchAll(); // 먼저 데이터 새로고침
+        setupSubscription(); // Realtime 재구독
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (retryTimeout) {
         clearTimeout(retryTimeout);
         clearInterval(retryTimeout as unknown as number);
