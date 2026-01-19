@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { View, Text, XStack, Spinner, ScrollView } from 'tamagui';
 import { NaverMap, NaverMapRef } from '../components/NaverMap';
 import type { RequestMarker } from '../components/NaverMap';
@@ -18,6 +18,52 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
 import { AS_TYPES, type AsType } from '../components/RequestFormModal/types';
+import { supabase } from '../lib/supabase';
+
+// 실시간 현황 알림 타입
+interface RealtimeNotification {
+  id: string;
+  message: string;
+  type: 'new' | 'matched' | 'completed';
+  timestamp: number;
+  isExiting?: boolean;
+}
+
+// 실시간 알림 애니메이션 CSS 삽입
+const injectRealtimeStyles = () => {
+  if (document.getElementById('realtime-notification-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'realtime-notification-styles';
+  style.textContent = `
+    @keyframes slideInFromLeft {
+      0% {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOutToLeft {
+      0% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+    }
+    .realtime-notification-enter {
+      animation: slideInFromLeft 0.3s ease-out forwards;
+    }
+    .realtime-notification-exit {
+      animation: slideOutToLeft 0.3s ease-in forwards;
+    }
+  `;
+  document.head.appendChild(style);
+};
 
 interface Location {
   latitude: number;
@@ -119,13 +165,14 @@ export function HomeScreen() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedAsTypeFilters, setSelectedAsTypeFilters] = useState<AsType[]>([]);
   const [selectedStatusFilters, setSelectedStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
-    const [isRealtimeFilter, setIsRealtimeFilter] = useState(false);
   const [filterModalType, setFilterModalType] = useState<'status' | 'asType' | null>(null);
   const [tempStatusFilters, setTempStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
   const [tempAsTypeFilters, setTempAsTypeFilters] = useState<AsType[]>([]);
+  const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
   const { myApplications, refetch: refetchApplications } = useRequestApplications();
@@ -192,6 +239,93 @@ export function HomeScreen() {
       setIsRequestModalOpen(true);
     }
   }, [user]);
+
+  // CSS 스타일 삽입
+  useEffect(() => {
+    injectRealtimeStyles();
+  }, []);
+
+  // 실시간 알림 추가 함수
+  const addRealtimeNotification = useCallback((message: string, type: 'new' | 'matched' | 'completed') => {
+    const notification: RealtimeNotification = {
+      id: `${Date.now()}-${Math.random()}`,
+      message,
+      type,
+      timestamp: Date.now(),
+      isExiting: false,
+    };
+    setRealtimeNotifications(prev => [notification, ...prev].slice(0, 5)); // 최대 5개 유지
+
+    // 4.7초 후 exit 애니메이션 시작
+    setTimeout(() => {
+      setRealtimeNotifications(prev =>
+        prev.map(n => n.id === notification.id ? { ...n, isExiting: true } : n)
+      );
+      // 0.3초 후 실제 삭제 (애니메이션 완료 후)
+      setTimeout(() => {
+        setRealtimeNotifications(prev => prev.filter(n => n.id !== notification.id));
+      }, 300);
+    }, 4700);
+  }, []);
+
+  // 주소에서 구 이름 추출
+  const extractDistrict = (address: string): string => {
+    const match = address.match(/([가-힣]+[구군시])/);
+    return match ? match[1] : '';
+  };
+
+  // 실시간 현황 구독
+  useEffect(() => {
+    const channelName = `realtime-status-${Date.now()}`;
+
+    realtimeChannelRef.current = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'requests',
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            // 새 의뢰 등록
+            const newRequest = payload.new as { address: string; as_type: string; title: string };
+            const district = extractDistrict(newRequest.address);
+            addRealtimeNotification(
+              `${district} [${newRequest.as_type}] 새 의뢰 등록`,
+              'new'
+            );
+          } else if (payload.eventType === 'UPDATE') {
+            const newData = payload.new as { status: string; address: string; as_type: string; title: string };
+            const oldData = payload.old as { status: string };
+            const district = extractDistrict(newData.address);
+
+            if (oldData.status !== 'accepted' && newData.status === 'accepted') {
+              // 매칭 완료
+              addRealtimeNotification(
+                `${district} [${newData.as_type}] 매칭 완료`,
+                'matched'
+              );
+            } else if (oldData.status !== 'completed' && newData.status === 'completed') {
+              // 의뢰 완료
+              addRealtimeNotification(
+                `${district} [${newData.as_type}] 작업 완료`,
+                'completed'
+              );
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+        realtimeChannelRef.current = null;
+      }
+    };
+  }, [addRealtimeNotification]);
 
   useEffect(() => {
     // 사이트 접속 시 위치 권한 요청
@@ -658,6 +792,90 @@ export function HomeScreen() {
         </View>
       )}
 
+      {/* 실시간 현황 배너 */}
+      {!isMyPageOpen && realtimeNotifications.length > 0 && (
+        <View
+          position="absolute"
+          top={107}
+          left={12}
+          zIndex={98}
+          gap={6}
+        >
+          {realtimeNotifications.map((notification) => (
+            <div
+              key={notification.id}
+              className={notification.isExiting ? 'realtime-notification-exit' : 'realtime-notification-enter'}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: '8px 12px',
+                borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                borderLeft: `3px solid ${
+                  notification.type === 'new' ? '#3B82F6' :
+                  notification.type === 'matched' ? '#F59E0B' :
+                  '#22C55E'
+                }`,
+              }}
+            >
+              <XStack alignItems="center" gap={8}>
+                {/* 확성기 아이콘 */}
+                <View
+                  width={24}
+                  height={24}
+                  borderRadius={12}
+                  backgroundColor={
+                    notification.type === 'new' ? '#EFF6FF' :
+                    notification.type === 'matched' ? '#FEF3C7' :
+                    '#DCFCE7'
+                  }
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                      stroke={
+                        notification.type === 'new' ? '#3B82F6' :
+                        notification.type === 'matched' ? '#F59E0B' :
+                        '#22C55E'
+                      }
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill={
+                        notification.type === 'new' ? '#3B82F6' :
+                        notification.type === 'matched' ? '#F59E0B' :
+                        '#22C55E'
+                      }
+                      fillOpacity="0.2"
+                    />
+                    <path
+                      d="M13.73 21a2 2 0 0 1-3.46 0"
+                      stroke={
+                        notification.type === 'new' ? '#3B82F6' :
+                        notification.type === 'matched' ? '#F59E0B' :
+                        '#22C55E'
+                      }
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </View>
+                <View>
+                  <Text fontSize={10} color="#888" fontWeight="500">
+                    실시간 접수 현황
+                  </Text>
+                  <Text fontSize={12} color="#333" fontWeight="600">
+                    {notification.message}
+                  </Text>
+                </View>
+              </XStack>
+            </div>
+          ))}
+        </View>
+      )}
+
       {/* 지도 */}
       {isLocationLoading || !location ? (
         <View flex={1} alignItems="center" justifyContent="center" backgroundColor="#f5f5f5">
@@ -687,7 +905,7 @@ export function HomeScreen() {
       {!isLocationLoading && location && !isMyPageOpen && (
         <View
           position="absolute"
-          top={120}
+          bottom={100}
           left={16}
           zIndex={100}
           gap="$2"

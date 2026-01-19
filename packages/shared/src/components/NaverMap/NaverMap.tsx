@@ -362,6 +362,9 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
           logoControlOptions: {
             position: window.naver.maps.Position.BOTTOM_LEFT,
           },
+          zoomControlOptions: {
+            position: window.naver.maps.Position.LEFT_BOTTOM,
+          },
           scaleControl: false,
           mapDataControl: false,
         });
