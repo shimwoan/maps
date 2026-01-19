@@ -7,6 +7,7 @@ interface BottomSheetProps {
   children: React.ReactNode;
   zIndex?: number;
   title?: string;
+  accentColor?: string;
 }
 
 export function BottomSheet({
@@ -15,6 +16,7 @@ export function BottomSheet({
   children,
   zIndex = 100000,
   title,
+  accentColor,
 }: BottomSheetProps) {
   return (
     <Sheet
@@ -23,7 +25,14 @@ export function BottomSheet({
       detent="content"
       style={{ zIndex }}
     >
-      <Sheet.Container style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+      <Sheet.Container style={{
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        // @ts-ignore - CSS 변수 설정
+        '--sheet-shadow': accentColor
+          ? `0 0 0 2px ${accentColor}, 0 -4px 15px ${accentColor}30`
+          : '0 -4px 20px rgba(0, 0, 0, 0.15)',
+      } as React.CSSProperties}>
         <Sheet.Header>
           <div
             style={{
