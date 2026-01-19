@@ -175,6 +175,17 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
   const alreadyApplied = myApplications.some(app => app.request_id === request.id);
   // 진행중인 의뢰인지 확인
   const isInProgress = request.status === 'accepted';
+  const isCompleted = request.status === 'completed';
+
+  // 상태에 따른 accent 색상 (마커 border 색상과 동일)
+  const getAccentColor = () => {
+    if (isCompleted) return '#9CA3AF'; // 완료 - 회색
+    if (isInProgress) return '#F59E0B'; // 진행중 - 주황
+    if (alreadyApplied) return '#22C55E'; // 신청중 - 초록
+    if (request.is_urgent) return '#EF4444'; // 긴급 대기 - 빨강
+    return '#3B82F6'; // 기본/대기 - 파랑
+  };
+  const accentColor = getAccentColor();
 
   const handleAcceptClick = async () => {
     // 비로그인 시 로그인 모달 표시
@@ -231,11 +242,54 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
         isOpen={true}
         onClose={onClose}
         zIndex={200}
+        accentColor={accentColor}
       >
         <YStack gap="$3" paddingBottom="$4">
           {/* 상단: AS종류 + 상태 배지 + 긴급 태그 */}
           <XStack gap="$2" alignItems="center">
-            <Text fontSize={16} fontWeight="600" color="#333">{request.as_type}</Text>
+            <XStack alignItems="center" gap="$1.5">
+              {request.as_type === '복합기/OA' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
+                  <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
+                  <path d="M7 16h10v5H7z" fill="white" stroke="#6B7280" strokeWidth="1"/>
+                </svg>
+              )}
+              {request.as_type === '전기/통신' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+                </svg>
+              )}
+              {request.as_type === '가전/설비' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
+                </svg>
+              )}
+              {request.as_type === '인테리어' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#8B5CF6" stroke="#7C3AED" strokeWidth="1"/>
+                </svg>
+              )}
+              {request.as_type === '청소' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2v5" stroke="#10B981" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#10B981" strokeWidth="1.5"/>
+                </svg>
+              )}
+              {request.as_type === '소프트웨어' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="3" width="20" height="14" rx="2" fill="#3B82F6"/>
+                  <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
+                </svg>
+              )}
+              {request.as_type === '운반/설치' && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 3h15v13H1z" fill="#78716C" stroke="#78716C" strokeWidth="1"/>
+                  <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#78716C" strokeWidth="1"/>
+                </svg>
+              )}
+              <Text fontSize={16} fontWeight="600" color="#333">{request.as_type}</Text>
+            </XStack>
             {/* 상태 배지 */}
             <View
               backgroundColor={
@@ -279,7 +333,7 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
             <Text fontSize={18} fontWeight="700" color="#000">
               {request.title}
             </Text>
-            <Text fontSize={20} fontWeight="700" color={brandColors.primary}>
+            <Text fontSize={16} fontWeight="600" color={brandColors.primary} marginTop="$1">
               {formatPrice(request.expected_fee)}원
             </Text>
           </YStack>
