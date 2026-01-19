@@ -112,6 +112,80 @@ function RequiredLabel({ children }: { children: string }) {
   );
 }
 
+// Toast 애니메이션 CSS 삽입
+const injectToastStyles = () => {
+  if (document.getElementById('toast-animation-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'toast-animation-styles';
+  style.textContent = `
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+// Toast 컴포넌트
+function Toast({ message, isVisible, onClose }: { message: string; isVisible: boolean; onClose: () => void }) {
+  useEffect(() => {
+    injectToastStyles();
+  }, []);
+
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(onClose, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <View
+      position="absolute"
+      bottom={100}
+      left={16}
+      right={16}
+      zIndex={100001}
+      // @ts-ignore
+      style={{
+        animation: 'slideUp 0.3s ease-out',
+      }}
+    >
+      <XStack
+        backgroundColor="#333"
+        paddingHorizontal={16}
+        paddingVertical={12}
+        borderRadius={8}
+        alignItems="center"
+        gap={10}
+        shadowColor="#000"
+        shadowOffset={{ width: 0, height: 2 }}
+        shadowOpacity={0.25}
+        shadowRadius={4}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#EF4444" strokeWidth="2"/>
+          <path d="M12 8v4M12 16h.01" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+        <Text color="white" fontSize={14} fontWeight="500" flex={1}>{message}</Text>
+        <View cursor="pointer" onPress={onClose} padding={4}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </View>
+      </XStack>
+    </View>
+  );
+}
+
 export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = '' }: RequestFormModalProps) {
   const { user } = useAuth();
   const { profile, hasPhone, updatePhone, refetch: refetchProfile } = useProfile();
@@ -127,9 +201,11 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   const [symptomImages, setSymptomImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const phone2Ref = useRef<any>(null);
   const phone3Ref = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollViewRef = useRef<any>(null);
 
   // 모달이 열릴 때 스텝 초기화
   useEffect(() => {
@@ -236,6 +312,20 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
     setSymptomImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  // 폼 에러 처리
+  const onFormError = (formErrors: any) => {
+    // 첫 번째 에러 메시지 찾기
+    const errorFields = ['title', 'address', 'expectedFee', 'scheduleDate', 'scheduleTime', 'description'];
+    for (const field of errorFields) {
+      if (formErrors[field]) {
+        setToastMessage(formErrors[field].message || '필수 항목을 입력해주세요');
+        break;
+      }
+    }
+    // 스크롤을 맨 위로
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
   // 스텝1 완료 -> 스텝2로 이동 (연락처 없는 경우) 또는 바로 제출
   const handleStep1Submit = handleSubmit(async (data: RequestFormData) => {
     if (!user) return;
@@ -247,7 +337,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       // 연락처 입력 스텝으로 이동
       setCurrentStep(2);
     }
-  });
+  }, onFormError);
 
   // 스텝2에서 연락처 저장 후 의뢰 제출
   const handleStep2Submit = async () => {
@@ -529,7 +619,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
         {/* 스텝 1: 의뢰 정보 입력 */}
         {currentStep === 1 && (
-        <ScrollView>
+        <ScrollView ref={scrollViewRef}>
           <YStack padding="$4" gap="$4">
             {/* 방문/원격 선택 */}
             <YStack gap="$2">
@@ -994,6 +1084,12 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
           </YStack>
         </ScrollView>
         )}
+        {/* Toast 알림 */}
+        <Toast
+          message={toastMessage || ''}
+          isVisible={!!toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
       </Sheet.Frame>
     </Sheet>
 
