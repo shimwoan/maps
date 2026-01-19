@@ -167,7 +167,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
       isOpen={isOpen}
       onClose={onClose}
       zIndex={100001}
-      title={isEdit ? '명함 수정' : '명함 등록'}
+      title={isEdit ? '명함 or 사업자 등록증 수정' : '명함 or 사업자 등록증 등록'}
     >
       {isCropping && imageSrc ? (
         // 크롭 모드

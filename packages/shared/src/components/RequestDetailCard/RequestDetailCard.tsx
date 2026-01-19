@@ -286,37 +286,79 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
 
           {/* 상세 정보 */}
           <YStack gap="$3" backgroundColor="#f9f9f9" padding="$4" borderRadius={12}>
-            <XStack>
-              <Text fontSize={14} color="#888" width={100}>주소</Text>
+            <XStack alignItems="flex-start">
+              <XStack width={100} alignItems="center" gap="$1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3B82F6"/>
+                  <circle cx="12" cy="9" r="2.5" fill="white"/>
+                </svg>
+                <Text fontSize={14} color="#888">주소</Text>
+              </XStack>
               <Text fontSize={14} color="#333" flex={1}>
                 {request.address}
                 {request.address_detail ? ` ${request.address_detail}` : ''}
               </Text>
             </XStack>
             {request.model && (request.as_type === '복합기/OA' || request.as_type === '가전/설비') && (
-              <XStack>
-                <Text fontSize={14} color="#888" width={100}>기종</Text>
+              <XStack alignItems="center">
+                <XStack width={100} alignItems="center" gap="$1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <rect x="4" y="4" width="16" height="16" rx="2" fill="#8B5CF6"/>
+                    <rect x="7" y="8" width="10" height="3" rx="1" fill="white"/>
+                    <circle cx="9" cy="15" r="1" fill="white"/>
+                    <circle cx="12" cy="15" r="1" fill="white"/>
+                    <circle cx="15" cy="15" r="1" fill="white"/>
+                  </svg>
+                  <Text fontSize={14} color="#888">기종</Text>
+                </XStack>
                 <Text fontSize={14} color="#333" flex={1}>{request.model}</Text>
               </XStack>
             )}
             {request.symptom && (
-              <XStack>
-                <Text fontSize={14} color="#888" width={100}>증상</Text>
+              <XStack alignItems="flex-start">
+                <XStack width={100} alignItems="center" gap="$1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L2 22h20L12 2z" fill="#F59E0B"/>
+                    <path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <circle cx="12" cy="17" r="1" fill="white"/>
+                  </svg>
+                  <Text fontSize={14} color="#888">증상</Text>
+                </XStack>
                 <Text fontSize={14} color="#333" flex={1}>{request.symptom}</Text>
               </XStack>
             )}
-            <XStack>
-              <Text fontSize={14} color="#888" width={100}>예상소요시간</Text>
+            <XStack alignItems="center">
+              <XStack width={100} alignItems="center" gap="$1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" fill="#10B981"/>
+                  <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <Text fontSize={14} color="#888">예상소요</Text>
+              </XStack>
               <Text fontSize={14} color="#333" flex={1}>{request.duration}</Text>
             </XStack>
-            <XStack>
-              <Text fontSize={14} color="#888" width={100}>처리요청시간</Text>
+            <XStack alignItems="center">
+              <XStack width={100} alignItems="center" gap="$1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="4" width="18" height="18" rx="2" fill="#6366F1"/>
+                  <path d="M3 9h18" stroke="white" strokeWidth="1.5"/>
+                  <path d="M8 2v4M16 2v4" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="12" cy="15" r="2" fill="white"/>
+                </svg>
+                <Text fontSize={14} color="#888">처리요청</Text>
+              </XStack>
               <Text fontSize={14} color="#333" flex={1}>
                 {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
               </Text>
             </XStack>
-            <XStack>
-              <Text fontSize={14} color="#888" width={100}>필요인원</Text>
+            <XStack alignItems="center">
+              <XStack width={100} alignItems="center" gap="$1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="7" r="4" fill="#EC4899"/>
+                  <path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" fill="#EC4899"/>
+                </svg>
+                <Text fontSize={14} color="#888">필요인원</Text>
+              </XStack>
               <Text fontSize={14} color="#333" flex={1}>{request.required_personnel}명</Text>
             </XStack>
           </YStack>

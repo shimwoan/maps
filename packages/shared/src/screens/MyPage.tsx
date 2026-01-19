@@ -178,7 +178,10 @@ function MyRequestCard({
               size="$2"
               backgroundColor={brandColors.primary}
               color="white"
-              onPress={() => setShowCompleteDialog(true)}
+              onPress={(e: any) => {
+                e.stopPropagation();
+                setShowCompleteDialog(true);
+              }}
               hoverStyle={{ backgroundColor: brandColors.primaryHover }}
             >
               의뢰 종료
@@ -685,7 +688,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
             {/* 명함 섹션 */}
             <YStack padding="$4" paddingTop="$2" gap="$3">
-              <Text fontSize={14} fontWeight="600" color="#333">내 명함</Text>
+              <Text fontSize={14} fontWeight="600" color="#333">내 명함 or 사업자 등록증</Text>
               {hasBusinessCard && profile?.business_card_url ? (
                 <View
                   borderRadius={12}
@@ -696,7 +699,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 >
                   <img
                     src={profile.business_card_url}
-                    alt="내 명함"
+                    alt="내 명함 or 사업자 등록증"
                     style={{ width: '100%', maxHeight: 200, objectFit: 'contain' }}
                   />
                 </View>
@@ -731,7 +734,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 onPress={() => setShowProfileModal(true)}
                 hoverStyle={{ backgroundColor: brandColors.primaryHover }}
               >
-                {hasBusinessCard ? '명함 수정' : '명함 등록'}
+                {hasBusinessCard ? '명함 or 사업자 등록증 수정' : '명함 or 사업자 등록증 등록'}
               </Button>
             </YStack>
           </YStack>
