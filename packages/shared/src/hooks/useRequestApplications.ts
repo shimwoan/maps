@@ -19,6 +19,7 @@ export interface RequestApplication {
     schedule_time: string;
     status: string;
     user_id: string;
+    as_type: string;
   };
   applicant?: {
     id: string;
@@ -52,7 +53,7 @@ export function useRequestApplications() {
         .from('request_applications')
         .select(`
           *,
-          request:requests(id, title, address, expected_fee, schedule_date, schedule_time, status, user_id)
+          request:requests(id, title, address, expected_fee, schedule_date, schedule_time, status, user_id, as_type)
         `)
         .eq('applicant_id', user.id)
         .order('created_at', { ascending: false });
@@ -92,7 +93,7 @@ export function useRequestApplications() {
         .from('request_applications')
         .select(`
           *,
-          request:requests(id, title, address, expected_fee, schedule_date, schedule_time, status, user_id)
+          request:requests(id, title, address, expected_fee, schedule_date, schedule_time, status, user_id, as_type)
         `)
         .in('request_id', requestIds)
         .order('created_at', { ascending: false });
@@ -307,25 +308,13 @@ export function useRequestApplications() {
 
     if (appError) throw appError;
 
-    // 다른 신청자들은 rejected로 처리
+    // 다른 신청자들은 rejected로 처리 (알림 없이)
     if (otherApps && otherApps.length > 0) {
       const otherAppIds = otherApps.map(a => a.id);
       await supabase
         .from('request_applications')
         .update({ status: 'rejected', updated_at: new Date().toISOString() })
         .in('id', otherAppIds);
-
-      // 거절된 신청자들에게 알림 전송
-      if (requestData) {
-        const notifications = otherApps.map(app => ({
-          user_id: app.applicant_id,
-          type: 'application_rejected',
-          title: '작업 신청 거절됨',
-          message: `"${requestData.title}" 의뢰에 다른 수행자가 선정되었습니다.`,
-          request_id: requestId,
-        }));
-        await supabase.from('notifications').insert(notifications);
-      }
     }
 
     // 의뢰 상태를 accepted로
