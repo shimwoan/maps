@@ -1,13 +1,14 @@
 /* react-modal-sheet 기본 스타일 */
 .react-modal-sheet-backdrop {
   background-color: rgba(0, 0, 0, 0.5) !important;
-  transition: opacity 0.15s ease-out !important;
+  transition: opacity 0.02s ease-out !important;
 }
 
 .react-modal-sheet-container {
   background-color: white !important;
   box-shadow: var(--sheet-shadow, 0 -4px 20px rgba(0, 0, 0, 0.15)) !important;
   max-height: calc(70% - env(safe-area-inset-top) - 34px) !important;
+  transition: transform 0.15s ease-out !important;
 }
 
 .react-modal-sheet-content {
