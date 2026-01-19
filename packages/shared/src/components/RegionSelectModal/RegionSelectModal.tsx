@@ -51,16 +51,9 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
   };
 
   const handleSigunguSelect = (sigungu: SiGunGu) => {
-    setSelectedSigungu(sigungu);
-    const list = getDongBySigungu(sigungu.code);
-    setDongList(list);
-    if (list.length > 0) {
-      setStep('dong');
-    } else {
-      // 하위 동이 없는 경우 시군구 선택으로 완료
-      onSelect({ name: sigungu.name, lat: sigungu.lat, lng: sigungu.lng, zoom: 14 });
-      handleClose();
-    }
+    // 시군구 선택으로 완료
+    onSelect({ name: sigungu.name, lat: sigungu.lat, lng: sigungu.lng, zoom: 13 });
+    handleClose();
   };
 
   const handleDongSelect = (dong: Dong) => {
@@ -155,26 +148,10 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
         {/* 시·군·구 */}
         <Text
           fontSize={16}
-          fontWeight={selectedSigungu ? '600' : (step === 'sigungu' ? '600' : '400')}
-          color={selectedSigungu ? '#000' : (step === 'sigungu' ? '#22c55e' : '#999')}
-          cursor={selectedSigungu ? 'pointer' : 'default'}
-          onPress={() => {
-            if (selectedSigungu) {
-              setStep('sigungu');
-              setSelectedSigungu(null);
-            }
-          }}
+          fontWeight={step === 'sigungu' ? '600' : '400'}
+          color={step === 'sigungu' ? '#22c55e' : '#999'}
         >
-          {selectedSigungu ? selectedSigungu.name : '시·군·구'}
-        </Text>
-        <Text fontSize={14} color="#999">{'>'}</Text>
-        {/* 읍·면·동 */}
-        <Text
-          fontSize={16}
-          fontWeight={step === 'dong' ? '600' : '400'}
-          color={step === 'dong' ? '#22c55e' : '#999'}
-        >
-          읍·면·동 선택
+          시·군·구 선택
         </Text>
       </XStack>
 
