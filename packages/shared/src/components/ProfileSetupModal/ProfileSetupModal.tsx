@@ -247,8 +247,8 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
         <YStack gap="$4">
           <Text fontSize={14} color="#666" textAlign="center">
             {isEdit
-              ? '새로운 명함 이미지를 업로드해주세요.'
-              : '작업을 수락하려면 명함 이미지를 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
+              ? '새로운 명함 이미지 or 사업자 등록증를 업로드해주세요.'
+              : '작업을 수락하려면 명함 이미지 or 사업자 등록증을 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
           </Text>
 
           {/* 이미지 업로드 영역 */}
