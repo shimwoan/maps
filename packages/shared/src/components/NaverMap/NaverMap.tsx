@@ -73,9 +73,8 @@ const createMarkerContent = (marker: RequestMarker, isSelected: boolean, _isOwn:
   const isCompleted = marker.status === 'completed';
   const isUrgent = marker.isUrgent;
 
-  // 긴급인 경우 빨간색 테마, 아니면 상태에 따른 색상
-  // 상태에 따른 border 색상: 긴급(빨강), 완료(회색), 신청중(초록), 진행중(주황), 기본(파랑)
-  const borderColor = isUrgent && !isCompleted ? '#EF4444' : isCompleted ? '#9CA3AF' : isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : '#3B82F6';
+  // 상태에 따른 border 색상: 완료(회색), 진행중(주황), 신청중(초록), 긴급대기(빨강), 기본(파랑)
+  const borderColor = isCompleted ? '#9CA3AF' : isInProgress ? '#F59E0B' : isApplied ? '#22C55E' : isUrgent ? '#EF4444' : '#3B82F6';
   const size = getMarkerSize(zoom);
 
   // 상태 텍스트 (짧게)
