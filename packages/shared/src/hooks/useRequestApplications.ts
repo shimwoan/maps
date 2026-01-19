@@ -140,42 +140,82 @@ export function useRequestApplications() {
   useEffect(() => {
     if (!user) return;
 
-    // 기존 채널이 있으면 제거
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
+    let retryCount = 0;
+    const maxRetries = 5;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    // Realtime 구독 설정
-    channelRef.current = supabase
-      .channel(`request-applications-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'request_applications',
-        },
-        (payload) => {
-          // 내가 관련된 신청인 경우에만 리페치
-          const newData = payload.new as { applicant_id?: string; request_id?: string };
-          const oldData = payload.old as { applicant_id?: string; request_id?: string };
+    const setupSubscription = () => {
+      // 기존 채널이 있으면 제거
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
 
-          // 내가 신청자이거나, 내 의뢰에 대한 신청인 경우 리페치
-          if (
-            newData?.applicant_id === user.id ||
-            oldData?.applicant_id === user.id
-          ) {
-            // 내가 신청자인 경우
-            fetchAll();
-          } else {
-            // 내 의뢰에 대한 신청일 수 있으므로 리페치
-            fetchAll();
+      // 고유한 채널 이름 생성 (사용자 ID + 타임스탬프)
+      const channelName = `request-applications-${user.id}-${Date.now()}`;
+
+      // Realtime 구독 설정
+      channelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'request_applications',
+          },
+          (payload) => {
+            // 내가 관련된 신청인 경우에만 리페치
+            const newData = payload.new as { applicant_id?: string; request_id?: string };
+            const oldData = payload.old as { applicant_id?: string; request_id?: string };
+
+            // 내가 신청자이거나, 내 의뢰에 대한 신청인 경우 리페치
+            if (
+              newData?.applicant_id === user.id ||
+              oldData?.applicant_id === user.id
+            ) {
+              // 내가 신청자인 경우
+              fetchAll();
+            } else {
+              // 내 의뢰에 대한 신청일 수 있으므로 리페치
+              fetchAll();
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Realtime] request_applications 채널 연결 성공');
+            retryCount = 0; // 성공 시 재시도 카운트 리셋
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.error('[Realtime] request_applications 채널 연결 실패:', status, err);
+            // 재연결 시도
+            if (retryCount < maxRetries) {
+              retryCount++;
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // 지수 백오프, 최대 30초
+              console.log(`[Realtime] ${delay}ms 후 재연결 시도 (${retryCount}/${maxRetries})`);
+              retryTimeout = setTimeout(() => {
+                setupSubscription();
+              }, delay);
+            } else {
+              console.error('[Realtime] 최대 재시도 횟수 초과, 폴링으로 전환');
+              // 폴링 폴백: 30초마다 데이터 새로고침
+              retryTimeout = setInterval(() => {
+                fetchAll();
+              }, 30000);
+            }
+          } else if (status === 'CLOSED') {
+            console.log('[Realtime] request_applications 채널 연결 종료');
+          }
+        });
+    };
+
+    setupSubscription();
 
     return () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+        clearInterval(retryTimeout as unknown as number);
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

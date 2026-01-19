@@ -70,63 +70,109 @@ export function useRequests() {
     // 초기 데이터 로드
     fetchRequests();
 
-    // Supabase Realtime 구독
-    channelRef.current = supabase
-      .channel('requests-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'requests',
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newRequest = payload.new as Request;
-            // pending, applied, accepted 상태이고 위치값이 있는 경우에만 추가
-            if (['pending', 'applied', 'accepted'].includes(newRequest.status) && newRequest.latitude && newRequest.longitude) {
-              setRequests(prev => [...prev, newRequest]);
+    let retryCount = 0;
+    const maxRetries = 5;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const setupSubscription = () => {
+      // 기존 채널이 있으면 제거
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
+      // 고유한 채널 이름 생성 (타임스탬프 포함)
+      const channelName = `requests-realtime-${Date.now()}`;
+
+      // Supabase Realtime 구독
+      channelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'requests',
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const newRequest = payload.new as Request;
+              // pending, applied, accepted 상태이고 위치값이 있는 경우에만 추가
+              if (['pending', 'applied', 'accepted'].includes(newRequest.status) && newRequest.latitude && newRequest.longitude) {
+                setRequests(prev => [...prev, newRequest]);
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedRequest = payload.new as Request;
+              setRequests(prev => {
+                const existingRequest = prev.find(r => r.id === updatedRequest.id);
+                const validStatuses = ['pending', 'applied', 'accepted', 'completed'];
+
+                // 유효하지 않은 상태면 제거
+                if (!validStatuses.includes(updatedRequest.status)) {
+                  return prev.filter(r => r.id !== updatedRequest.id);
+                }
+
+                // 기존 목록에 있으면 업데이트
+                if (existingRequest) {
+                  return prev.map(r => r.id === updatedRequest.id ? {
+                    ...existingRequest,
+                    ...updatedRequest,
+                    latitude: updatedRequest.latitude ?? existingRequest.latitude,
+                    longitude: updatedRequest.longitude ?? existingRequest.longitude,
+                  } : r);
+                }
+
+                // 새로운 요청이고 위치값이 있으면 추가
+                if (updatedRequest.latitude && updatedRequest.longitude) {
+                  return [...prev, updatedRequest];
+                }
+
+                return prev;
+              });
+            } else if (payload.eventType === 'DELETE') {
+              const deletedRequest = payload.old as Request;
+              setRequests(prev => prev.filter(r => r.id !== deletedRequest.id));
             }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedRequest = payload.new as Request;
-            setRequests(prev => {
-              const existingRequest = prev.find(r => r.id === updatedRequest.id);
-              const validStatuses = ['pending', 'applied', 'accepted', 'completed'];
-
-              // 유효하지 않은 상태면 제거
-              if (!validStatuses.includes(updatedRequest.status)) {
-                return prev.filter(r => r.id !== updatedRequest.id);
-              }
-
-              // 기존 목록에 있으면 업데이트
-              if (existingRequest) {
-                return prev.map(r => r.id === updatedRequest.id ? {
-                  ...existingRequest,
-                  ...updatedRequest,
-                  latitude: updatedRequest.latitude ?? existingRequest.latitude,
-                  longitude: updatedRequest.longitude ?? existingRequest.longitude,
-                } : r);
-              }
-
-              // 새로운 요청이고 위치값이 있으면 추가
-              if (updatedRequest.latitude && updatedRequest.longitude) {
-                return [...prev, updatedRequest];
-              }
-
-              return prev;
-            });
-          } else if (payload.eventType === 'DELETE') {
-            const deletedRequest = payload.old as Request;
-            setRequests(prev => prev.filter(r => r.id !== deletedRequest.id));
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Realtime] requests 채널 연결 성공');
+            retryCount = 0; // 성공 시 재시도 카운트 리셋
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.error('[Realtime] requests 채널 연결 실패:', status, err);
+            // 재연결 시도
+            if (retryCount < maxRetries) {
+              retryCount++;
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // 지수 백오프, 최대 30초
+              console.log(`[Realtime] ${delay}ms 후 재연결 시도 (${retryCount}/${maxRetries})`);
+              retryTimeout = setTimeout(() => {
+                setupSubscription();
+              }, delay);
+            } else {
+              console.error('[Realtime] 최대 재시도 횟수 초과, 폴링으로 전환');
+              // 폴링 폴백: 30초마다 데이터 새로고침
+              retryTimeout = setInterval(() => {
+                fetchRequests();
+              }, 30000);
+            }
+          } else if (status === 'CLOSED') {
+            console.log('[Realtime] requests 채널 연결 종료');
+          }
+        });
+    };
+
+    setupSubscription();
 
     // 클린업
     return () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+        clearInterval(retryTimeout as unknown as number);
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     };
   }, [fetchRequests]);
