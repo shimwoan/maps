@@ -457,37 +457,6 @@ export function HomeScreen() {
               </svg>
             </XStack>
 
-            {/* 구분선 */}
-            <View width={1} height={24} backgroundColor="#e0e0e0" marginHorizontal={4} />
-
-            {/* 실시간 토글 */}
-            <XStack
-              paddingHorizontal={12}
-              height={34}
-              borderRadius={17}
-              backgroundColor={isRealtimeFilter ? '#DBEAFE' : 'white'}
-              borderWidth={1}
-              borderColor={isRealtimeFilter ? '#3B82F6' : '#ddd'}
-              cursor="pointer"
-              alignItems="center"
-              justifyContent="center"
-              gap={6}
-              onPress={() => setIsRealtimeFilter(!isRealtimeFilter)}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
-                <circle cx="12" cy="12" r="8" stroke="#3B82F6" strokeWidth="2" fill="none" opacity="0.5"/>
-              </svg>
-              <Text
-                fontSize={13}
-                fontWeight="500"
-                color={isRealtimeFilter ? '#2563EB' : '#666'}
-                style={{ userSelect: 'none' }}
-              >
-                실시간
-              </Text>
-            </XStack>
-
           </XStack>
         </ScrollView>
       </View>
