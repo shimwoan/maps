@@ -61,7 +61,7 @@ function getStatusLabel(status: string): { label: string; color: string; bgColor
     case 'accepted':
       return { label: '진행중', color: '#fff', bgColor: '#F59E0B' };
     case 'rejected':
-      return { label: '거절됨', color: '#fff', bgColor: '#ff4444' };
+      return { label: '다른작업자와 진행중', color: '#fff', bgColor: '#9CA3AF' };
     case 'completed':
       return { label: '완료', color: '#fff', bgColor: '#9CA3AF' };
     default:
@@ -122,6 +122,51 @@ function MyRequestCard({
       // @ts-ignore - iOS 스와이프 백 방지
       style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
+      {/* 카테고리 */}
+      <XStack alignItems="center" gap="$1.5" marginBottom="$1">
+        {request.as_type === '복합기/OA' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
+            <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
+            <path d="M7 16h10v5H7z" fill="white" stroke="#6B7280" strokeWidth="1"/>
+          </svg>
+        )}
+        {request.as_type === '전기/통신' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+          </svg>
+        )}
+        {request.as_type === '가전/설비' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
+          </svg>
+        )}
+        {request.as_type === '인테리어' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#8B5CF6" stroke="#7C3AED" strokeWidth="1"/>
+          </svg>
+        )}
+        {request.as_type === '청소' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2v5" stroke="#10B981" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#10B981" strokeWidth="1.5"/>
+          </svg>
+        )}
+        {request.as_type === '소프트웨어' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="20" height="14" rx="2" fill="#3B82F6"/>
+            <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
+          </svg>
+        )}
+        {request.as_type === '운반/설치' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M1 3h15v13H1z" fill="#78716C" stroke="#78716C" strokeWidth="1"/>
+            <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#78716C" strokeWidth="1"/>
+          </svg>
+        )}
+        <Text fontSize={12} color={isCompleted ? '#999' : '#666'}>{request.as_type}</Text>
+      </XStack>
+
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize={16} fontWeight="700" color={isCompleted ? '#888' : '#000'} flex={1} numberOfLines={1}>
           {request.title}
@@ -174,25 +219,55 @@ function MyRequestCard({
                 {acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중
               </Text>
             </XStack>
-            <Button
-              size="$2"
-              backgroundColor={brandColors.primary}
-              color="white"
-              onPress={(e: any) => {
-                e.stopPropagation();
-                setShowCompleteDialog(true);
-              }}
-              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-            >
-              의뢰 종료
-            </Button>
+            <View onClick={(e: any) => e.stopPropagation()}>
+              <Button
+                size="$2"
+                backgroundColor={brandColors.primary}
+                color="white"
+                onPress={() => setShowCompleteDialog(true)}
+                hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+              >
+                의뢰 종료
+              </Button>
+            </View>
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
             <img
               src={acceptedApp.applicant_profile.business_card_url}
               alt="명함"
               style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer' }}
-              onClick={() => onImageClick(acceptedApp.applicant_profile?.business_card_url || '')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onImageClick(acceptedApp.applicant_profile?.business_card_url || '');
+              }}
+            />
+          )}
+        </YStack>
+      )}
+
+      {/* 완료된 경우 - 수행자 정보 표시 */}
+      {request.status === 'completed' && acceptedApp && (
+        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+          <XStack alignItems="center" gap="$2">
+            <View
+              width={8}
+              height={8}
+              borderRadius={4}
+              backgroundColor="#9CA3AF"
+            />
+            <Text fontSize={13} color="#9CA3AF" fontWeight="600">
+              {acceptedApp.applicant_profile?.nickname || '수행자'}님과 작업 완료
+            </Text>
+          </XStack>
+          {acceptedApp.applicant_profile?.business_card_url && (
+            <img
+              src={acceptedApp.applicant_profile.business_card_url}
+              alt="명함"
+              style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer', opacity: 0.7 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onImageClick(acceptedApp.applicant_profile?.business_card_url || '');
+              }}
             />
           )}
         </YStack>
@@ -222,7 +297,10 @@ function MyRequestCard({
                     src={app.applicant_profile.business_card_url}
                     alt="명함"
                     style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer' }}
-                    onClick={() => onImageClick(app.applicant_profile?.business_card_url || '')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onImageClick(app.applicant_profile?.business_card_url || '');
+                    }}
                   />
                 ) : (
                   <View
@@ -236,7 +314,7 @@ function MyRequestCard({
                   </View>
                 )}
               </YStack>
-              <XStack gap="$2">
+              <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
                 <Button
                   size="$2"
                   backgroundColor="#f0f0f0"
@@ -361,6 +439,51 @@ function MyApplicationCard({
       // @ts-ignore - iOS 스와이프 백 방지
       style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
+      {/* 카테고리 */}
+      <XStack alignItems="center" gap="$1.5" marginBottom="$1">
+        {req.as_type === '복합기/OA' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
+            <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
+            <path d="M7 16h10v5H7z" fill="white" stroke="#6B7280" strokeWidth="1"/>
+          </svg>
+        )}
+        {req.as_type === '전기/통신' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+          </svg>
+        )}
+        {req.as_type === '가전/설비' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
+          </svg>
+        )}
+        {req.as_type === '인테리어' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#8B5CF6" stroke="#7C3AED" strokeWidth="1"/>
+          </svg>
+        )}
+        {req.as_type === '청소' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2v5" stroke="#10B981" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#10B981" strokeWidth="1.5"/>
+          </svg>
+        )}
+        {req.as_type === '소프트웨어' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="3" width="20" height="14" rx="2" fill="#3B82F6"/>
+            <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
+          </svg>
+        )}
+        {req.as_type === '운반/설치' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M1 3h15v13H1z" fill="#78716C" stroke="#78716C" strokeWidth="1"/>
+            <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#78716C" strokeWidth="1"/>
+          </svg>
+        )}
+        <Text fontSize={12} color="#666">{req.as_type}</Text>
+      </XStack>
+
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize={16} fontWeight="700" color="#000" flex={1} numberOfLines={1}>
           {req.title}
@@ -721,7 +844,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                     <path d="M14 9h4M14 12h4" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                   <Text fontSize={13} color="#999" marginTop="$2">
-                    명함을 등록해주세요
+                    명함 및 사업자 등록증을 등록해주세요
                   </Text>
                 </View>
               )}
