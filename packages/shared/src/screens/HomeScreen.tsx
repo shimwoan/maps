@@ -904,9 +904,9 @@ export function HomeScreen() {
           {/* 현재 위치 버튼 - 위치 권한이 허용된 경우에만 표시 */}
           {currentLocation && (
           <View
-            width={36}
-            height={36}
-            borderRadius={6}
+            width={44}
+            height={44}
+            borderRadius={8}
             backgroundColor="white"
             alignItems="center"
             justifyContent="center"
@@ -923,7 +923,7 @@ export function HomeScreen() {
               setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="7" stroke="#333" strokeWidth="1.5"/>
               <path d="M12 5v4M12 15v4M5 12h4M15 12h4" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -932,7 +932,7 @@ export function HomeScreen() {
 
         {/* 확대/축소 버튼 */}
         <View
-          borderRadius={6}
+          borderRadius={8}
           backgroundColor="white"
           overflow="hidden"
           shadowColor="#000"
@@ -942,8 +942,8 @@ export function HomeScreen() {
         >
           {/* 확대 */}
           <View
-            width={36}
-            height={36}
+            width={44}
+            height={44}
             alignItems="center"
             justifyContent="center"
             cursor="pointer"
@@ -951,20 +951,20 @@ export function HomeScreen() {
             borderBottomColor="#eee"
             onPress={() => naverMapRef.current?.zoomIn()}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M12 5v14M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </View>
           {/* 축소 */}
           <View
-            width={36}
-            height={36}
+            width={44}
+            height={44}
             alignItems="center"
             justifyContent="center"
             cursor="pointer"
             onPress={() => naverMapRef.current?.zoomOut()}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </View>
