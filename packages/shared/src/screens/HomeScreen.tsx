@@ -819,49 +819,30 @@ export function HomeScreen() {
             >
               <XStack alignItems="center" gap={8}>
                 {/* 확성기 아이콘 */}
-                <View
-                  width={24}
-                  height={24}
-                  borderRadius={12}
-                  backgroundColor={
-                    notification.type === 'new' ? '#EFF6FF' :
-                    notification.type === 'matched' ? '#FEF3C7' :
-                    '#DCFCE7'
-                  }
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-                      stroke={
-                        notification.type === 'new' ? '#3B82F6' :
-                        notification.type === 'matched' ? '#F59E0B' :
-                        '#22C55E'
-                      }
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill={
-                        notification.type === 'new' ? '#3B82F6' :
-                        notification.type === 'matched' ? '#F59E0B' :
-                        '#22C55E'
-                      }
-                      fillOpacity="0.2"
-                    />
-                    <path
-                      d="M13.73 21a2 2 0 0 1-3.46 0"
-                      stroke={
-                        notification.type === 'new' ? '#3B82F6' :
-                        notification.type === 'matched' ? '#F59E0B' :
-                        '#22C55E'
-                      }
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </View>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  {/* 확성기 몸통 */}
+                  <path
+                    d="M18 3L8 8H4a1 1 0 00-1 1v6a1 1 0 001 1h4l10 5V3z"
+                    fill="#EF4444"
+                    stroke="#1F2937"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* 확성기 손잡이 */}
+                  <path
+                    d="M8 8v8"
+                    stroke="#1F2937"
+                    strokeWidth="2"
+                  />
+                  {/* 음파 */}
+                  <path
+                    d="M21 9l2-2M21 15l2 2M22 12h2"
+                    stroke="#1F2937"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
                 <View>
                   <Text fontSize={10} color="#888" fontWeight="500">
                     실시간 접수 현황
