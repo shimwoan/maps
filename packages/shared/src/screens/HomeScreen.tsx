@@ -810,11 +810,6 @@ export function HomeScreen() {
                 padding: '8px 12px',
                 borderRadius: 8,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                borderLeft: `3px solid ${
-                  notification.type === 'new' ? '#3B82F6' :
-                  notification.type === 'matched' ? '#F59E0B' :
-                  '#22C55E'
-                }`,
               }}
             >
               <XStack alignItems="center" gap={8}>
