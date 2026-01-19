@@ -147,7 +147,7 @@ function getAddressFromCoords(latitude: number, longitude: number): Address | nu
   return findNearestDong(latitude, longitude);
 }
 
-const MIN_ZOOM_FOR_ADDRESS = 14;
+const MIN_ZOOM_FOR_ADDRESS = 13;
 
 export function HomeScreen() {
   const [location, setLocation] = useState<Location | null>(null);
