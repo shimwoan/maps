@@ -1190,7 +1190,6 @@ export function HomeScreen() {
       {clusterRequests.length > 0 && (
         <View
           position="fixed"
-          bottom={80}
           left={0}
           right={0}
           maxHeight="50%"
@@ -1204,6 +1203,7 @@ export function HomeScreen() {
           zIndex={1000}
           // @ts-ignore
           style={{
+            bottom: 'calc(56px + env(safe-area-inset-bottom))',
             left: 'max(0px, calc(50vw - 384px))',
             right: 'max(0px, calc(50vw - 384px))',
           }}

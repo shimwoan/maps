@@ -418,9 +418,27 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
           </YStack>
 
           {/* 증상 이미지 슬라이더 */}
-          {request.symptom_images && request.symptom_images.length > 0 && (
-            <ImageSlider images={request.symptom_images} onImageClick={setPreviewImage} />
-          )}
+          {(() => {
+            // symptom_images가 문자열인 경우 배열로 변환
+            let images: string[] = [];
+            if (request.symptom_images) {
+              if (Array.isArray(request.symptom_images)) {
+                images = request.symptom_images;
+              } else if (typeof request.symptom_images === 'string') {
+                // JSON 문자열인 경우 파싱 시도
+                try {
+                  const parsed = JSON.parse(request.symptom_images);
+                  images = Array.isArray(parsed) ? parsed : [request.symptom_images];
+                } catch {
+                  // 단일 URL 문자열인 경우
+                  images = [request.symptom_images];
+                }
+              }
+            }
+            return images.length > 0 ? (
+              <ImageSlider images={images} onImageClick={setPreviewImage} />
+            ) : null;
+          })()}
 
           {/* 설명 */}
           {request.description && (
