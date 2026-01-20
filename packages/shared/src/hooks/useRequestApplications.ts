@@ -14,12 +14,22 @@ export interface RequestApplication {
     id: string;
     title: string;
     address: string;
+    address_detail?: string;
     expected_fee: number;
     schedule_date: string;
     schedule_time: string;
     status: string;
     user_id: string;
     as_type: string;
+    model?: string;
+    symptom?: string;
+    duration?: string;
+    required_personnel?: number;
+    symptom_images?: string[];
+    description?: string;
+    is_urgent?: boolean;
+    latitude?: number;
+    longitude?: number;
   };
   applicant?: {
     id: string;
@@ -53,7 +63,7 @@ export function useRequestApplications() {
         .from('request_applications')
         .select(`
           *,
-          request:requests(id, title, address, expected_fee, schedule_date, schedule_time, status, user_id, as_type)
+          request:requests(*)
         `)
         .eq('applicant_id', user.id)
         .order('created_at', { ascending: false });
@@ -93,7 +103,7 @@ export function useRequestApplications() {
         .from('request_applications')
         .select(`
           *,
-          request:requests(id, title, address, expected_fee, schedule_date, schedule_time, status, user_id, as_type)
+          request:requests(*)
         `)
         .in('request_id', requestIds)
         .order('created_at', { ascending: false });
@@ -370,6 +380,15 @@ export function useRequestApplications() {
 
     console.log('Canceling application:', applicationId, 'for request:', requestId);
 
+    // 현재 신청 상태 확인 (진행중인 경우 의뢰자에게 알림 필요)
+    const { data: currentApp } = await supabase
+      .from('request_applications')
+      .select('status')
+      .eq('id', applicationId)
+      .single();
+
+    const wasAccepted = currentApp?.status === 'accepted';
+
     const { error, data } = await supabase
       .from('request_applications')
       .delete()
@@ -384,19 +403,50 @@ export function useRequestApplications() {
       throw error;
     }
 
-    // 다른 신청자가 없으면 의뢰 상태를 다시 pending으로
+    // 다른 신청자가 있는지 확인
     const { data: otherApps } = await supabase
       .from('request_applications')
-      .select('id')
+      .select('id, status')
       .eq('request_id', requestId);
 
     console.log('Other applications:', otherApps);
 
-    if (!otherApps || otherApps.length === 0) {
+    // 진행중이었던 경우 (accepted) - 의뢰 상태를 다시 변경
+    if (wasAccepted) {
+      // 다른 pending 신청자가 있으면 applied, 없으면 pending
+      const hasPendingApps = otherApps?.some(a => a.status === 'pending');
+      const newStatus = hasPendingApps ? 'applied' : 'pending';
+
       await supabase
         .from('requests')
-        .update({ status: 'pending' })
+        .update({ status: newStatus })
         .eq('id', requestId);
+
+      // 의뢰자에게 알림 전송
+      const { data: requestData } = await supabase
+        .from('requests')
+        .select('user_id, title')
+        .eq('id', requestId)
+        .single();
+
+      if (requestData) {
+        const applicantName = user.user_metadata?.name || user.user_metadata?.full_name || '수행자';
+        await supabase.from('notifications').insert({
+          user_id: requestData.user_id,
+          type: 'application_received',
+          title: '작업 취소됨',
+          message: `${applicantName}님이 "${requestData.title}" 의뢰 작업을 취소했습니다.`,
+          request_id: requestId,
+        });
+      }
+    } else {
+      // pending 상태였던 경우 - 다른 신청자가 없으면 pending으로
+      if (!otherApps || otherApps.length === 0) {
+        await supabase
+          .from('requests')
+          .update({ status: 'pending' })
+          .eq('id', requestId);
+      }
     }
 
     await fetchAll();

@@ -169,6 +169,8 @@ export function HomeScreen() {
   const [tempStatusFilters, setTempStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
   const [tempAsTypeFilters, setTempAsTypeFilters] = useState<AsType[]>([]);
   const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
+  const [clusterRequestIds, setClusterRequestIds] = useState<string[]>([]); // 클러스터 클릭 시 표시할 의뢰 ID 목록
+  const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -208,6 +210,12 @@ export function HomeScreen() {
     if (!selectedRequestId) return null;
     return requests.find(r => r.id === selectedRequestId) || null;
   }, [requests, selectedRequestId]);
+
+  // 클러스터에 포함된 의뢰 목록
+  const clusterRequests = useMemo(() => {
+    if (clusterRequestIds.length === 0) return [];
+    return requests.filter(r => clusterRequestIds.includes(r.id));
+  }, [requests, clusterRequestIds]);
 
   // 주소 조회 (debounce 적용)
   const fetchAddressDebounced = (latitude: number, longitude: number) => {
@@ -255,18 +263,19 @@ export function HomeScreen() {
       timestamp: Date.now(),
       isExiting: false,
     };
-    setRealtimeNotifications(prev => [notification, ...prev].slice(0, 5)); // 최대 5개 유지
+    // 최대 1개만 유지 - 새 알림이 오면 교체
+    setRealtimeNotifications([notification]);
+  }, []);
 
-    // 4.7초 후 exit 애니메이션 시작
+  // 실시간 알림 삭제 함수 (드래그로 삭제)
+  const removeRealtimeNotification = useCallback((id: string) => {
+    setRealtimeNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, isExiting: true } : n)
+    );
+    // 0.3초 후 실제 삭제 (애니메이션 완료 후)
     setTimeout(() => {
-      setRealtimeNotifications(prev =>
-        prev.map(n => n.id === notification.id ? { ...n, isExiting: true } : n)
-      );
-      // 0.3초 후 실제 삭제 (애니메이션 완료 후)
-      setTimeout(() => {
-        setRealtimeNotifications(prev => prev.filter(n => n.id !== notification.id));
-      }, 300);
-    }, 4700);
+      setRealtimeNotifications(prev => prev.filter(n => n.id !== id));
+    }, 300);
   }, []);
 
   // 주소에서 구 이름 추출
@@ -827,47 +836,94 @@ export function HomeScreen() {
           zIndex={98}
           gap={6}
         >
-          {realtimeNotifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={notification.isExiting ? 'realtime-notification-exit' : 'realtime-notification-enter'}
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                padding: '8px 12px',
-                borderRadius: 8,
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-              }}
-            >
-              <XStack alignItems="center" gap={8}>
-                {/* 확성기 아이콘 */}
-                <svg width="20" height="20" viewBox="0 0 90 90" fill="none">
-                  {/* 손잡이 */}
-                  <path d="M16.855 51.1V75.48c0 3.206 2.599 5.806 5.806 5.806c3.206 0 5.806-2.599 5.806-5.806V59.661l3.915-8.561H16.855z" fill="#F0F0FC" stroke="#000" strokeWidth="2"/>
-                  {/* 확성기 몸통 배경 */}
-                  <path d="M63.541 9.659c-8.499 6.49-18.925 9.873-29.662 9.873H18.327c-9.074 0-16.881 6.973-17.308 16.037c-0.456 9.677 7.255 17.666 16.832 17.666h16.028c10.737 0 21.163 3.383 29.662 9.873c3.083 2.331 7.511 0.078 7.511-3.787V13.446C71.052 9.581 66.624 7.328 63.541 9.659z" fill="#F0F0FC"/>
-                  {/* 빨간색 부분 - 앞쪽 */}
-                  <path d="M34.719 19.516c-0.28 0.005-0.56 0.016-0.84 0.016H18.327c-9.074 0-16.881 6.973-17.308 16.037c-0.456 9.677 7.255 17.666 16.832 17.666h16.028c0.28 0 0.56 0.012 0.84 0.016V19.516z" fill="#F7524B"/>
-                  {/* 빨간색 부분 - 뒤쪽 */}
-                  <path d="M63.541 9.659c-1.023 0.781-2.076 1.514-3.154 2.202V60.77c1.078 0.688 2.131 1.421 3.154 2.202c3.083 2.331 7.511 0.078 7.511-3.787V13.446C71.052 9.581 66.624 7.328 63.541 9.659z" fill="#F7524B"/>
-                  {/* 테두리 */}
-                  <path d="M63.541 9.659c-8.499 6.49-18.925 9.873-29.662 9.873H18.327c-9.074 0-16.881 6.973-17.308 16.037c-0.456 9.677 7.255 17.666 16.832 17.666h16.028c10.737 0 21.163 3.383 29.662 9.873c3.083 2.331 7.511 0.078 7.511-3.787V13.446C71.052 9.581 66.624 7.328 63.541 9.659z" stroke="#000" strokeWidth="2" fill="none"/>
-                  <path d="M34.719 19.516V53.251" stroke="#000" strokeWidth="2"/>
-                  {/* 음파 */}
-                  <line x1="79.6" y1="35.4" x2="89" y2="35.4" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="79.6" y1="21.6" x2="86.7" y2="18.2" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="79.6" y1="49.2" x2="86.7" y2="52.6" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                <View>
-                  <Text fontSize={10} color="#888" fontWeight="500">
-                    실시간 접수 현황
-                  </Text>
-                  <Text fontSize={12} color="#333" fontWeight="600">
-                    {notification.message}
-                  </Text>
-                </View>
-              </XStack>
-            </div>
-          ))}
+          {realtimeNotifications.map((notification) => {
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            const handleDragStart = (clientX: number) => {
+              startX = clientX;
+              currentX = clientX;
+              isDragging = true;
+            };
+
+            const handleDragMove = (clientX: number, element: HTMLElement) => {
+              if (!isDragging) return;
+              currentX = clientX;
+              const diff = currentX - startX;
+              if (diff < 0) {
+                element.style.transform = `translateX(${diff}px)`;
+                element.style.opacity = `${Math.max(0.3, 1 + diff / 100)}`;
+              }
+            };
+
+            const handleDragEnd = (element: HTMLElement) => {
+              if (!isDragging) return;
+              isDragging = false;
+              const diff = currentX - startX;
+              if (diff < -20) {
+                // 20px 이상 왼쪽으로 드래그하면 삭제
+                removeRealtimeNotification(notification.id);
+              } else {
+                // 원위치로 복귀
+                element.style.transform = 'translateX(0)';
+                element.style.opacity = '1';
+              }
+            };
+
+            return (
+              <div
+                key={notification.id}
+                className={notification.isExiting ? 'realtime-notification-exit' : 'realtime-notification-enter'}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  cursor: 'grab',
+                  transition: notification.isExiting ? 'none' : 'transform 0.1s ease-out, opacity 0.1s ease-out',
+                  touchAction: 'pan-y',
+                }}
+                onMouseDown={(e) => handleDragStart(e.clientX)}
+                onMouseMove={(e) => handleDragMove(e.clientX, e.currentTarget)}
+                onMouseUp={(e) => handleDragEnd(e.currentTarget)}
+                onMouseLeave={(e) => handleDragEnd(e.currentTarget)}
+                onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+                onTouchMove={(e) => handleDragMove(e.touches[0].clientX, e.currentTarget)}
+                onTouchEnd={(e) => handleDragEnd(e.currentTarget)}
+                onClick={() => removeRealtimeNotification(notification.id)}
+              >
+                <XStack alignItems="center" gap={8}>
+                  {/* 확성기 아이콘 */}
+                  <svg width="20" height="20" viewBox="0 0 90 90" fill="none">
+                    {/* 손잡이 */}
+                    <path d="M16.855 51.1V75.48c0 3.206 2.599 5.806 5.806 5.806c3.206 0 5.806-2.599 5.806-5.806V59.661l3.915-8.561H16.855z" fill="#F0F0FC" stroke="#000" strokeWidth="2"/>
+                    {/* 확성기 몸통 배경 */}
+                    <path d="M63.541 9.659c-8.499 6.49-18.925 9.873-29.662 9.873H18.327c-9.074 0-16.881 6.973-17.308 16.037c-0.456 9.677 7.255 17.666 16.832 17.666h16.028c10.737 0 21.163 3.383 29.662 9.873c3.083 2.331 7.511 0.078 7.511-3.787V13.446C71.052 9.581 66.624 7.328 63.541 9.659z" fill="#F0F0FC"/>
+                    {/* 빨간색 부분 - 앞쪽 */}
+                    <path d="M34.719 19.516c-0.28 0.005-0.56 0.016-0.84 0.016H18.327c-9.074 0-16.881 6.973-17.308 16.037c-0.456 9.677 7.255 17.666 16.832 17.666h16.028c0.28 0 0.56 0.012 0.84 0.016V19.516z" fill="#F7524B"/>
+                    {/* 빨간색 부분 - 뒤쪽 */}
+                    <path d="M63.541 9.659c-1.023 0.781-2.076 1.514-3.154 2.202V60.77c1.078 0.688 2.131 1.421 3.154 2.202c3.083 2.331 7.511 0.078 7.511-3.787V13.446C71.052 9.581 66.624 7.328 63.541 9.659z" fill="#F7524B"/>
+                    {/* 테두리 */}
+                    <path d="M63.541 9.659c-8.499 6.49-18.925 9.873-29.662 9.873H18.327c-9.074 0-16.881 6.973-17.308 16.037c-0.456 9.677 7.255 17.666 16.832 17.666h16.028c10.737 0 21.163 3.383 29.662 9.873c3.083 2.331 7.511 0.078 7.511-3.787V13.446C71.052 9.581 66.624 7.328 63.541 9.659z" stroke="#000" strokeWidth="2" fill="none"/>
+                    <path d="M34.719 19.516V53.251" stroke="#000" strokeWidth="2"/>
+                    {/* 음파 */}
+                    <line x1="79.6" y1="35.4" x2="89" y2="35.4" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="79.6" y1="21.6" x2="86.7" y2="18.2" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="79.6" y1="49.2" x2="86.7" y2="52.6" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <View>
+                    <Text fontSize={10} color="#888" fontWeight="500">
+                      실시간 접수 현황
+                    </Text>
+                    <Text fontSize={12} color="#333" fontWeight="600">
+                      {notification.message}
+                    </Text>
+                  </View>
+                </XStack>
+              </div>
+            );
+          })}
         </View>
       )}
 
@@ -889,10 +945,24 @@ export function HomeScreen() {
           currentLocationLng={currentLocation?.longitude}
           markers={markers}
           selectedMarkerId={selectedRequestId}
+          selectedClusterKey={selectedClusterKey}
           currentUserId={user?.id || null}
           appliedRequestIds={appliedRequestIds}
-          onMarkerClick={(id) => setSelectedRequestId(id)}
-          onMapClick={() => setSelectedRequestId(null)}
+          onMarkerClick={(id) => {
+            setClusterRequestIds([]); // 클러스터 목록 닫기
+            setSelectedClusterKey(null); // 클러스터 선택 해제
+            setSelectedRequestId(id);
+          }}
+          onMapClick={() => {
+            setSelectedRequestId(null);
+            setClusterRequestIds([]); // 클러스터 목록 닫기
+            setSelectedClusterKey(null); // 클러스터 선택 해제
+          }}
+          onClusterClick={(markerIds, _lat, _lng, clusterKey) => {
+            setSelectedRequestId(null); // 단일 선택 해제
+            setClusterRequestIds(markerIds); // 클러스터 의뢰 목록 설정
+            setSelectedClusterKey(clusterKey); // 클러스터 선택
+          }}
         />
       )}
 
@@ -1070,6 +1140,114 @@ export function HomeScreen() {
         isLoggedIn={!!user}
       />
     </View>
+
+      {/* 클러스터 의뢰 목록 */}
+      {clusterRequests.length > 0 && (
+        <View
+          position="fixed"
+          bottom={80}
+          left={0}
+          right={0}
+          maxHeight="50%"
+          backgroundColor="white"
+          borderTopLeftRadius={16}
+          borderTopRightRadius={16}
+          shadowColor="#000"
+          shadowOffset={{ width: 0, height: -2 }}
+          shadowOpacity={0.1}
+          shadowRadius={8}
+          zIndex={1000}
+          // @ts-ignore
+          style={{
+            left: 'max(0px, calc(50vw - 384px))',
+            right: 'max(0px, calc(50vw - 384px))',
+          }}
+        >
+          <View padding={16} borderBottomWidth={1} borderBottomColor="#eee">
+            <XStack justifyContent="space-between" alignItems="center">
+              <Text fontSize={16} fontWeight="600" color="#333">
+                같은 위치 의뢰 {clusterRequests.length}건
+              </Text>
+              <View
+                padding={4}
+                cursor="pointer"
+                onPress={() => {
+                  setClusterRequestIds([]);
+                  setSelectedClusterKey(null);
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </View>
+            </XStack>
+          </View>
+          <ScrollView maxHeight={300}>
+            <View padding={12} gap={8}>
+              {clusterRequests.map((request) => {
+                const isApplied = appliedRequestIds.includes(request.id);
+                const isOwn = user?.id === request.user_id;
+                return (
+                  <View
+                    key={request.id}
+                    padding={12}
+                    backgroundColor="#f8f9fa"
+                    borderRadius={8}
+                    cursor="pointer"
+                    hoverStyle={{ backgroundColor: '#f0f0f0' }}
+                    onPress={() => {
+                      setClusterRequestIds([]);
+                      setSelectedClusterKey(null);
+                      setSelectedRequestId(request.id);
+                    }}
+                  >
+                    <XStack justifyContent="space-between" alignItems="flex-start">
+                      <View flex={1}>
+                        <XStack gap={6} marginBottom={4}>
+                          <View
+                            paddingHorizontal={6}
+                            paddingVertical={2}
+                            backgroundColor={request.status === 'accepted' ? '#FEF3C7' : request.status === 'completed' ? '#E5E7EB' : '#DBEAFE'}
+                            borderRadius={4}
+                          >
+                            <Text fontSize={10} color={request.status === 'accepted' ? '#D97706' : request.status === 'completed' ? '#6B7280' : '#2563EB'} fontWeight="600">
+                              {request.status === 'accepted' ? '진행중' : request.status === 'completed' ? '완료' : '대기'}
+                            </Text>
+                          </View>
+                          {request.is_urgent && (
+                            <View paddingHorizontal={6} paddingVertical={2} backgroundColor="#FEE2E2" borderRadius={4}>
+                              <Text fontSize={10} color="#DC2626" fontWeight="600">긴급</Text>
+                            </View>
+                          )}
+                          {isApplied && (
+                            <View paddingHorizontal={6} paddingVertical={2} backgroundColor="#DCFCE7" borderRadius={4}>
+                              <Text fontSize={10} color="#16A34A" fontWeight="600">신청함</Text>
+                            </View>
+                          )}
+                          {isOwn && (
+                            <View paddingHorizontal={6} paddingVertical={2} backgroundColor="#F3E8FF" borderRadius={4}>
+                              <Text fontSize={10} color="#7C3AED" fontWeight="600">내 의뢰</Text>
+                            </View>
+                          )}
+                        </XStack>
+                        <Text fontSize={14} fontWeight="600" color="#333" numberOfLines={1}>
+                          {request.title}
+                        </Text>
+                        <Text fontSize={12} color="#666" marginTop={2}>
+                          {request.as_type}
+                        </Text>
+                      </View>
+                      <Text fontSize={14} fontWeight="600" color={brandColors.primary}>
+                        {request.expected_fee.toLocaleString()}원
+                      </Text>
+                    </XStack>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </View>
+      )}
 
       {/* 선택된 의뢰 상세 카드 - 컨테이너 밖에서 렌더링 */}
       {selectedRequest && (

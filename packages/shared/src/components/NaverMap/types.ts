@@ -32,6 +32,8 @@ export interface NaverMapProps {
   appliedRequestIds?: string[];  // 현재 사용자가 신청한 의뢰 ID 목록
   onMarkerClick?: (markerId: string) => void;
   onMapClick?: () => void;
+  onClusterClick?: (markerIds: string[], lat: number, lng: number, clusterKey: string) => void;  // 클러스터 클릭 시
+  selectedClusterKey?: string | null;  // 선택된 클러스터 키
 }
 
 export interface MapCoordinate {
