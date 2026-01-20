@@ -408,7 +408,7 @@ export function HomeScreen() {
       {/* 상단 주소 표시 - 홈에서만 표시 */}
       {!isMyPageOpen && (
       <View
-        position="absolute"
+        position="fixed"
         top={0}
         left={0}
         right={0}
@@ -419,6 +419,8 @@ export function HomeScreen() {
         justifyContent="center"
         borderBottomWidth={1}
         borderBottomColor="#eee"
+        maxWidth={768}
+        marginHorizontal="auto"
       >
         <XStack alignItems="center" justifyContent="space-between">
           <XStack alignItems="center" gap="$3">
@@ -484,7 +486,7 @@ export function HomeScreen() {
       {/* 필터 영역 - 드롭다운 버튼 스타일 (MY 페이지에서는 숨김) */}
       {!isMyPageOpen && (
       <View
-        position="absolute"
+        position="fixed"
         top={51}
         left={0}
         right={0}
@@ -493,6 +495,8 @@ export function HomeScreen() {
         backgroundColor="white"
         borderBottomWidth={1}
         borderBottomColor="#f0f0f0"
+        maxWidth={768}
+        marginHorizontal="auto"
       >
         <ScrollView
           horizontal
