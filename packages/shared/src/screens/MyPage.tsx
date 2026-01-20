@@ -117,8 +117,6 @@ function MyRequestCard({
       opacity={isCompleted ? 0.7 : 1}
       cursor="pointer"
       onPress={onCardPress}
-      hoverStyle={{ backgroundColor: isCompleted ? '#f0f0f0' : '#fafafa' }}
-      pressStyle={{ scale: 0.99 }}
       // @ts-ignore - iOS 스와이프 백 방지
       style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
@@ -405,9 +403,11 @@ function MyRequestCard({
 function MyApplicationCard({
   application,
   onCancel,
+  onCardPress,
 }: {
   application: RequestApplication;
   onCancel: (appId: string, reqId: string) => Promise<void>;
+  onCardPress: () => void;
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
@@ -436,6 +436,8 @@ function MyApplicationCard({
       gap="$2"
       borderWidth={1}
       borderColor="#eee"
+      cursor="pointer"
+      onPress={onCardPress}
       // @ts-ignore - iOS 스와이프 백 방지
       style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
@@ -516,15 +518,17 @@ function MyApplicationCard({
           </Text>
         </XStack>
 
-        {application.status === 'pending' && (
-          <Button
-            size="$2"
-            backgroundColor="#fee2e2"
-            color="#dc2626"
-            onPress={() => setShowCancelDialog(true)}
-          >
-            취소
-          </Button>
+        {(application.status === 'pending' || application.status === 'accepted') && (
+          <View onClick={(e: any) => e.stopPropagation()}>
+            <Button
+              size="$2"
+              backgroundColor="#fee2e2"
+              color="#dc2626"
+              onPress={() => setShowCancelDialog(true)}
+            >
+              {application.status === 'accepted' ? '작업 취소' : '취소'}
+            </Button>
+          </View>
         )}
       </XStack>
 
@@ -951,6 +955,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       key={app.id}
                       application={app}
                       onCancel={handleCancel}
+                      onCardPress={() => app.request && setSelectedDetailRequest(app.request as unknown as Request)}
                     />
                   ))
                 )
