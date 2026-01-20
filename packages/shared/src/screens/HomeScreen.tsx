@@ -20,6 +20,19 @@ import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
 import { AS_TYPES, type AsType } from '../components/RequestFormModal/types';
 import { supabase } from '../lib/supabase';
 
+// 금액 포맷팅
+function formatPrice(price: number): string {
+  if (price >= 10000) {
+    const man = Math.floor(price / 10000);
+    const rest = price % 10000;
+    if (rest === 0) {
+      return `${man}만`;
+    }
+    return `${man}만 ${rest.toLocaleString()}`;
+  }
+  return price.toLocaleString();
+}
+
 // 실시간 현황 알림 타입
 interface RealtimeNotification {
   id: string;
@@ -1186,7 +1199,6 @@ export function HomeScreen() {
             <View padding={12} gap={8}>
               {clusterRequests.map((request) => {
                 const isApplied = appliedRequestIds.includes(request.id);
-                const isOwn = user?.id === request.user_id;
                 return (
                   <View
                     key={request.id}
@@ -1224,11 +1236,6 @@ export function HomeScreen() {
                               <Text fontSize={10} color="#16A34A" fontWeight="600">신청함</Text>
                             </View>
                           )}
-                          {isOwn && (
-                            <View paddingHorizontal={6} paddingVertical={2} backgroundColor="#F3E8FF" borderRadius={4}>
-                              <Text fontSize={10} color="#7C3AED" fontWeight="600">내 의뢰</Text>
-                            </View>
-                          )}
                         </XStack>
                         <Text fontSize={14} fontWeight="600" color="#333" numberOfLines={1}>
                           {request.title}
@@ -1238,7 +1245,7 @@ export function HomeScreen() {
                         </Text>
                       </View>
                       <Text fontSize={14} fontWeight="600" color={brandColors.primary}>
-                        {request.expected_fee.toLocaleString()}원
+                        {formatPrice(request.expected_fee)}원
                       </Text>
                     </XStack>
                   </View>
