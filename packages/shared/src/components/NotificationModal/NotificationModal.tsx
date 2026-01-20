@@ -199,9 +199,9 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
             <Text fontSize={16} fontWeight="700" color="#000">
               알림
             </Text>
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <Text fontSize={12} color="#999">
-                ({notifications.length}개)
+                ({unreadCount}개 읽지 않음)
               </Text>
             )}
           </XStack>
