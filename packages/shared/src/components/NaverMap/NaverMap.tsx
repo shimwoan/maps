@@ -372,6 +372,8 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [mapReady, setMapReady] = useState(false);
   const markersDataRef = useRef<RequestMarker[]>([]);
+  const prevSelectedMarkerIdRef = useRef<string | null>(null);
+  const prevSelectedClusterKeyRef = useRef<string | null>(null);
 
   useImperativeHandle(ref, () => ({
     moveTo: (lat: number, lng: number, z?: number) => {
@@ -517,6 +519,82 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   useEffect(() => {
     if (!mapInstanceRef.current || !window.naver?.maps) return;
 
+    // 선택 상태만 변경된 경우 해당 마커만 업데이트
+    const selectionOnlyChanged =
+      JSON.stringify(markersDataRef.current.map(m => m.id).sort()) === JSON.stringify(markers.map(m => m.id).sort()) &&
+      (selectedMarkerId !== prevSelectedMarkerIdRef.current || selectedClusterKey !== prevSelectedClusterKeyRef.current);
+
+    // 이전 선택 상태 저장
+    const prevSelectedMarkerId = prevSelectedMarkerIdRef.current;
+    const prevSelectedClusterKey = prevSelectedClusterKeyRef.current;
+    prevSelectedMarkerIdRef.current = selectedMarkerId;
+    prevSelectedClusterKeyRef.current = selectedClusterKey;
+
+    // 선택 상태만 변경된 경우 해당 마커들만 업데이트
+    if (selectionOnlyChanged && markersDataRef.current.length > 0) {
+      const size = getMarkerSize(currentZoom);
+      const anchorX = Math.round(size.width / 2) + size.borderWidth;
+      const anchorY = size.totalHeight;
+
+      // 이전에 선택된 마커 업데이트 (선택 해제)
+      if (prevSelectedMarkerId && requestMarkersRef.current.has(prevSelectedMarkerId)) {
+        const marker = requestMarkersRef.current.get(prevSelectedMarkerId)!;
+        const markerData = markersDataRef.current.find(m => m.id === prevSelectedMarkerId);
+        if (markerData) {
+          const isOwn = currentUserId ? markerData.userId === currentUserId : false;
+          const isApplied = appliedRequestIds.includes(markerData.id);
+          marker.setIcon({
+            content: createMarkerContent(markerData, false, isOwn, isApplied, currentZoom),
+            anchor: new window.naver.maps.Point(anchorX, anchorY),
+          });
+          marker.setZIndex(1);
+        }
+      }
+
+      // 새로 선택된 마커 업데이트
+      if (selectedMarkerId && requestMarkersRef.current.has(selectedMarkerId)) {
+        const marker = requestMarkersRef.current.get(selectedMarkerId)!;
+        const markerData = markersDataRef.current.find(m => m.id === selectedMarkerId);
+        if (markerData) {
+          const isOwn = currentUserId ? markerData.userId === currentUserId : false;
+          const isApplied = appliedRequestIds.includes(markerData.id);
+          marker.setIcon({
+            content: createMarkerContent(markerData, true, isOwn, isApplied, currentZoom),
+            anchor: new window.naver.maps.Point(anchorX, anchorY),
+          });
+          marker.setZIndex(1000);
+        }
+      }
+
+      // 이전에 선택된 클러스터 업데이트 (선택 해제)
+      if (prevSelectedClusterKey && clusterMarkersRef.current.has(prevSelectedClusterKey)) {
+        const cluster = clusterMarkersRef.current.get(prevSelectedClusterKey)!;
+        const clusterData = createClusters(markersDataRef.current).find(c => c.key === prevSelectedClusterKey);
+        if (clusterData) {
+          cluster.setIcon({
+            content: createClusterContent(clusterData.markers.length, false),
+            anchor: new window.naver.maps.Point(22, 44),
+          });
+          cluster.setZIndex(500);
+        }
+      }
+
+      // 새로 선택된 클러스터 업데이트
+      if (selectedClusterKey && clusterMarkersRef.current.has(selectedClusterKey)) {
+        const cluster = clusterMarkersRef.current.get(selectedClusterKey)!;
+        const clusterData = createClusters(markersDataRef.current).find(c => c.key === selectedClusterKey);
+        if (clusterData) {
+          cluster.setIcon({
+            content: createClusterContent(clusterData.markers.length, true),
+            anchor: new window.naver.maps.Point(22, 44),
+          });
+          cluster.setZIndex(1000);
+        }
+      }
+
+      return;
+    }
+
     markersDataRef.current = markers;
 
     // 클러스터 생성
@@ -564,6 +642,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         const anchorY = size.totalHeight;
 
         if (existingMarker) {
+          // 기존 마커가 있으면 위치만 업데이트하고 아이콘은 데이터가 변경된 경우에만 업데이트
           existingMarker.setPosition(new window.naver.maps.LatLng(markerData.latitude, markerData.longitude));
           existingMarker.setIcon({
             content: createMarkerContent(markerData, isSelected, isOwn, isApplied, currentZoom),

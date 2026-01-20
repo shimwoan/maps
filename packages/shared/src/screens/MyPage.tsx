@@ -554,6 +554,7 @@ function MyApplicationCard({
             borderRadius={16}
             padding="$4"
             width={300}
+            onPress={(e: any) => e.stopPropagation()}
           >
             <YStack gap="$4">
               <YStack gap="$2" alignItems="center">
