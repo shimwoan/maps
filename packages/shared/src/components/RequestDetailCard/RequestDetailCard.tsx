@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { View, Text, XStack, YStack, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -506,8 +507,8 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
         onSuccess={handleProfileSuccess}
       />
 
-      {/* 이미지 미리보기 모달 */}
-      {previewImage && (
+      {/* 이미지 미리보기 모달 - Portal로 body에 직접 렌더링 */}
+      {previewImage && createPortal(
         <View
           position="fixed"
           top={0}
@@ -515,7 +516,7 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
           right={0}
           bottom={0}
           backgroundColor="rgba(0,0,0,0.9)"
-          zIndex={10000}
+          zIndex={200000}
           alignItems="center"
           justifyContent="center"
           cursor="pointer"
@@ -549,7 +550,8 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
             }}
             onClick={(e) => e.stopPropagation()}
           />
-        </View>
+        </View>,
+        document.body
       )}
     </>
   );
