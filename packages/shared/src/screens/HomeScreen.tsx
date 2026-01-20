@@ -900,10 +900,13 @@ export function HomeScreen() {
       {!isLocationLoading && location && !isMyPageOpen && (
         <View
           position="fixed"
-          bottom={80}
-          left={16}
+          bottom={90}
           zIndex={100}
           gap="$2"
+          // @ts-ignore
+          style={{
+            left: 'max(16px, calc(50vw - 384px + 16px))',
+          }}
         >
           {/* 현재 위치 버튼 - 위치 권한이 허용된 경우에만 표시 */}
           {currentLocation && (
