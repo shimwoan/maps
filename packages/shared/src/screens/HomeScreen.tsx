@@ -42,6 +42,24 @@ interface RealtimeNotification {
   isExiting?: boolean;
 }
 
+// 모바일 overscroll 방지 CSS 삽입
+const injectOverscrollStyles = () => {
+  if (document.getElementById('overscroll-prevention-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'overscroll-prevention-styles';
+  style.textContent = `
+    html, body {
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
 // 실시간 알림 애니메이션 CSS 삽입
 const injectRealtimeStyles = () => {
   if (document.getElementById('realtime-notification-styles')) return;
@@ -263,6 +281,7 @@ export function HomeScreen() {
 
   // CSS 스타일 삽입
   useEffect(() => {
+    injectOverscrollStyles();
     injectRealtimeStyles();
   }, []);
 
@@ -425,7 +444,18 @@ export function HomeScreen() {
   };
 
   return (
-    <View position="relative" width="100%" height="100vh" overflow="hidden" backgroundColor="#fff" alignItems="center">
+    <View
+      position="fixed"
+      top={0}
+      left={0}
+      right={0}
+      bottom={0}
+      overflow="hidden"
+      backgroundColor="#fff"
+      alignItems="center"
+      // @ts-ignore
+      style={{ touchAction: 'none', overscrollBehavior: 'none' }}
+    >
     <View position="relative" width="100%" maxWidth={768} height="100%" overflow="hidden" backgroundColor="#f5f5f5">
       {/* 상단 주소 표시 - 홈에서만 표시 */}
       {!isMyPageOpen && (
@@ -443,6 +473,8 @@ export function HomeScreen() {
         borderBottomColor="#eee"
         maxWidth={768}
         marginHorizontal="auto"
+        // @ts-ignore - 모바일 스크롤 방지
+        style={{ touchAction: 'none', overscrollBehavior: 'none' }}
       >
         <XStack alignItems="center" justifyContent="space-between">
           <XStack alignItems="center" gap="$3">
