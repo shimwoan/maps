@@ -519,16 +519,17 @@ function MyApplicationCard({
         </XStack>
 
         {(application.status === 'pending' || application.status === 'accepted') && (
-          <View onClick={(e: any) => e.stopPropagation()}>
-            <Button
-              size="$2"
-              backgroundColor="#fee2e2"
-              color="#dc2626"
-              onPress={() => setShowCancelDialog(true)}
-            >
-              {application.status === 'accepted' ? '작업 취소' : '취소'}
-            </Button>
-          </View>
+          <Button
+            size="$2"
+            backgroundColor="#fee2e2"
+            color="#dc2626"
+            onPress={(e: any) => {
+              e.stopPropagation();
+              setShowCancelDialog(true);
+            }}
+          >
+            {application.status === 'accepted' ? '작업 취소' : '취소'}
+          </Button>
         )}
       </XStack>
 
