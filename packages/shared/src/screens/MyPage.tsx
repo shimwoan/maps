@@ -117,8 +117,6 @@ function MyRequestCard({
       opacity={isCompleted ? 0.7 : 1}
       cursor="pointer"
       onPress={onCardPress}
-      // @ts-ignore - iOS 스와이프 백 방지
-      style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
       {/* 카테고리 */}
       <XStack alignItems="center" gap="$1.5" marginBottom="$1">
@@ -438,8 +436,6 @@ function MyApplicationCard({
       borderColor="#eee"
       cursor="pointer"
       onPress={onCardPress}
-      // @ts-ignore - iOS 스와이프 백 방지
-      style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
     >
       {/* 카테고리 */}
       <XStack alignItems="center" gap="$1.5" marginBottom="$1">
@@ -742,23 +738,15 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       right={0}
       bottom={0}
       backgroundColor="#fafafa"
-      // @ts-ignore - iOS 스와이프 백 방지
-      style={{ overscrollBehavior: 'none', touchAction: 'pan-y' }}
     >
       {/* iOS Safari 스와이프 백 방지 글로벌 CSS */}
       <style>{`
         .mypage-container {
-          touch-action: pan-y !important;
-          overscroll-behavior: none !important;
+          overscroll-behavior-x: none;
           -webkit-overflow-scrolling: touch;
         }
-        .mypage-container * {
-          touch-action: pan-y !important;
-          overscroll-behavior-x: none !important;
-        }
         .mypage-scroll {
-          touch-action: pan-y !important;
-          overscroll-behavior: contain !important;
+          overscroll-behavior-x: none;
           -webkit-overflow-scrolling: touch;
         }
       `}</style>
@@ -914,8 +902,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           <ScrollView
             flex={1}
             showsVerticalScrollIndicator={false}
-            // @ts-ignore - iOS 스와이프 백 방지
-            style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
             // @ts-ignore
             className="mypage-scroll"
           >

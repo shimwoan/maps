@@ -693,7 +693,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                     backgroundColor="#f9f9f9"
                     borderColor={errors.title ? '#ff4444' : '#eee'}
                     color="#000"
-                  />
+                    />
                 )}
               />
               {errors.title && <Text color="#ff4444" fontSize={12}>{errors.title.message}</Text>}
@@ -732,7 +732,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                     backgroundColor="#f9f9f9"
                     borderColor="#eee"
                     color="#000"
-                  />
+                    />
                 )}
               />
             </YStack>
@@ -774,7 +774,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                     backgroundColor="#f9f9f9"
                     borderColor="#eee"
                     color="#000"
-                  />
+                    />
                 )}
               />
             </YStack>
@@ -1006,7 +1006,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                     numberOfLines={4}
                     minHeight={100}
                     color="#000"
-                  />
+                    />
                 )}
               />
               {errors.description && <Text color="#ff4444" fontSize={12}>{errors.description.message}</Text>}

@@ -14,6 +14,11 @@ body {
   color: #000000;
 }
 
+/* iOS Safari 자동 확대 방지 */
+input, textarea, select {
+  font-size: 16px;
+}
+
 @media (prefers-color-scheme: light) {
   body {
     color: #000000;
