@@ -274,10 +274,12 @@ function MyApplicationCard({
   application,
   onCancel,
   onCardPress,
+  onImageClick,
 }: {
   application: RequestApplication;
   onCancel: (appId: string, reqId: string) => Promise<void>;
   onCardPress: () => void;
+  onImageClick: (url: string) => void;
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
@@ -323,9 +325,29 @@ function MyApplicationCard({
               style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
             />
             <Text fontSize={14} color="#22C55E" fontWeight="600">
-              진행중
+              {application.requester_profile?.nickname || '의뢰자'}님과 진행중
             </Text>
           </XStack>
+          {application.requester_profile?.business_card_url && (
+            <View
+              width="100%"
+              maxWidth={280}
+              aspectRatio={9/5}
+              borderRadius={8}
+              overflow="hidden"
+              cursor="pointer"
+              onClick={(e: any) => {
+                e.stopPropagation();
+                onImageClick(application.requester_profile?.business_card_url || '');
+              }}
+            >
+              <img
+                src={application.requester_profile.business_card_url}
+                alt="명함"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </View>
+          )}
         </YStack>
       )}
 
@@ -342,9 +364,29 @@ function MyApplicationCard({
               style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
             />
             <Text fontSize={14} color="#F59E0B" fontWeight="600">
-              작업 완료 요청 대기중
+              {application.requester_profile?.nickname || '의뢰자'}님이 작업 완료 요청
             </Text>
           </XStack>
+          {application.requester_profile?.business_card_url && (
+            <View
+              width="100%"
+              maxWidth={280}
+              aspectRatio={9/5}
+              borderRadius={8}
+              overflow="hidden"
+              cursor="pointer"
+              onClick={(e: any) => {
+                e.stopPropagation();
+                onImageClick(application.requester_profile?.business_card_url || '');
+              }}
+            >
+              <img
+                src={application.requester_profile.business_card_url}
+                alt="명함"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </View>
+          )}
         </YStack>
       )}
 
@@ -905,6 +947,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                             setSelectedApplication(app);
                           }
                         }}
+                        onImageClick={(url) => setEnlargedImageUrl(url)}
                       />
                     ))
                   );

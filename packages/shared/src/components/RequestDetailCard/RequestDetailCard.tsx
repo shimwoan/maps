@@ -736,7 +736,7 @@ export function RequestDetailCard({
           }
         }}
         title="의뢰 취소"
-        message="진행중인 의뢰를 취소하시겠습니까? 수행자에게 알림이 전송됩니다."
+        message="진행중인 의뢰를 취소하시겠습니까?"
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}
