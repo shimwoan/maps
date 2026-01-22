@@ -43,6 +43,9 @@ export interface RequestApplication {
     business_card_url: string | null;
     nickname: string | null;
   };
+  requester_profile?: {
+    nickname: string | null;
+  };
 }
 
 export function useRequestApplications() {
@@ -69,7 +72,26 @@ export function useRequestApplications() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMyApplications(data || []);
+
+      // 의뢰자 프로필 정보 조회
+      if (data && data.length > 0) {
+        const requesterIds = [...new Set(data.map(a => a.request?.user_id).filter(Boolean))] as string[];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, nickname')
+          .in('user_id', requesterIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+        const enrichedData = data.map(app => ({
+          ...app,
+          requester_profile: app.request?.user_id ? profileMap.get(app.request.user_id) || null : null,
+        }));
+
+        setMyApplications(enrichedData);
+      } else {
+        setMyApplications([]);
+      }
     } catch (err) {
       console.error('Failed to fetch my applications:', err);
     }

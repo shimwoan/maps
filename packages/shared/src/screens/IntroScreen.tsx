@@ -95,7 +95,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             <Text fontSize={32} fontWeight="800" color={brandColors.primary}>
               협업
             </Text>
-            <Text fontSize={14} fontWeight="500" color="#888">
+            <Text fontSize={16} fontWeight="500">
               가장 빠른 현장 연결
             </Text>
           </YStack>
@@ -116,7 +116,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             borderRadius={20}
             backgroundColor="white"
             overflow="hidden"
-            shadowColor="#000"
+            shado
             shadowOffset={{ width: 0, height: 4 }}
             shadowOpacity={0.08}
             shadowRadius={16}
@@ -181,9 +181,9 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             >
               <XStack alignItems="center" gap="$2">
                 <View width={8} height={8} borderRadius={4} backgroundColor="#FF6B6B" />
-                <Text fontSize={12} color="#666">의뢰 요청</Text>
+                <Text fontSize={14}>의뢰 요청</Text>
                 <View width={8} height={8} borderRadius={4} backgroundColor={brandColors.primary} marginLeft="$2" />
-                <Text fontSize={12} color="#666">작업 수락</Text>
+                <Text fontSize={14}>작업 수락</Text>
               </XStack>
             </View>
           </View>
@@ -191,16 +191,16 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
           {/* 설명 텍스트 */}
           <YStack alignItems="center" gap="$2" marginTop="$3">
             <Text
-              fontSize={14}
-              color="#888"
+              fontSize={16}
+            
               textAlign="center"
               lineHeight={22}
             >
               주변 전문가에게{'\n'}
-              <Text fontWeight="600" color="#555">실시간으로 작업을 요청</Text>하세요
+              <Text fontWeight="600">실시간으로 작업을 요청</Text>하세요
             </Text>
-            <Text fontSize={13} color="#666" textAlign="center">
-              {user && <Text fontWeight="600" color="#333">{getUserName()}님! </Text>}오늘도 신속하고 안전하게 협업하세요
+            <Text fontSize={14} textAlign="center">
+              {user && <Text fontWeight="600">{getUserName()}님! </Text>}오늘도 신속하고 안전하게 협업하세요
             </Text>
           </YStack>
         </View>
@@ -239,8 +239,8 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
 function FeatureItem({ icon, text }: { icon: string; text: string }) {
   return (
     <XStack alignItems="center" gap="$1.5">
-      <Text fontSize={14}>{icon}</Text>
-      <Text fontSize={12} color="#888">{text}</Text>
+      <Text fontSize={16}>{icon}</Text>
+      <Text fontSize={14}>{text}</Text>
     </XStack>
   );
 }

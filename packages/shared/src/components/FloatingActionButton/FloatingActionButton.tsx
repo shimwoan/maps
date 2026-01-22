@@ -52,7 +52,7 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
         scale: 0.95,
       }}
     >
-      <Text color="#fff" fontSize={15} fontWeight="600">
+      <Text color="#fff" fontSize={16} fontWeight="600">
         외주 요청하기
       </Text>
     </View>

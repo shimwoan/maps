@@ -44,7 +44,7 @@ const darkColors = {
   borderColorHover: '#444',
   borderColorPress: '#555',
   borderColorFocus: '#444',
-  placeholderColor: '#666',
+  placeholderColor: '#555',
   shadowColor: 'rgba(0,0,0,0.5)',
   shadowColorHover: 'rgba(0,0,0,0.6)',
   shadowColorPress: 'rgba(0,0,0,0.7)',

@@ -41,7 +41,7 @@ export function BottomNavigation({
 
   const activeColor = brandColors.primary;
   const inactiveColor = '#1a1a1a';
-  const textColor = '#666';
+  const textColor = '#000';
 
   return (
     <View
@@ -87,7 +87,7 @@ export function BottomNavigation({
             </svg>
           )}
           <Text
-            fontSize={12}
+            fontSize={14}
             fontWeight={activeMode === 'home' ? "600" : "400"}
             color={activeMode === 'home' ? activeColor : textColor}
             marginTop={4}
@@ -136,7 +136,7 @@ export function BottomNavigation({
             </svg>
           )}
           <Text
-            fontSize={12}
+            fontSize={14}
             fontWeight={activeMode === 'requests' ? "600" : "400"}
             color={activeMode === 'requests' ? activeColor : textColor}
             marginTop={4}
@@ -181,7 +181,7 @@ export function BottomNavigation({
             </svg>
           )}
           <Text
-            fontSize={12}
+            fontSize={14}
             fontWeight={activeMode === 'profile' ? "600" : "400"}
             color={activeMode === 'profile' ? activeColor : textColor}
             marginTop={4}

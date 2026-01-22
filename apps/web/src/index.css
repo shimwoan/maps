@@ -16,7 +16,20 @@ body {
 
 /* iOS Safari 자동 확대 방지 */
 input, textarea, select {
-  font-size: 16px;
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS Safari 터치 시 확대 방지 */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* focus-visible 스타일 제거 */
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none;
 }
 
 @media (prefers-color-scheme: light) {
@@ -35,4 +48,10 @@ input, textarea, select {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* 진행중 상태 표시 애니메이션 */
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
 }

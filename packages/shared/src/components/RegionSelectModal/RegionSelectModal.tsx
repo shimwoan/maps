@@ -144,7 +144,7 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
         >
           {selectedSido ? selectedSido.name : '시·도 선택'}
         </Text>
-        <Text fontSize={14} color="#999">{'>'}</Text>
+        <Text fontSize={16} color="#999">{'>'}</Text>
         {/* 시·군·구 */}
         <Text
           fontSize={16}
@@ -174,7 +174,7 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
                   pressStyle={{ backgroundColor: '#ddd' }}
                   onPress={() => handleSidoSelect(sido)}
                 >
-                  <Text fontSize={14} color="#000" textAlign="center">
+                  <Text fontSize={16} color="#000" textAlign="center">
                     {sido.name}
                   </Text>
                 </View>
@@ -201,7 +201,7 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
                   pressStyle={{ backgroundColor: '#ddd' }}
                   onPress={() => handleSigunguSelect(sigungu)}
                 >
-                  <Text fontSize={14} color="#000" textAlign="center">
+                  <Text fontSize={16} color="#000" textAlign="center">
                     {sigungu.name}
                   </Text>
                 </View>
@@ -228,7 +228,7 @@ export function RegionSelectModal({ isOpen, onClose, onSelect, currentAddress }:
                   pressStyle={{ backgroundColor: '#ddd' }}
                   onPress={() => handleDongSelect(dong)}
                 >
-                  <Text fontSize={13} color="#000" textAlign="center">
+                  <Text fontSize={14} color="#000" textAlign="center">
                     {dong.name}
                   </Text>
                 </View>

@@ -33,7 +33,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
           로그인이 필요합니다
         </Text>
 
-        <Text fontSize={14} color="#888" textAlign="center">
+        <Text fontSize={16} color="#000" textAlign="center">
           서비스를 이용하려면 로그인해주세요
         </Text>
 

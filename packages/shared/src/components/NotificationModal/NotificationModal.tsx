@@ -3,6 +3,7 @@ import { View, Text, YStack, XStack, ScrollView, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useNotifications, type Notification } from '../../contexts/NotificationContext';
+import { EmptyState } from '../EmptyState';
 
 interface NotificationModalProps {
   isOpen: boolean;
@@ -100,7 +101,7 @@ function NotificationItem({
       <NotificationIcon type={notification.type} />
       <YStack flex={1} gap="$1">
         <XStack justifyContent="space-between" alignItems="center">
-          <Text fontSize={14} fontWeight="600" color="#000">
+          <Text fontSize={16} fontWeight="600" color="#000">
             {notification.title}
           </Text>
           {!notification.is_read && (
@@ -112,10 +113,10 @@ function NotificationItem({
             />
           )}
         </XStack>
-        <Text fontSize={13} color="#666" numberOfLines={2}>
+        <Text fontSize={14} color="#000" numberOfLines={2}>
           {notification.message}
         </Text>
-        <Text fontSize={11} color="#999">
+        <Text fontSize={14} color="#999">
           {formatTime(notification.created_at)}
         </Text>
       </YStack>
@@ -200,7 +201,7 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
               알림
             </Text>
             {unreadCount > 0 && (
-              <Text fontSize={12} color="#999">
+              <Text fontSize={14} color="#999">
                 ({unreadCount}개 읽지 않음)
               </Text>
             )}
@@ -225,15 +226,15 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
               <Spinner size="large" color={brandColors.primary} />
             </View>
           ) : notifications.length === 0 ? (
-            <View padding="$6" alignItems="center">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <Text fontSize={14} color="#999" marginTop="$2">
-                알림이 없습니다
-              </Text>
-            </View>
+            <EmptyState
+              message="알림이 없습니다"
+              icon={
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              }
+            />
           ) : (
             <YStack>
               {displayedNotifications.map((notification) => (
@@ -249,7 +250,7 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
                   <Button
                     size="$3"
                     backgroundColor="#f5f5f5"
-                    color="#666"
+                    color="#000"
                     width="100%"
                     onPress={() => setIsExpanded(true)}
                   >
@@ -263,15 +264,15 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
                   <Button
                     size="$3"
                     backgroundColor="#f5f5f5"
-                    color="#666"
+                    color="#000"
                     width="100%"
                     onPress={loadMore}
                     disabled={isLoadingMore}
                   >
                     {isLoadingMore ? (
                       <XStack gap="$2" alignItems="center">
-                        <Spinner size="small" color="#666" />
-                        <Text color="#666">로딩 중...</Text>
+                        <Spinner size="small" color="#000" />
+                        <Text color="#000">로딩 중...</Text>
                       </XStack>
                     ) : (
                       '이전 알림 더 보기'

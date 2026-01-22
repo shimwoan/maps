@@ -37,10 +37,10 @@ export function BottomSheet({
           <div
             style={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              padding: '12px 16px',
+              padding: '16px 16px 12px',
+              gap: 12,
             }}
           >
             <div
@@ -52,8 +52,8 @@ export function BottomSheet({
               }}
             />
             {title && (
-              <div style={{ position: 'absolute', left: 16 }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: '#000' }}>
+              <div style={{ width: '100%' }}>
+                <span style={{ fontSize: 18, fontWeight: 600, color: '#000' }}>
                   {title}
                 </span>
               </div>

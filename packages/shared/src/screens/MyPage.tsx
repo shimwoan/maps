@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { View, Text, XStack, YStack, ScrollView, Spinner, Dialog } from 'tamagui';
+import { View, Text, XStack, YStack, ScrollView, Spinner } from 'tamagui';
 import { Button } from '../components/Button';
 import { ProfileSetupModal } from '../components/ProfileSetupModal';
 import { NotificationModal } from '../components/NotificationModal';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { HeaderActions } from '../components/HeaderActions';
 import { RequestDetailCard } from '../components/RequestDetailCard';
+import { ConfirmationDialog } from '../components/ConfirmationDialog';
+import { RequestCard } from '../components/RequestCard';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../hooks/useProfile';
 import { useRequestApplications, RequestApplication } from '../hooks/useRequestApplications';
 import { useRequests, Request } from '../hooks/useRequests';
 import { useNotifications } from '../contexts/NotificationContext';
+import { EmptyState } from '../components/EmptyState';
+import { ImagePreviewModal } from '../components/ImagePreviewModal';
+import { formatCompletedDateTime } from '../utils/format';
 
 type TabType = 'myRequests' | 'myApplications';
 type PageMode = 'requests' | 'profile';
@@ -21,52 +26,6 @@ interface MyPageProps {
   onNavigate?: (mode: 'home' | 'requests' | 'profile') => void;
   initialTab?: TabType;
   mode?: PageMode;
-}
-
-// 금액 포맷팅
-function formatPrice(price: number): string {
-  if (price >= 10000) {
-    const man = Math.floor(price / 10000);
-    const rest = price % 10000;
-    if (rest === 0) {
-      return `${man}만`;
-    }
-    return `${man}만 ${rest.toLocaleString()}`;
-  }
-  return price.toLocaleString();
-}
-
-// 날짜 포맷팅
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  if (date.toDateString() === today.toDateString()) {
-    return '오늘';
-  } else if (date.toDateString() === tomorrow.toDateString()) {
-    return '내일';
-  }
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-}
-
-// 상태 라벨 (지도 마커와 동일한 스타일)
-function getStatusLabel(status: string): { label: string; color: string; bgColor: string } {
-  switch (status) {
-    case 'pending':
-      return { label: '대기', color: '#3B82F6', bgColor: '#fff' };
-    case 'applied':
-      return { label: '신청있음', color: brandColors.primary, bgColor: brandColors.primaryLight };
-    case 'accepted':
-      return { label: '진행중', color: '#fff', bgColor: '#F59E0B' };
-    case 'rejected':
-      return { label: '다른작업자와 진행중', color: '#fff', bgColor: '#9CA3AF' };
-    case 'completed':
-      return { label: '완료', color: '#fff', bgColor: '#9CA3AF' };
-    default:
-      return { label: status, color: '#888', bgColor: '#f0f0f0' };
-  }
 }
 
 // 내 의뢰 카드 (의뢰자 입장)
@@ -89,9 +48,8 @@ function MyRequestCard({
 }) {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
-  const status = getStatusLabel(request.status);
   const pendingApps = applications.filter(a => a.status === 'pending');
-  const acceptedApp = applications.find(a => a.status === 'accepted');
+  const acceptedApp = applications.find(a => a.status === 'accepted' || a.status === 'completed');
   const isCompleted = request.status === 'completed';
 
   const handleConfirmComplete = async () => {
@@ -107,111 +65,31 @@ function MyRequestCard({
   };
 
   return (
-    <YStack
-      backgroundColor={isCompleted ? '#f8f8f8' : 'white'}
-      borderRadius={12}
-      padding="$3"
-      gap="$2"
-      borderWidth={1}
-      borderColor={isCompleted ? '#e0e0e0' : '#eee'}
-      opacity={isCompleted ? 0.7 : 1}
-      cursor="pointer"
-      onPress={onCardPress}
+    <RequestCard
+      title={request.title}
+      asType={request.as_type}
+      status={request.status}
+      scheduleDate={request.schedule_date}
+      scheduleTime={request.schedule_time}
+      expectedFee={request.expected_fee}
+      address={request.address}
+      isCompleted={isCompleted}
+      onCardPress={onCardPress}
     >
-      {/* 카테고리 */}
-      <XStack alignItems="center" gap="$1.5" marginBottom="$1">
-        {request.as_type === '복합기/OA' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-            <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-            <path d="M7 16h10v5H7z" fill="white" stroke="#6B7280" strokeWidth="1"/>
-          </svg>
-        )}
-        {request.as_type === '전기/통신' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-          </svg>
-        )}
-        {request.as_type === '가전/설비' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
-          </svg>
-        )}
-        {request.as_type === '인테리어' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#8B5CF6" stroke="#7C3AED" strokeWidth="1"/>
-          </svg>
-        )}
-        {request.as_type === '청소' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2v5" stroke="#10B981" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#10B981" strokeWidth="1.5"/>
-          </svg>
-        )}
-        {request.as_type === '소프트웨어' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <rect x="2" y="3" width="20" height="14" rx="2" fill="#3B82F6"/>
-            <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
-          </svg>
-        )}
-        {request.as_type === '운반/설치' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M1 3h15v13H1z" fill="#78716C" stroke="#78716C" strokeWidth="1"/>
-            <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#78716C" strokeWidth="1"/>
-          </svg>
-        )}
-        <Text fontSize={12} color={isCompleted ? '#999' : '#666'}>{request.as_type}</Text>
-      </XStack>
-
-      <XStack justifyContent="space-between" alignItems="center">
-        <Text fontSize={16} fontWeight="700" color={isCompleted ? '#888' : '#000'} flex={1} numberOfLines={1}>
-          {request.title}
-        </Text>
-        <View
-          backgroundColor={status.bgColor}
-          paddingHorizontal="$2"
-          paddingVertical="$1"
-          borderRadius={4}
-          borderWidth={status.bgColor === '#fff' ? 1 : 0}
-          borderColor="#e5e7eb"
-        >
-          <Text fontSize={11} fontWeight="600" color={status.color}>
-            {status.label}
-          </Text>
-        </View>
-      </XStack>
-
-      <XStack gap="$3">
-        <Text fontSize={13} color={isCompleted ? '#999' : '#666'}>
-          {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
-        </Text>
-        <Text fontSize={13} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
-          {formatPrice(request.expected_fee)}원
-        </Text>
-      </XStack>
-
       {/* 진행중인 경우 - 수락된 신청자 정보 표시 */}
       {request.status === 'accepted' && acceptedApp && (
         <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
           <XStack alignItems="center" justifyContent="space-between">
             <XStack alignItems="center" gap="$2">
-              {/* @ts-ignore */}
+              {/* @ts-ignore - animation defined in index.css */}
               <View
                 width={8}
                 height={8}
                 borderRadius={4}
                 backgroundColor="#22C55E"
-                style={{
-                  animation: 'pulse-green 1.5s ease-in-out infinite',
-                }}
+                style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
               />
-              <style>{`
-                @keyframes pulse-green {
-                  0%, 100% { opacity: 1; transform: scale(1); }
-                  50% { opacity: 0.6; transform: scale(1.2); }
-                }
-              `}</style>
-              <Text fontSize={13} color="#22C55E" fontWeight="600">
+              <Text fontSize={14} color="#22C55E" fontWeight="600">
                 {acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중
               </Text>
             </XStack>
@@ -251,8 +129,8 @@ function MyRequestCard({
               borderRadius={4}
               backgroundColor="#9CA3AF"
             />
-            <Text fontSize={13} color="#9CA3AF" fontWeight="600">
-              {acceptedApp.applicant_profile?.nickname || '수행자'}님과 작업 완료
+            <Text fontSize={14} color="#9CA3AF" fontWeight="600">
+              {formatCompletedDateTime(request.updated_at || request.created_at)} {acceptedApp.applicant_profile?.nickname || '수행자'}님과 수행완료
             </Text>
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
@@ -272,7 +150,7 @@ function MyRequestCard({
       {/* 신청자 목록 - pending 상태일 때만 */}
       {pendingApps.length > 0 && request.status !== 'accepted' && (
         <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
-          <Text fontSize={12} color="#888" fontWeight="600">
+          <Text fontSize={14} color="#000" fontWeight="600">
             신청자 ({pendingApps.length}명)
           </Text>
           {pendingApps.map((app) => (
@@ -285,7 +163,7 @@ function MyRequestCard({
               justifyContent="space-between"
             >
               <YStack gap="$2" flex={1}>
-                <Text fontSize={14} color="#333" fontWeight="600">
+                <Text fontSize={16} color="#000" fontWeight="600">
                   {app.applicant_profile?.nickname || '신청자'}
                 </Text>
                 {app.applicant_profile?.business_card_url ? (
@@ -306,7 +184,7 @@ function MyRequestCard({
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Text fontSize={12} color="#999">명함없음</Text>
+                    <Text fontSize={14} color="#999">명함없음</Text>
                   </View>
                 )}
               </YStack>
@@ -314,7 +192,7 @@ function MyRequestCard({
                 <Button
                   size="$2"
                   backgroundColor="#f0f0f0"
-                  color="#666"
+                  color="#000"
                   onPress={() => onReject(app.id)}
                   hoverStyle={{ backgroundColor: '#e8e8e8' }}
                 >
@@ -336,64 +214,17 @@ function MyRequestCard({
       )}
 
       {/* 의뢰 종료 확인 다이얼로그 */}
-      <Dialog modal open={showCompleteDialog} onOpenChange={(open: boolean) => setShowCompleteDialog(open)}>
-        <Dialog.Portal>
-          <Dialog.Overlay
-            key="overlay"
-            animation="quick"
-            opacity={0.5}
-            enterStyle={{ opacity: 0 }}
-            exitStyle={{ opacity: 0 }}
-          />
-          <Dialog.Content
-            bordered
-            elevate
-            key="content"
-            animation={['quick', { opacity: { overshootClamping: true } }]}
-            enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
-            exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
-            backgroundColor="white"
-            borderRadius={16}
-            padding="$4"
-            width={300}
-          >
-            <YStack gap="$4">
-              <YStack gap="$2" alignItems="center">
-                <Text fontSize={16} fontWeight="700" color="#000">
-                  의뢰 종료
-                </Text>
-                <Text fontSize={14} color="#666" textAlign="center">
-                  의뢰를 종료하시겠습니까?
-                </Text>
-              </YStack>
-              <XStack gap="$2" justifyContent="center">
-                <Button
-                  flex={1}
-                  size="$3"
-                  backgroundColor="#f0f0f0"
-                  color="#666"
-                  onPress={() => setShowCompleteDialog(false)}
-                  disabled={isCompleting}
-                >
-                  아니오
-                </Button>
-                <Button
-                  flex={1}
-                  size="$3"
-                  backgroundColor={brandColors.primary}
-                  color="white"
-                  onPress={handleConfirmComplete}
-                  disabled={isCompleting}
-                  hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-                >
-                  {isCompleting ? <Spinner size="small" color="white" /> : '예, 종료합니다'}
-                </Button>
-              </XStack>
-            </YStack>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
-    </YStack>
+      <ConfirmationDialog
+        isOpen={showCompleteDialog}
+        onClose={() => setShowCompleteDialog(false)}
+        onConfirm={handleConfirmComplete}
+        title="의뢰 종료"
+        message="의뢰를 종료하시겠습니까?"
+        confirmText="예, 종료합니다"
+        cancelText="아니오"
+        isLoading={isCompleting}
+      />
+    </RequestCard>
   );
 }
 
@@ -409,7 +240,6 @@ function MyApplicationCard({
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
-  const appStatus = getStatusLabel(application.status);
   const req = application.request;
 
   if (!req) return null;
@@ -426,168 +256,63 @@ function MyApplicationCard({
     }
   };
 
-  return (
-    <YStack
-      backgroundColor="white"
-      borderRadius={12}
-      padding="$3"
-      gap="$2"
-      borderWidth={1}
-      borderColor="#eee"
-      cursor="pointer"
-      onPress={onCardPress}
+  const cancelButton = (application.status === 'pending' || application.status === 'accepted') ? (
+    <Button
+      size="$2"
+      backgroundColor="#fee2e2"
+      color="#dc2626"
+      onPress={(e: any) => {
+        e.stopPropagation();
+        setShowCancelDialog(true);
+      }}
     >
-      {/* 카테고리 */}
-      <XStack alignItems="center" gap="$1.5" marginBottom="$1">
-        {req.as_type === '복합기/OA' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-            <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-            <path d="M7 16h10v5H7z" fill="white" stroke="#6B7280" strokeWidth="1"/>
-          </svg>
-        )}
-        {req.as_type === '전기/통신' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-          </svg>
-        )}
-        {req.as_type === '가전/설비' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
-          </svg>
-        )}
-        {req.as_type === '인테리어' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#8B5CF6" stroke="#7C3AED" strokeWidth="1"/>
-          </svg>
-        )}
-        {req.as_type === '청소' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2v5" stroke="#10B981" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#10B981" strokeWidth="1.5"/>
-          </svg>
-        )}
-        {req.as_type === '소프트웨어' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <rect x="2" y="3" width="20" height="14" rx="2" fill="#3B82F6"/>
-            <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
-          </svg>
-        )}
-        {req.as_type === '운반/설치' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M1 3h15v13H1z" fill="#78716C" stroke="#78716C" strokeWidth="1"/>
-            <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#78716C" strokeWidth="1"/>
-          </svg>
-        )}
-        <Text fontSize={12} color="#666">{req.as_type}</Text>
-      </XStack>
+      {application.status === 'accepted' ? '작업 취소' : '취소'}
+    </Button>
+  ) : undefined;
 
-      <XStack justifyContent="space-between" alignItems="center">
-        <Text fontSize={16} fontWeight="700" color="#000" flex={1} numberOfLines={1}>
-          {req.title}
-        </Text>
-        <View
-          backgroundColor={appStatus.bgColor}
-          paddingHorizontal="$2"
-          paddingVertical="$1"
-          borderRadius={4}
-          borderWidth={appStatus.bgColor === '#fff' ? 1 : 0}
-          borderColor="#e5e7eb"
-        >
-          <Text fontSize={11} fontWeight="600" color={appStatus.color}>
-            {appStatus.label}
-          </Text>
-        </View>
-      </XStack>
-
-      <Text fontSize={13} color="#888" numberOfLines={1}>
-        {req.address}
-      </Text>
-
-      <XStack justifyContent="space-between" alignItems="center">
-        <XStack gap="$3">
-          <Text fontSize={13} color="#666">
-            {formatDate(req.schedule_date)} {req.schedule_time.slice(0, 5)}
-          </Text>
-          <Text fontSize={13} color={brandColors.primary} fontWeight="600">
-            {formatPrice(req.expected_fee)}원
-          </Text>
-        </XStack>
-
-        {(application.status === 'pending' || application.status === 'accepted') && (
-          <Button
-            size="$2"
-            backgroundColor="#fee2e2"
-            color="#dc2626"
-            onPress={(e: any) => {
-              e.stopPropagation();
-              setShowCancelDialog(true);
-            }}
-          >
-            {application.status === 'accepted' ? '작업 취소' : '취소'}
-          </Button>
-        )}
-      </XStack>
+  return (
+    <RequestCard
+      title={req.title}
+      asType={req.as_type}
+      status={application.status}
+      scheduleDate={req.schedule_date}
+      scheduleTime={req.schedule_time}
+      expectedFee={req.expected_fee}
+      address={req.address}
+      isCompleted={application.status === 'completed'}
+      onCardPress={onCardPress}
+      rightAction={cancelButton}
+    >
+      {/* 완료된 경우 - 완료 정보 표시 */}
+      {application.status === 'completed' && (
+        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+          <XStack alignItems="center" gap="$2">
+            <View
+              width={8}
+              height={8}
+              borderRadius={4}
+              backgroundColor="#9CA3AF"
+            />
+            <Text fontSize={14} color="#9CA3AF" fontWeight="600">
+              {formatCompletedDateTime(application.updated_at)} {application.requester_profile?.nickname || '의뢰자'}님과 수행완료
+            </Text>
+          </XStack>
+        </YStack>
+      )}
 
       {/* 취소 확인 다이얼로그 */}
-      <Dialog modal open={showCancelDialog} onOpenChange={(open: boolean) => setShowCancelDialog(open)}>
-        <Dialog.Portal>
-          <Dialog.Overlay
-            key="overlay"
-            animation="quick"
-            opacity={0.5}
-            enterStyle={{ opacity: 0 }}
-            exitStyle={{ opacity: 0 }}
-          />
-          <Dialog.Content
-            bordered
-            elevate
-            key="content"
-            animation={['quick', { opacity: { overshootClamping: true } }]}
-            enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
-            exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
-            backgroundColor="white"
-            borderRadius={16}
-            padding="$4"
-            width={300}
-            onPress={(e: any) => e.stopPropagation()}
-          >
-            <YStack gap="$4">
-              <YStack gap="$2" alignItems="center">
-                <Text fontSize={16} fontWeight="700" color="#000">
-                  신청 취소
-                </Text>
-                <Text fontSize={14} color="#666" textAlign="center">
-                  정말로 취소하시겠습니까?
-                </Text>
-              </YStack>
-              <XStack gap="$2" justifyContent="center">
-                <Button
-                  flex={1}
-                  size="$3"
-                  backgroundColor="#f0f0f0"
-                  color="#666"
-                  onPress={() => setShowCancelDialog(false)}
-                  disabled={isCanceling}
-                >
-                  아니오
-                </Button>
-                <Button
-                  flex={1}
-                  size="$3"
-                  backgroundColor="#dc2626"
-                  color="white"
-                  onPress={handleConfirmCancel}
-                  disabled={isCanceling}
-                >
-                  {isCanceling ? <Spinner size="small" color="white" /> : '예, 취소합니다'}
-                </Button>
-              </XStack>
-            </YStack>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
-    </YStack>
+      <ConfirmationDialog
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onConfirm={handleConfirmCancel}
+        title="신청 취소"
+        message="정말로 취소하시겠습니까?"
+        confirmText="예, 취소합니다"
+        cancelText="아니오"
+        isLoading={isCanceling}
+        variant="danger"
+      />
+    </RequestCard>
   );
 }
 
@@ -609,7 +334,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
     cancelApplication,
     refetch,
   } = useRequestApplications();
-  const { requests } = useRequests();
+  useRequests(); // 의뢰 데이터 초기화
 
   // 내가 작성한 의뢰들 (모든 상태)
   const [myRequests, setMyRequests] = useState<Request[]>([]);
@@ -777,7 +502,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           <XStack alignItems="center" gap="$3">
             <View cursor="pointer" onPress={onBack}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M15 18l-6-6 6-6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </View>
             <Text fontSize={18} fontWeight="700" color="#000">
@@ -794,18 +519,29 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         {mode === 'profile' && (
           <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
             {/* 프로필 정보 */}
-            <YStack padding="$4" gap="$1">
-              <Text fontSize={18} fontWeight="700" color="#000">
-                {profile?.nickname || user?.user_metadata?.name || '사용자'}
+            <XStack padding="$4" justifyContent="space-between" alignItems="flex-start">
+              <YStack gap="$1">
+                <Text fontSize={18} fontWeight="700" color="#000">
+                  {profile?.nickname || user?.user_metadata?.name || '사용자'}
+                </Text>
+                <Text fontSize={14} color="#000">
+                  {user?.email || ''}
+                </Text>
+              </YStack>
+              <Text
+                fontSize={16}
+                fontWeight="600"
+                color="#000"
+                cursor="pointer"
+                onPress={() => signOut()}
+              >
+                로그아웃
               </Text>
-              <Text fontSize={13} color="#888">
-                {user?.email || ''}
-              </Text>
-            </YStack>
+            </XStack>
 
             {/* 명함 섹션 */}
             <YStack padding="$4" paddingTop="$2" gap="$3">
-              <Text fontSize={14} fontWeight="600" color="#333">내 명함 or 사업자 등록증</Text>
+              <Text fontSize={16} fontWeight="600" color="#000">내 명함 or 사업자 등록증</Text>
               {hasBusinessCard && profile?.business_card_url ? (
                 <View
                   borderRadius={12}
@@ -837,7 +573,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                     <path d="M7 16c0-1.5 1-2 2-2s2 .5 2 2" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round"/>
                     <path d="M14 9h4M14 12h4" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <Text fontSize={13} color="#999" marginTop="$2">
+                  <Text fontSize={14} color="#999" marginTop="$2">
                     명함 및 사업자 등록증을 등록해주세요
                   </Text>
                 </View>
@@ -870,9 +606,9 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               onPress={() => setActiveTab('myRequests')}
             >
               <Text
-                fontSize={14}
+                fontSize={16}
                 fontWeight="600"
-                color={activeTab === 'myRequests' ? brandColors.primary : '#888'}
+                color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
               >
                 내가 요청한 의뢰
               </Text>
@@ -887,9 +623,9 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               onPress={() => setActiveTab('myApplications')}
             >
               <Text
-                fontSize={14}
+                fontSize={16}
                 fontWeight="600"
-                color={activeTab === 'myApplications' ? brandColors.primary : '#888'}
+                color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
               >
                 신청한 의뢰
               </Text>
@@ -914,9 +650,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               ) : activeTab === 'myRequests' ? (
                 // 내 의뢰 탭
                 myRequests.length === 0 ? (
-                  <View paddingVertical="$6" alignItems="center">
-                    <Text fontSize={14} color="#888">등록한 의뢰가 없습니다</Text>
-                  </View>
+                  <EmptyState message="등록한 의뢰가 없습니다" />
                 ) : (
                   myRequests.map((req) => (
                     <MyRequestCard
@@ -934,9 +668,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               ) : (
                 // 신청한 의뢰 탭
                 myApplications.length === 0 ? (
-                  <View paddingVertical="$6" alignItems="center">
-                    <Text fontSize={14} color="#888">신청한 의뢰가 없습니다</Text>
-                  </View>
+                  <EmptyState message="신청한 의뢰가 없습니다" />
                 ) : (
                   myApplications.map((app) => (
                     <MyApplicationCard
@@ -964,32 +696,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         />
 
         {/* 명함 원본 이미지 보기 */}
-        {enlargedImageUrl && (
-          <View
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            backgroundColor="rgba(0,0,0,0.9)"
-            zIndex={2000}
-            alignItems="center"
-            justifyContent="center"
-            cursor="pointer"
-            onPress={() => setEnlargedImageUrl(null)}
-          >
-            <img
-              src={enlargedImageUrl}
-              alt="명함"
-              style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: 8 }}
-            />
-            <View position="absolute" top={16} right={16}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </View>
-          </View>
-        )}
+        <ImagePreviewModal imageUrl={enlargedImageUrl} onClose={() => setEnlargedImageUrl(null)} zIndex={2000} />
 
         {/* 알림 모달 */}
         <NotificationModal

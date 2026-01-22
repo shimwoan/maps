@@ -193,55 +193,97 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     if (!user) return;
 
-    // 기존 채널이 있으면 제거
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
+    let retryCount = 0;
+    const maxRetries = 5;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    // Realtime 구독 설정
-    channelRef.current = supabase
-      .channel(`notifications-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            // 새 알림 추가
-            const newNotification = payload.new as Notification;
-            setNotifications(prev => [newNotification, ...prev]);
-            if (!newNotification.is_read) {
-              setUnreadCount(prev => prev + 1);
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            // 알림 업데이트 (읽음 처리 등)
-            const updatedNotification = payload.new as Notification;
-            setNotifications(prev =>
-              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
-            );
-            // 읽음 처리된 경우 카운트 업데이트
-            const oldNotification = payload.old as { is_read?: boolean };
-            if (!oldNotification.is_read && updatedNotification.is_read) {
-              setUnreadCount(prev => Math.max(0, prev - 1));
-            }
-          } else if (payload.eventType === 'DELETE') {
-            // 알림 삭제
-            const deletedId = (payload.old as { id: string }).id;
-            const deletedNotification = notifications.find(n => n.id === deletedId);
-            setNotifications(prev => prev.filter(n => n.id !== deletedId));
-            if (deletedNotification && !deletedNotification.is_read) {
-              setUnreadCount(prev => Math.max(0, prev - 1));
+    const setupSubscription = () => {
+      // 기존 채널이 있으면 제거
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
+      // 고유한 채널 이름 생성
+      const channelName = `notifications-${user.id}-${Date.now()}`;
+
+      // Realtime 구독 설정
+      channelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              // 새 알림 추가
+              const newNotification = payload.new as Notification;
+              setNotifications(prev => [newNotification, ...prev]);
+              if (!newNotification.is_read) {
+                setUnreadCount(prev => prev + 1);
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              // 알림 업데이트 (읽음 처리 등)
+              const updatedNotification = payload.new as Notification;
+              setNotifications(prev =>
+                prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+              );
+              // 읽음 처리된 경우 카운트 업데이트
+              const oldNotification = payload.old as { is_read?: boolean };
+              if (!oldNotification.is_read && updatedNotification.is_read) {
+                setUnreadCount(prev => Math.max(0, prev - 1));
+              }
+            } else if (payload.eventType === 'DELETE') {
+              // 알림 삭제
+              const deletedId = (payload.old as { id: string }).id;
+              setNotifications(prev => {
+                const deletedNotification = prev.find(n => n.id === deletedId);
+                if (deletedNotification && !deletedNotification.is_read) {
+                  setUnreadCount(c => Math.max(0, c - 1));
+                }
+                return prev.filter(n => n.id !== deletedId);
+              });
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Realtime] notifications 채널 연결 성공');
+            retryCount = 0;
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.error('[Realtime] notifications 채널 연결 실패:', status, err);
+            if (retryCount < maxRetries) {
+              retryCount++;
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+              console.log(`[Realtime] ${delay}ms 후 재연결 시도 (${retryCount}/${maxRetries})`);
+              retryTimeout = setTimeout(setupSubscription, delay);
+            }
+          }
+        });
+    };
+
+    setupSubscription();
+
+    // 화면 활성화 시 재연결 및 데이터 새로고침
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[Notifications] 화면 활성화 - 데이터 새로고침 및 Realtime 재연결');
+        fetchNotifications();
+        setupSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

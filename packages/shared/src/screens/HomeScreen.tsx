@@ -19,19 +19,8 @@ import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
 import { AS_TYPES, type AsType } from '../components/RequestFormModal/types';
 import { supabase } from '../lib/supabase';
-
-// 금액 포맷팅
-function formatPrice(price: number): string {
-  if (price >= 10000) {
-    const man = Math.floor(price / 10000);
-    const rest = price % 10000;
-    if (rest === 0) {
-      return `${man}만`;
-    }
-    return `${man}만 ${rest.toLocaleString()}`;
-  }
-  return price.toLocaleString();
-}
+import { formatPrice } from '../utils/format';
+import { AsTypeIcon } from '../components/AsTypeIcon';
 
 // 실시간 현황 알림 타입
 interface RealtimeNotification {
@@ -318,6 +307,10 @@ export function HomeScreen() {
 
   // 실시간 현황 구독
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 5;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const setupRealtimeSubscription = () => {
       // 기존 채널이 있으면 제거
       if (realtimeChannelRef.current) {
@@ -366,7 +359,20 @@ export function HomeScreen() {
             }
           }
         )
-        .subscribe();
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[RealtimeStatus] 채널 연결 성공');
+            retryCount = 0;
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.error('[RealtimeStatus] 채널 연결 실패:', status, err);
+            if (retryCount < maxRetries) {
+              retryCount++;
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+              console.log(`[RealtimeStatus] ${delay}ms 후 재연결 시도 (${retryCount}/${maxRetries})`);
+              retryTimeout = setTimeout(setupRealtimeSubscription, delay);
+            }
+          }
+        });
     };
 
     setupRealtimeSubscription();
@@ -383,6 +389,9 @@ export function HomeScreen() {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
       if (realtimeChannelRef.current) {
         supabase.removeChannel(realtimeChannelRef.current);
         realtimeChannelRef.current = null;
@@ -509,7 +518,7 @@ export function HomeScreen() {
               {address ? (
                 <>
                   <Text
-                    fontSize={14}
+                    fontSize={16}
                     fontWeight="600"
                     color="#000000"
                     numberOfLines={1}
@@ -523,7 +532,7 @@ export function HomeScreen() {
                   </svg>
                 </>
               ) : (
-                <Spinner size="small" color="#333" />
+                <Spinner size="small" color="#000" />
               )}
             </XStack>
           </XStack>
@@ -576,7 +585,7 @@ export function HomeScreen() {
               }}
             >
               <Text
-                fontSize={13}
+                fontSize={14}
                 fontWeight="500"
                 color={selectedStatusFilters.length > 0 ? brandColors.primary : '#333'}
               >
@@ -585,7 +594,7 @@ export function HomeScreen() {
                   : selectedStatusFilters.map(s => s === 'pending' ? '대기' : s === 'accepted' ? '진행중' : '완료').join(',')}
               </Text>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke={selectedStatusFilters.length > 0 ? brandColors.primary : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 9l6 6 6-6" stroke={selectedStatusFilters.length > 0 ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </XStack>
 
@@ -607,67 +616,28 @@ export function HomeScreen() {
               }}
             >
               {selectedAsTypeFilters.length === 0 ? (
-                <Text fontSize={13} fontWeight="500" color="#333">
+                <Text fontSize={14} fontWeight="500" color="#000">
                   종류 전체
                 </Text>
               ) : (
                 <XStack alignItems="center" gap={4}>
                   {selectedAsTypeFilters.slice(0, 1).map((type) => (
                     <XStack key={type} alignItems="center" gap={4}>
-                      {type === '복합기/OA' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-                          <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-                          <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
-                        </svg>
-                      )}
-                      {type === '전기/통신' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-                        </svg>
-                      )}
-                      {type === '가전/설비' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
-                        </svg>
-                      )}
-                      {type === '인테리어' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1"/>
-                        </svg>
-                      )}
-                      {type === '청소' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M12 2v5" stroke="#92400E" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1"/>
-                        </svg>
-                      )}
-                      {type === '소프트웨어' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <rect x="2" y="3" width="20" height="14" rx="2" fill="#4B5563" stroke="#374151" strokeWidth="1"/>
-                          <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
-                        </svg>
-                      )}
-                      {type === '운반/설치' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M1 3h15v13H1z" fill="#FB923C" stroke="#EA580C" strokeWidth="1"/>
-                          <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#EA580C" strokeWidth="1"/>
-                        </svg>
-                      )}
-                      <Text fontSize={13} fontWeight="500" color={brandColors.primary}>
+                      <AsTypeIcon type={type} size={14} />
+                      <Text fontSize={14} fontWeight="500" color={brandColors.primary}>
                         {type}
                       </Text>
                     </XStack>
                   ))}
                   {selectedAsTypeFilters.length > 1 && (
-                    <Text fontSize={12} fontWeight="500" color={brandColors.primary}>
+                    <Text fontSize={14} fontWeight="500" color={brandColors.primary}>
                       외 {selectedAsTypeFilters.length - 1}개
                     </Text>
                   )}
                 </XStack>
               )}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke={selectedAsTypeFilters.length > 0 ? brandColors.primary : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 9l6 6 6-6" stroke={selectedAsTypeFilters.length > 0 ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </XStack>
 
@@ -714,7 +684,7 @@ export function HomeScreen() {
                 onPress={() => setFilterModalType(null)}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </View>
             </XStack>
@@ -755,7 +725,7 @@ export function HomeScreen() {
                           </View>
                         )}
                         <Text
-                          fontSize={14}
+                          fontSize={16}
                           fontWeight="600"
                           color={isSelected ? 'white' : '#333'}
                         >
@@ -790,48 +760,9 @@ export function HomeScreen() {
                         }}
                       >
                         <XStack alignItems="center" gap={4}>
-                          {type === '복합기/OA' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-                              <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-                              <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
-                            </svg>
-                          )}
-                          {type === '전기/통신' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-                            </svg>
-                          )}
-                          {type === '가전/설비' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
-                            </svg>
-                          )}
-                          {type === '인테리어' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#14B8A6" stroke="#0D9488" strokeWidth="1"/>
-                            </svg>
-                          )}
-                          {type === '청소' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M12 2v5" stroke="#92400E" strokeWidth="2" strokeLinecap="round"/>
-                              <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1"/>
-                            </svg>
-                          )}
-                          {type === '소프트웨어' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <rect x="2" y="3" width="20" height="14" rx="2" fill="#4B5563" stroke="#374151" strokeWidth="1"/>
-                              <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
-                            </svg>
-                          )}
-                          {type === '운반/설치' && (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M1 3h15v13H1z" fill="#FB923C" stroke="#EA580C" strokeWidth="1"/>
-                              <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#EA580C" strokeWidth="1"/>
-                            </svg>
-                          )}
+                          <AsTypeIcon type={type} size={16} />
                           <Text
-                            fontSize={12}
+                            fontSize={14}
                             fontWeight="600"
                             color={isSelected ? 'white' : '#333'}
                           >
@@ -881,42 +812,7 @@ export function HomeScreen() {
           zIndex={98}
           gap={6}
         >
-          {realtimeNotifications.map((notification) => {
-            let startX = 0;
-            let currentX = 0;
-            let isDragging = false;
-
-            const handleDragStart = (clientX: number) => {
-              startX = clientX;
-              currentX = clientX;
-              isDragging = true;
-            };
-
-            const handleDragMove = (clientX: number, element: HTMLElement) => {
-              if (!isDragging) return;
-              currentX = clientX;
-              const diff = currentX - startX;
-              if (diff < 0) {
-                element.style.transform = `translateX(${diff}px)`;
-                element.style.opacity = `${Math.max(0.3, 1 + diff / 100)}`;
-              }
-            };
-
-            const handleDragEnd = (element: HTMLElement) => {
-              if (!isDragging) return;
-              isDragging = false;
-              const diff = currentX - startX;
-              if (diff < -20) {
-                // 20px 이상 왼쪽으로 드래그하면 삭제
-                removeRealtimeNotification(notification.id);
-              } else {
-                // 원위치로 복귀
-                element.style.transform = 'translateX(0)';
-                element.style.opacity = '1';
-              }
-            };
-
-            return (
+          {realtimeNotifications.map((notification) => (
               <div
                 key={notification.id}
                 className={notification.isExiting ? 'realtime-notification-exit' : 'realtime-notification-enter'}
@@ -925,18 +821,7 @@ export function HomeScreen() {
                   padding: '8px 12px',
                   borderRadius: 8,
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                  cursor: 'grab',
-                  transition: notification.isExiting ? 'none' : 'transform 0.1s ease-out, opacity 0.1s ease-out',
-                  touchAction: 'pan-y',
                 }}
-                onMouseDown={(e) => handleDragStart(e.clientX)}
-                onMouseMove={(e) => handleDragMove(e.clientX, e.currentTarget)}
-                onMouseUp={(e) => handleDragEnd(e.currentTarget)}
-                onMouseLeave={(e) => handleDragEnd(e.currentTarget)}
-                onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-                onTouchMove={(e) => handleDragMove(e.touches[0].clientX, e.currentTarget)}
-                onTouchEnd={(e) => handleDragEnd(e.currentTarget)}
-                onClick={() => removeRealtimeNotification(notification.id)}
               >
                 <XStack alignItems="center" gap={8}>
                   {/* 확성기 아이콘 */}
@@ -958,24 +843,23 @@ export function HomeScreen() {
                     <line x1="79.6" y1="49.2" x2="86.7" y2="52.6" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                   <View>
-                    <Text fontSize={10} color="#888" fontWeight="500">
+                    <Text fontSize={14} color="#000" fontWeight="500">
                       실시간 접수 현황
                     </Text>
-                    <Text fontSize={12} color="#333" fontWeight="600">
+                    <Text fontSize={14} color="#000" fontWeight="600">
                       {notification.message}
                     </Text>
                   </View>
                 </XStack>
               </div>
-            );
-          })}
+          ))}
         </View>
       )}
 
       {/* 지도 */}
       {isLocationLoading || !location ? (
         <View flex={1} alignItems="center" justifyContent="center" backgroundColor="#f5f5f5">
-          <Spinner size="large" color="#333" />
+          <Spinner size="large" color="#000" />
         </View>
       ) : (
         <NaverMap
@@ -1046,8 +930,8 @@ export function HomeScreen() {
             }}
           >
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="7" stroke="#333" strokeWidth="1.5"/>
-              <path d="M12 5v4M12 15v4M5 12h4M15 12h4" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="12" cy="12" r="7" stroke="#000" strokeWidth="1.5"/>
+              <path d="M12 5v4M12 15v4M5 12h4M15 12h4" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </View>
         )}
@@ -1074,7 +958,7 @@ export function HomeScreen() {
             onPress={() => naverMapRef.current?.zoomIn()}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5v14M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M12 5v14M5 12h14" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </View>
           {/* 축소 */}
@@ -1087,7 +971,7 @@ export function HomeScreen() {
             onPress={() => naverMapRef.current?.zoomOut()}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M5 12h14" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </View>
         </View>
@@ -1210,7 +1094,7 @@ export function HomeScreen() {
         >
           <View padding={16} borderBottomWidth={1} borderBottomColor="#eee">
             <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize={16} fontWeight="600" color="#333">
+              <Text fontSize={16} fontWeight="600" color="#000">
                 같은 위치 의뢰 {clusterRequests.length}건
               </Text>
               <View
@@ -1222,7 +1106,7 @@ export function HomeScreen() {
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </View>
             </XStack>
@@ -1249,34 +1133,34 @@ export function HomeScreen() {
                       <View flex={1}>
                         <XStack gap={6} marginBottom={4}>
                           <View
-                            paddingHorizontal={6}
-                            paddingVertical={2}
+                            paddingHorizontal={8}
+                            paddingVertical={4}
                             backgroundColor={request.status === 'accepted' ? '#FEF3C7' : request.status === 'completed' ? '#E5E7EB' : '#DBEAFE'}
-                            borderRadius={4}
+                            borderRadius={6}
                           >
-                            <Text fontSize={10} color={request.status === 'accepted' ? '#D97706' : request.status === 'completed' ? '#6B7280' : '#2563EB'} fontWeight="600">
+                            <Text fontSize={14} color={request.status === 'accepted' ? '#D97706' : request.status === 'completed' ? '#6B7280' : '#2563EB'} fontWeight="600">
                               {request.status === 'accepted' ? '진행중' : request.status === 'completed' ? '완료' : '대기'}
                             </Text>
                           </View>
                           {request.is_urgent && (
-                            <View paddingHorizontal={6} paddingVertical={2} backgroundColor="#FEE2E2" borderRadius={4}>
-                              <Text fontSize={10} color="#DC2626" fontWeight="600">긴급</Text>
+                            <View paddingHorizontal={8} paddingVertical={4} backgroundColor="#FEE2E2" borderRadius={6}>
+                              <Text fontSize={14} color="#DC2626" fontWeight="600">긴급</Text>
                             </View>
                           )}
                           {isApplied && (
-                            <View paddingHorizontal={6} paddingVertical={2} backgroundColor="#DCFCE7" borderRadius={4}>
-                              <Text fontSize={10} color="#16A34A" fontWeight="600">신청함</Text>
+                            <View paddingHorizontal={8} paddingVertical={4} backgroundColor="#DCFCE7" borderRadius={6}>
+                              <Text fontSize={14} color="#16A34A" fontWeight="600">신청함</Text>
                             </View>
                           )}
                         </XStack>
-                        <Text fontSize={14} fontWeight="600" color="#333" numberOfLines={1}>
+                        <Text fontSize={16} fontWeight="600" color="#000" numberOfLines={1}>
                           {request.title}
                         </Text>
-                        <Text fontSize={12} color="#666" marginTop={2}>
+                        <Text fontSize={14} color="#000" marginTop={2}>
                           {request.as_type}
                         </Text>
                       </View>
-                      <Text fontSize={14} fontWeight="600" color={brandColors.primary}>
+                      <Text fontSize={16} fontWeight="600" color={brandColors.primary}>
                         {formatPrice(request.expected_fee)}원
                       </Text>
                     </XStack>

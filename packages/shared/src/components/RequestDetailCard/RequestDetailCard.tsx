@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { View, Text, XStack, YStack, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -10,6 +9,9 @@ import { useRequestApplications } from '../../hooks/useRequestApplications';
 import { LoginModal } from '../LoginModal';
 import { ProfileSetupModal } from '../ProfileSetupModal';
 import { BottomSheet } from '../BottomSheet';
+import { formatPrice, formatDate } from '../../utils/format';
+import { AsTypeIcon } from '../AsTypeIcon';
+import { ImagePreviewModal } from '../ImagePreviewModal';
 
 // 이미지 슬라이더 컴포넌트
 function ImageSlider({ images, onImageClick }: { images: string[]; onImageClick?: (url: string) => void }) {
@@ -116,7 +118,7 @@ function ImageSlider({ images, onImageClick }: { images: string[]; onImageClick?
       </View>
       {/* 이미지 카운터 */}
       {images.length > 1 && (
-        <Text fontSize={12} color="#888" textAlign="center" marginTop="$2">
+        <Text fontSize={14} color="#000" textAlign="center" marginTop="$2">
           {currentIndex + 1} / {images.length}
         </Text>
       )}
@@ -128,34 +130,6 @@ interface RequestDetailCardProps {
   request: Request | null;
   onClose: () => void;
   onAccept?: (requestId: string) => void;
-}
-
-// 금액 포맷팅
-function formatPrice(price: number): string {
-  if (price >= 10000) {
-    const man = Math.floor(price / 10000);
-    const rest = price % 10000;
-    if (rest === 0) {
-      return `${man}만`;
-    }
-    return `${man}만 ${rest.toLocaleString()}`;
-  }
-  return price.toLocaleString();
-}
-
-// 날짜 포맷팅
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  if (date.toDateString() === today.toDateString()) {
-    return '오늘';
-  } else if (date.toDateString() === tomorrow.toDateString()) {
-    return '내일';
-  }
-  return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
 export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailCardProps) {
@@ -249,47 +223,8 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
           {/* 상단: AS종류 + 상태 배지 + 긴급 태그 */}
           <XStack gap="$2" alignItems="center">
             <XStack alignItems="center" gap="$1.5">
-              {request.as_type === '복합기/OA' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-                  <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-                  <path d="M7 16h10v5H7z" fill="white" stroke="#6B7280" strokeWidth="1"/>
-                </svg>
-              )}
-              {request.as_type === '전기/통신' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-                </svg>
-              )}
-              {request.as_type === '가전/설비' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
-                </svg>
-              )}
-              {request.as_type === '인테리어' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#8B5CF6" stroke="#7C3AED" strokeWidth="1"/>
-                </svg>
-              )}
-              {request.as_type === '청소' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2v5" stroke="#10B981" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="#10B981" strokeWidth="1.5"/>
-                </svg>
-              )}
-              {request.as_type === '소프트웨어' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <rect x="2" y="3" width="20" height="14" rx="2" fill="#3B82F6"/>
-                  <rect x="4" y="5" width="16" height="10" fill="#60A5FA"/>
-                </svg>
-              )}
-              {request.as_type === '운반/설치' && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M1 3h15v13H1z" fill="#78716C" stroke="#78716C" strokeWidth="1"/>
-                  <path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="#78716C" strokeWidth="1"/>
-                </svg>
-              )}
-              <Text fontSize={16} fontWeight="600" color="#333">{request.as_type}</Text>
+              <AsTypeIcon type={request.as_type} size={16} />
+              <Text fontSize={16} fontWeight="600" color="#000">{request.as_type}</Text>
             </XStack>
             {/* 상태 배지 */}
             <View
@@ -298,14 +233,14 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                 request.status === 'accepted' ? '#F59E0B' :
                 '#fff'
               }
-              paddingHorizontal={8}
-              paddingVertical={2}
-              borderRadius={4}
+              paddingHorizontal={10}
+              paddingVertical={4}
+              borderRadius={6}
               borderWidth={request.status !== 'completed' && request.status !== 'accepted' ? 1 : 0}
               borderColor="#e5e7eb"
             >
               <Text
-                fontSize={12}
+                fontSize={14}
                 fontWeight="600"
                 color={
                   request.status === 'completed' || request.status === 'accepted' ? '#fff' : '#3B82F6'
@@ -320,11 +255,11 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
             {request.is_urgent && (
               <View
                 backgroundColor="#EF4444"
-                paddingHorizontal={8}
-                paddingVertical={2}
-                borderRadius={4}
+                paddingHorizontal={10}
+                paddingVertical={4}
+                borderRadius={6}
               >
-                <Text fontSize={12} fontWeight="700" color="white">긴급</Text>
+                <Text fontSize={14} fontWeight="700" color="white">긴급</Text>
               </View>
             )}
           </XStack>
@@ -347,9 +282,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3B82F6"/>
                   <circle cx="12" cy="9" r="2.5" fill="white"/>
                 </svg>
-                <Text fontSize={14} color="#888">주소</Text>
+                <Text fontSize={16} color="#000">주소</Text>
               </XStack>
-              <Text fontSize={14} color="#333" flex={1}>
+              <Text fontSize={16} color="#000" flex={1}>
                 {request.address}
                 {request.address_detail ? ` ${request.address_detail}` : ''}
               </Text>
@@ -364,9 +299,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                     <circle cx="12" cy="15" r="1" fill="white"/>
                     <circle cx="15" cy="15" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={14} color="#888">기종</Text>
+                  <Text fontSize={16} color="#000">기종</Text>
                 </XStack>
-                <Text fontSize={14} color="#333" flex={1}>{request.model}</Text>
+                <Text fontSize={16} color="#000" flex={1}>{request.model}</Text>
               </XStack>
             )}
             {request.symptom && (
@@ -377,9 +312,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                     <path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                     <circle cx="12" cy="17" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={14} color="#888">증상</Text>
+                  <Text fontSize={16} color="#000">증상</Text>
                 </XStack>
-                <Text fontSize={14} color="#333" flex={1}>{request.symptom}</Text>
+                <Text fontSize={16} color="#000" flex={1}>{request.symptom}</Text>
               </XStack>
             )}
             <XStack alignItems="center">
@@ -388,9 +323,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <circle cx="12" cy="12" r="10" fill="#10B981"/>
                   <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                <Text fontSize={14} color="#888">예상소요</Text>
+                <Text fontSize={16} color="#000">예상소요</Text>
               </XStack>
-              <Text fontSize={14} color="#333" flex={1}>{request.duration}</Text>
+              <Text fontSize={16} color="#000" flex={1}>{request.duration}</Text>
             </XStack>
             <XStack alignItems="center">
               <XStack width={100} alignItems="center" gap="$1.5">
@@ -400,9 +335,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <path d="M8 2v4M16 2v4" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
                   <circle cx="12" cy="15" r="2" fill="white"/>
                 </svg>
-                <Text fontSize={14} color="#888">처리요청</Text>
+                <Text fontSize={16} color="#000">처리요청</Text>
               </XStack>
-              <Text fontSize={14} color="#333" flex={1}>
+              <Text fontSize={16} color="#000" flex={1}>
                 {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
               </Text>
             </XStack>
@@ -412,9 +347,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <circle cx="12" cy="7" r="4" fill="#EC4899"/>
                   <path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" fill="#EC4899"/>
                 </svg>
-                <Text fontSize={14} color="#888">필요인원</Text>
+                <Text fontSize={16} color="#000">필요인원</Text>
               </XStack>
-              <Text fontSize={14} color="#333" flex={1}>{request.required_personnel}명</Text>
+              <Text fontSize={16} color="#000" flex={1}>{request.required_personnel}명</Text>
             </XStack>
           </YStack>
 
@@ -441,11 +376,14 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
             ) : null;
           })()}
 
-          {/* 설명 */}
+          {/* 상세정보 */}
           {request.description && (
-            <Text fontSize={14} color="#666" lineHeight={22}>
-              {request.description}
-            </Text>
+            <YStack gap={4}>
+              <Text fontSize={16} fontWeight="600" color="#000" marginTop={8}>상세정보</Text>
+              <Text fontSize={16} color="#000" lineHeight={22}>
+                {request.description}
+              </Text>
+            </YStack>
           )}
 
           {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시 */}
@@ -458,7 +396,7 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   borderRadius={8}
                   marginTop="$2"
                 >
-                  <Text fontSize={14} color="#D97706" textAlign="center" fontWeight="600">
+                  <Text fontSize={16} color="#D97706" textAlign="center" fontWeight="600">
                     이미 진행중인 의뢰입니다
                   </Text>
                 </View>
@@ -484,7 +422,7 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                 </Button>
               )}
               {applyError && (
-                <Text fontSize={13} color="#ff4444" textAlign="center" marginTop="$2">
+                <Text fontSize={14} color="#ff4444" textAlign="center" marginTop="$2">
                   {applyError}
                 </Text>
               )}
@@ -507,52 +445,8 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
         onSuccess={handleProfileSuccess}
       />
 
-      {/* 이미지 미리보기 모달 - Portal로 body에 직접 렌더링 */}
-      {previewImage && createPortal(
-        <View
-          position="fixed"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          backgroundColor="rgba(0,0,0,0.9)"
-          zIndex={200000}
-          alignItems="center"
-          justifyContent="center"
-          cursor="pointer"
-          onPress={() => setPreviewImage(null)}
-        >
-          <View
-            position="absolute"
-            top={16}
-            right={16}
-            width={40}
-            height={40}
-            borderRadius={20}
-            backgroundColor="rgba(255,255,255,0.2)"
-            alignItems="center"
-            justifyContent="center"
-            cursor="pointer"
-            onPress={() => setPreviewImage(null)}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </View>
-          <img
-            src={previewImage}
-            alt="미리보기"
-            style={{
-              maxWidth: '90%',
-              maxHeight: '90%',
-              objectFit: 'contain',
-              borderRadius: 8,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </View>,
-        document.body
-      )}
+      {/* 이미지 미리보기 모달 */}
+      <ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
     </>
   );
 }

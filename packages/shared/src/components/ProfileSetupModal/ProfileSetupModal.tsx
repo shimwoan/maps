@@ -141,8 +141,11 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
       const file = new File([blob], 'business_card.jpg', { type: 'image/jpeg' });
       const publicUrl = await uploadBusinessCard(file);
       await updateBusinessCard(publicUrl);
-      onSuccess?.();
-      onClose();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onClose();
+      }
     } catch (err: unknown) {
       console.error('Upload failed:', err);
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
@@ -185,6 +188,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
               crop={crop}
               onChange={(c) => setCrop(c)}
               onComplete={(c) => setCompletedCrop(c)}
+              aspect={9 / 5}
               style={{ maxHeight: 300 }}
             >
               <img
@@ -194,20 +198,35 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
                 style={{ maxHeight: 300, maxWidth: '100%' }}
                 onLoad={(e) => {
                   const img = e.currentTarget;
+                  const aspect = 9 / 5;
+                  // 이미지에 맞춰 최대 크기의 9:5 크롭 영역 계산
+                  let cropWidth = img.width * 0.9;
+                  let cropHeight = cropWidth / aspect;
+                  if (cropHeight > img.height * 0.9) {
+                    cropHeight = img.height * 0.9;
+                    cropWidth = cropHeight * aspect;
+                  }
                   const initialCrop: PixelCrop = {
                     unit: 'px',
-                    x: img.width * 0.05,
-                    y: img.height * 0.05,
-                    width: img.width * 0.9,
-                    height: img.height * 0.9,
+                    x: (img.width - cropWidth) / 2,
+                    y: (img.height - cropHeight) / 2,
+                    width: cropWidth,
+                    height: cropHeight,
                   };
                   setCompletedCrop(initialCrop);
+                  setCrop({
+                    unit: 'px',
+                    x: initialCrop.x,
+                    y: initialCrop.y,
+                    width: initialCrop.width,
+                    height: initialCrop.height,
+                  });
                 }}
               />
             </ReactCrop>
           </View>
 
-          <Text fontSize={12} color="#888" textAlign="center">
+          <Text fontSize={14} color="#000" textAlign="center">
             모서리나 테두리를 드래그하여 영역을 조절하세요
           </Text>
 
@@ -216,7 +235,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
               flex={1}
               size="$4"
               backgroundColor="#f0f0f0"
-              color="#666"
+              color="#000"
               onPress={handleCancelCrop}
               disabled={isUploading}
               hoverStyle={{ backgroundColor: '#e8e8e8' }}
@@ -237,7 +256,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
           </XStack>
 
           {error && (
-            <Text fontSize={13} color="#ff4444" textAlign="center">
+            <Text fontSize={14} color="#ff4444" textAlign="center">
               {error}
             </Text>
           )}
@@ -245,7 +264,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
       ) : (
         // 기본 모드 - 이미지 선택
         <YStack gap="$4">
-          <Text fontSize={14} color="#666" textAlign="center">
+          <Text fontSize={16} color="#000" textAlign="center">
             {isEdit
               ? '새로운 명함 이미지 or 사업자 등록증를 업로드해주세요.'
               : '작업을 수락하려면 명함 이미지 or 사업자 등록증을 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
@@ -274,10 +293,10 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
                   strokeLinecap="round"
                 />
               </svg>
-              <Text fontSize={13} color="#999">
+              <Text fontSize={14} color="#999">
                 클릭하여 명함 이미지 업로드
               </Text>
-              <Text fontSize={11} color="#bbb">
+              <Text fontSize={14} color="#bbb">
                 JPG, PNG (최대 5MB)
               </Text>
             </YStack>
@@ -292,7 +311,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
           />
 
           {error && (
-            <Text fontSize={13} color="#ff4444" textAlign="center">
+            <Text fontSize={14} color="#ff4444" textAlign="center">
               {error}
             </Text>
           )}
@@ -300,7 +319,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
           <Button
             size="$4"
             backgroundColor="#f0f0f0"
-            color="#666"
+            color="#000"
             onPress={onClose}
             hoverStyle={{ backgroundColor: '#e8e8e8' }}
           >

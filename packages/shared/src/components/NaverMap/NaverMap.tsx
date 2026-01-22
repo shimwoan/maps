@@ -222,8 +222,8 @@ const createMarkerContent = (marker: RequestMarker, _isOwn: boolean, isApplied: 
             margin-top: 2px;
             white-space: nowrap;
           ">
-            ${getCategoryIcon(marker.asType, size.iconSize, '#888')}
-            <span style="font-size: ${size.fontSizeSm}px; color: #888; font-weight: 500;">${marker.asType}</span>
+            ${getCategoryIcon(marker.asType, size.iconSize, '#333')}
+            <span style="font-size: ${size.fontSizeSm}px; color: #333; font-weight: 500;">${marker.asType}</span>
           </div>
 
           <!-- 제목 (2줄 제한) -->
@@ -243,7 +243,7 @@ const createMarkerContent = (marker: RequestMarker, _isOwn: boolean, isApplied: 
         <!-- 가격 (항상 하단) -->
         <div style="
           font-size: ${size.fontSizeSm}px;
-          color: #666;
+          color: #333;
           font-weight: normal;
           margin-top: auto;
         ">${formatPrice(marker.price)}원</div>
