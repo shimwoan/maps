@@ -48,7 +48,7 @@ export function getStatusLabel(status: string): { label: string; color: string; 
     case 'pending':
       return { label: '대기', color: '#3B82F6', bgColor: '#fff' };
     case 'applied':
-      return { label: '신청있음', color: brandColors.primary, bgColor: brandColors.primaryLight };
+      return { label: '신청있음', color: '#3B82F6', bgColor: '#EFF6FF' };
     case 'accepted':
       return { label: '진행중', color: '#fff', bgColor: '#F59E0B' };
     case 'rejected':

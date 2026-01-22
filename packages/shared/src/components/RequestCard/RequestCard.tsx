@@ -51,10 +51,13 @@ export function RequestCard({
       cursor="pointer"
       onPress={onCardPress}
     >
-      {/* 카테고리 */}
-      <XStack alignItems="center" gap="$1.5">
-        <AsTypeIcon type={asType} size={14} />
-        <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>{asType}</Text>
+      {/* 카테고리 + rightAction */}
+      <XStack alignItems="center" justifyContent="space-between">
+        <XStack alignItems="center" gap="$1.5">
+          <AsTypeIcon type={asType} size={14} />
+          <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>{asType}</Text>
+        </XStack>
+        {rightAction}
       </XStack>
 
       {/* 제목 + 상태 배지 */}
@@ -94,7 +97,6 @@ export function RequestCard({
           </Text>
         </XStack>
         <XStack alignItems="center" gap="$2">
-          {rightAction}
           {hasChildren && (
             <View
               cursor="pointer"

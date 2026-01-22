@@ -61,6 +61,25 @@ function MyRequestCard({
       address={request.address}
       isCompleted={isCompleted}
       onCardPress={onCardPress}
+      rightAction={
+        pendingApps.length > 0 && request.status !== 'accepted' && request.status !== 'completed' ? (
+          <XStack alignItems="center" gap="$1.5">
+            <View
+              width={14}
+              height={14}
+              borderRadius={7}
+              backgroundColor="#EF4444"
+              shadowColor="#EF4444"
+              shadowOffset={{ width: 0, height: 2 }}
+              shadowOpacity={0.4}
+              shadowRadius={4}
+            />
+            <Text fontSize={16} fontWeight="700" color="#EF4444">
+              {pendingApps.length}명
+            </Text>
+          </XStack>
+        ) : undefined
+      }
     >
       {/* 진행중인 경우 - 수락된 신청자 정보 표시 */}
       {request.status === 'accepted' && acceptedApp && (
@@ -144,9 +163,6 @@ function MyRequestCard({
       {/* 신청자 목록 - pending 상태일 때만 */}
       {pendingApps.length > 0 && request.status !== 'accepted' && (
         <YStack gap="$2" marginTop="$2">
-          <Text fontSize={14} color="#000" fontWeight="600">
-            신청자 ({pendingApps.length}명)
-          </Text>
           {pendingApps.map((app) => (
             <XStack
               key={app.id}

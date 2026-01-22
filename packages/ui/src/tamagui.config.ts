@@ -2,10 +2,10 @@ import { config as tamaguiConfig } from '@tamagui/config/v3';
 
 // 브랜드 컬러 정의
 export const brandColors = {
-  primary: '#6B7CFF',
-  primaryHover: '#5a6be6',
-  primaryPressed: '#4a5bd6',
-  primaryLight: '#EEF2FF',
+  primary: '#87BEE1',
+  primaryHover: '#70ADD0',
+  primaryPressed: '#5A9CC0',
+  primaryLight: '#E8F4FA',
 } as const;
 
 // 공통 컬러 정의
