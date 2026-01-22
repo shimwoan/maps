@@ -274,6 +274,7 @@ function MyApplicationCard({
 
 
   return (
+    <>
     <RequestCard
       title={req.title}
       asType={req.as_type}
@@ -400,8 +401,9 @@ function MyApplicationCard({
           )}
         </YStack>
       )}
+    </RequestCard>
 
-      {/* 취소 확인 다이얼로그 */}
+      {/* 취소 확인 다이얼로그 - RequestCard 밖에서 렌더링 */}
       <ConfirmationDialog
         isOpen={showCancelDialog}
         onClose={() => setShowCancelDialog(false)}
@@ -413,7 +415,7 @@ function MyApplicationCard({
         isLoading={isCanceling}
         variant="danger"
       />
-    </RequestCard>
+    </>
   );
 }
 

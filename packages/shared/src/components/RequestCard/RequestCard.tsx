@@ -35,7 +35,7 @@ export function RequestCard({
 }: RequestCardProps) {
   const statusInfo = getStatusLabel(status);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const hasChildren = React.Children.toArray(children).filter(Boolean).length > 0;
+  const hasChildren = React.Children.toArray(children).filter(child => React.isValidElement(child)).length > 0;
 
   return (
     <YStack
