@@ -356,26 +356,25 @@ export function HomeScreen() {
     const fetchLatestEvent = async () => {
       const { data } = await supabase
         .from('requests')
-        .select('id, address, as_type, status, created_at, updated_at')
+        .select('id, title, address, as_type, status, created_at, updated_at')
         .order('updated_at', { ascending: false })
         .limit(1)
         .single();
 
       if (data) {
-        const district = extractDistrict(data.address);
         const timestamp = new Date(data.updated_at || data.created_at).getTime();
 
         let message = '';
         let type: 'new' | 'matched' | 'completed' = 'new';
 
         if (data.status === 'completed') {
-          message = `${district} [${data.as_type}] 작업 완료`;
+          message = `[${data.title}] 작업 완료`;
           type = 'completed';
         } else if (data.status === 'accepted') {
-          message = `${district} [${data.as_type}] 매칭 완료`;
+          message = `[${data.title}] 매칭 완료`;
           type = 'matched';
         } else {
-          message = `${district} [${data.as_type}] 새 협업 요청 등록`;
+          message = `[${data.title}] 새. 협업 요청 등록`;
           type = 'new';
         }
 
@@ -420,26 +419,24 @@ export function HomeScreen() {
             if (payload.eventType === 'INSERT') {
               // 새 의뢰 등록
               const newRequest = payload.new as { address: string; as_type: string; title: string };
-              const district = extractDistrict(newRequest.address);
               addRealtimeNotification(
-                `${district} [${newRequest.as_type}] 새 협업 요청 등록`,
+                `${newRequest.title} 등록`,
                 'new'
               );
             } else if (payload.eventType === 'UPDATE') {
               const newData = payload.new as { status: string; address: string; as_type: string; title: string };
               const oldData = payload.old as { status: string };
-              const district = extractDistrict(newData.address);
 
               if (oldData.status !== 'accepted' && newData.status === 'accepted') {
                 // 매칭 완료
                 addRealtimeNotification(
-                  `${district} [${newData.as_type}] 매칭 완료`,
+                  `${newData.title} 매칭 완료`,
                   'matched'
                 );
               } else if (oldData.status !== 'completed' && newData.status === 'completed') {
                 // 의뢰 완료
                 addRealtimeNotification(
-                  `${district} [${newData.as_type}] 작업 완료`,
+                  `${newData.title} 작업 완료`,
                   'completed'
                 );
               }

@@ -796,13 +796,16 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 cursor="pointer"
                 onPress={() => setActiveTab('myRequests')}
               >
-                <Text
-                  fontSize={16}
-                  fontWeight="600"
-                  color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
-                >
-                  요청합니다
-                </Text>
+                <XStack alignItems="center" justifyContent="center" gap="$2">
+                  <Text
+                    fontSize={16}
+                    fontWeight="600"
+                    color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
+                  >
+                    요청합니다
+                  </Text>
+                  <img src="/yellow-hans.png" alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
+                </XStack>
               </View>
               <View
                 flex={1}
@@ -813,13 +816,16 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 cursor="pointer"
                 onPress={() => setActiveTab('myApplications')}
               >
-                <Text
-                  fontSize={16}
-                  fontWeight="600"
-                  color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
-                >
-                  가능합니다
-                </Text>
+                <XStack alignItems="center" justifyContent="center" gap="$2">
+                  <Text
+                    fontSize={16}
+                    fontWeight="600"
+                    color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
+                  >
+                    가능합니다
+                  </Text>
+                  <img src="/green-hans.png" alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
+                </XStack>
               </View>
             </XStack>
             {/* 상태 필터 */}
@@ -896,7 +902,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                         onReject={handleReject}
                         onImageClick={(url) => setEnlargedImageUrl(url)}
                         onCardPress={() => {
-                          refetch(); // 최신 데이터 가져오기
                           setSelectedDetailRequest(req);
                         }}
                       />
@@ -921,7 +926,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                         onCancel={handleCancel}
                         onCardPress={() => {
                           if (app.request) {
-                            refetch(); // 최신 데이터 가져오기
                             setSelectedDetailRequest(app.request as unknown as Request);
                             setSelectedApplication(app);
                           }
