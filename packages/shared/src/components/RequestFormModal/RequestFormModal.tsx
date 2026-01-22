@@ -101,7 +101,7 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 const VISIT_TYPES: VisitType[] = ['방문', '원격'];
-const DURATION_OPTIONS = ['30분', '1시간', '2시간', '3시간', '4시간', '반나절', '하루'];
+const DURATION_OPTIONS = ['30분', '1시간', '2시간', '3시간', '하루 이상'];
 const PERSONNEL_OPTIONS = [1, 2, 3, 4, 5];
 
 // 필수 라벨 컴포넌트
@@ -753,12 +753,13 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                   alignItems="center"
                   justifyContent="space-between"
                   cursor="pointer"
+                  gap="$2"
                   onPress={() => onChange(!value)}
                 >
                   <Text fontSize={16} fontWeight="600" color="#000">세금계산서 발행</Text>
                   <View
-                    width={24}
-                    height={24}
+                    width={18}
+                    height={18}
                     borderRadius={4}
                     borderWidth={2}
                     borderColor={value ? brandColors.primary : '#ccc'}

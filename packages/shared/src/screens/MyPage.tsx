@@ -296,20 +296,6 @@ function MyApplicationCard({
     }
   };
 
-  const cancelButton = application.status === 'pending' ? (
-    <Button
-      size="$4"
-      backgroundColor="#fee2e2"
-      color="#dc2626"
-      fontWeight="600"
-      onPress={(e: any) => {
-        e.stopPropagation();
-        setShowCancelDialog(true);
-      }}
-    >
-      취소
-    </Button>
-  ) : undefined;
 
   return (
     <RequestCard
@@ -322,7 +308,6 @@ function MyApplicationCard({
       address={req.address}
       isCompleted={application.status === 'completed'}
       onCardPress={onCardPress}
-      rightAction={cancelButton}
     >
       {/* 진행중인 경우 - 아직 완료 요청 전 */}
       {application.status === 'accepted' && !application.completion_requested && (
@@ -558,6 +543,71 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
     refetch();
   };
 
+  // 진행중인 작업 취소 (의뢰 등록자가)
+  const handleCancelWork = async (reqId: string) => {
+    const { supabase } = await import('../lib/supabase');
+
+    // 의뢰 정보 조회
+    const { data: requestData } = await supabase
+      .from('requests')
+      .select('title')
+      .eq('id', reqId)
+      .single();
+
+    // 수락된 신청자 정보 조회 (알림 보내기 위해)
+    const { data: acceptedApp } = await supabase
+      .from('request_applications')
+      .select('applicant_id')
+      .eq('request_id', reqId)
+      .eq('status', 'accepted')
+      .single();
+
+    // 수락된 신청 삭제
+    const { error: appError } = await supabase
+      .from('request_applications')
+      .delete()
+      .eq('request_id', reqId)
+      .eq('status', 'accepted');
+
+    if (appError) throw appError;
+
+    // 다른 pending 신청자가 있는지 확인
+    const { data: otherApps } = await supabase
+      .from('request_applications')
+      .select('id')
+      .eq('request_id', reqId)
+      .eq('status', 'pending');
+
+    // 의뢰 상태를 pending 또는 applied로 변경
+    const newStatus = otherApps && otherApps.length > 0 ? 'applied' : 'pending';
+    const { error: reqError } = await supabase
+      .from('requests')
+      .update({ status: newStatus })
+      .eq('id', reqId);
+
+    if (reqError) throw reqError;
+
+    // 수행자에게 알림 전송
+    if (acceptedApp && requestData && user) {
+      const requesterName = profile?.nickname || user.user_metadata?.name || '의뢰자';
+      await supabase.from('notifications').insert({
+        user_id: acceptedApp.applicant_id,
+        type: 'work_cancelled',
+        title: '작업 취소됨',
+        message: `${requesterName}님이 "${requestData.title}" 의뢰의 작업을 취소했습니다.`,
+        request_id: reqId,
+      });
+    }
+
+    // 로컬 상태 업데이트
+    setMyRequests(prev => prev.map(r =>
+      r.id === reqId ? { ...r, status: newStatus } : r
+    ));
+
+    // 신청 목록도 리프레시
+    refetch();
+  };
+
   // 의뢰별 신청 그룹화
   const applicationsByRequest = applicationsToMyRequests.reduce((acc, app) => {
     if (!acc[app.request_id]) {
@@ -600,9 +650,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       `}</style>
       <View
         width="100%"
-        maxWidth={768}
         height="100%"
-        alignSelf="center"
         backgroundColor="#fafafa"
         // @ts-ignore
         className="mypage-container"
@@ -919,6 +967,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
             setSelectedApplication(null);
           }}
           onDeleteRequest={handleDeleteRequest}
+          onCancelWork={handleCancelWork}
         />
       )}
 

@@ -190,6 +190,7 @@ export function HomeScreen() {
   const [tempAsTypeFilters, setTempAsTypeFilters] = useState<AsType[]>([]);
   const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
   const [clusterRequestIds, setClusterRequestIds] = useState<string[]>([]); // 클러스터 클릭 시 표시할 의뢰 ID 목록
+  const [editingRequest, setEditingRequest] = useState<Request | null>(null); // 수정할 의뢰
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
@@ -1177,8 +1178,23 @@ export function HomeScreen() {
             refetchRequests();
             refetchApplications();
           }}
+          onEditRequest={(req) => {
+            setEditingRequest(req);
+            setSelectedRequestId(null);
+          }}
         />
       )}
+
+      {/* 의뢰 수정 모달 */}
+      <RequestFormModal
+        isOpen={!!editingRequest}
+        onClose={() => setEditingRequest(null)}
+        onSuccess={() => {
+          setEditingRequest(null);
+          refetchRequests();
+        }}
+        editRequest={editingRequest}
+      />
     </View>
   );
 }

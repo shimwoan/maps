@@ -139,6 +139,7 @@ interface RequestDetailCardProps {
   onEditRequest?: (request: Request) => void;
   // 의뢰 등록자용 props
   onDeleteRequest?: (requestId: string) => Promise<void>;
+  onCancelWork?: (requestId: string) => Promise<void>;
 }
 
 export function RequestDetailCard({
@@ -150,6 +151,7 @@ export function RequestDetailCard({
   onRequestCompletion,
   onEditRequest,
   onDeleteRequest,
+  onCancelWork,
 }: RequestDetailCardProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -157,19 +159,22 @@ export function RequestDetailCard({
   const [applyError, setApplyError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCancelApplicationDialog, setShowCancelApplicationDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCancelWorkDialog, setShowCancelWorkDialog] = useState(false);
   const [showCompletionRequestDialog, setShowCompletionRequestDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
   const { hasBusinessCard, refetch: refetchProfile } = useProfile();
-  const { applyToRequest, myApplications } = useRequestApplications();
+  const { applyToRequest, myApplications, cancelApplication } = useRequestApplications();
 
   if (!request) return null;
 
   // 작성자가 아닌 경우에만 작업 수락 버튼 표시
   const canAccept = !user || user.id !== request.user_id;
   // 이미 신청했는지 확인
-  const alreadyApplied = myApplications.some(app => app.request_id === request.id);
+  const myPendingApplication = myApplications.find(app => app.request_id === request.id && app.status === 'pending');
+  const alreadyApplied = !!myPendingApplication;
   // 진행중인 의뢰인지 확인
   const isInProgress = request.status === 'accepted';
   const isCompleted = request.status === 'completed';
@@ -295,20 +300,16 @@ export function RequestDetailCard({
               <Text fontSize={20} fontWeight="700" color={brandColors.primary}>
                 {formatPrice(request.expected_fee)}원
               </Text>
-              <XStack alignItems="center" gap="$1.5">
+              <XStack alignItems="center" gap="$2">
                 <Text fontSize={16} color="#000">세금계산서 발행</Text>
                 {request.needs_invoice ? (
                   <View
-                    width={22}
-                    height={22}
-                    borderRadius={11}
+                    width={18}
+                    height={18}
+                    borderRadius={10}
                     borderWidth={2}
                     borderColor="#EF4444"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <View width={10} height={10} borderRadius={5} backgroundColor="#EF4444" />
-                  </View>
+                  />
                 ) : (
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                     <path d="M18 6L6 18M6 6l12 12" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>
@@ -430,7 +431,7 @@ export function RequestDetailCard({
             </YStack>
           )}
 
-          {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 */}
+          {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 (대기중) */}
           {!canAccept && !isInProgress && !isCompleted && (
             <XStack gap="$2.5" marginTop="$2">
               <Button
@@ -466,6 +467,23 @@ export function RequestDetailCard({
             </XStack>
           )}
 
+          {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 (진행중) */}
+          {!canAccept && isInProgress && !isCompleted && (
+            <Button
+              size="$5"
+              backgroundColor="#fee2e2"
+              color="#dc2626"
+              fontWeight="700"
+              marginTop="$2"
+              onPress={() => setShowCancelWorkDialog(true)}
+              disabled={isProcessing}
+              hoverStyle={{ backgroundColor: '#fecaca' }}
+              pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+            >
+              신청 취소
+            </Button>
+          )}
+
           {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시, 수행자용 모달에서는 숨김 */}
           {canAccept && !myApplication && (
             <>
@@ -480,22 +498,46 @@ export function RequestDetailCard({
                     이미 진행중인 의뢰입니다
                   </Text>
                 </View>
+              ) : alreadyApplied ? (
+                <XStack gap="$2" marginTop="$2">
+                  <Button
+                    flex={1}
+                    size="$5"
+                    backgroundColor="#999"
+                    color="white"
+                    fontWeight="700"
+                    disabled={true}
+                  >
+                    신청 완료
+                  </Button>
+                  <Button
+                    flex={1}
+                    size="$5"
+                    backgroundColor="#fee2e2"
+                    color="#dc2626"
+                    fontWeight="700"
+                    onPress={() => setShowCancelApplicationDialog(true)}
+                    disabled={isProcessing}
+                    hoverStyle={{ backgroundColor: '#fecaca' }}
+                    pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+                  >
+                    신청 취소
+                  </Button>
+                </XStack>
               ) : (
                 <Button
                   size="$5"
-                  backgroundColor={alreadyApplied ? '#999' : brandColors.primary}
+                  backgroundColor={brandColors.primary}
                   color="white"
                   fontWeight="700"
                   marginTop="$2"
                   onPress={handleAcceptClick}
-                  disabled={isApplying || alreadyApplied}
-                  hoverStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryHover }}
-                  pressStyle={{ backgroundColor: alreadyApplied ? '#999' : brandColors.primaryPressed, scale: 0.98 }}
+                  disabled={isApplying}
+                  hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+                  pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
                 >
                   {isApplying ? (
                     <Spinner size="small" color="white" />
-                  ) : alreadyApplied ? (
-                    '신청 완료'
                   ) : (
                     '작업 수락하기'
                   )}
@@ -585,7 +627,7 @@ export function RequestDetailCard({
         isLoading={isProcessing}
       />
 
-      {/* 작업 취소 확인 다이얼로그 */}
+      {/* 작업 취소 확인 다이얼로그 (수행자 - 진행중) */}
       <ConfirmationDialog
         isOpen={showCancelDialog}
         onClose={() => setShowCancelDialog(false)}
@@ -604,6 +646,30 @@ export function RequestDetailCard({
         }}
         title="작업 취소"
         message="정말로 작업을 취소하시겠습니까?"
+        confirmText="예, 취소합니다"
+        cancelText="아니오"
+        isLoading={isProcessing}
+        variant="danger"
+      />
+
+      {/* 신청 취소 확인 다이얼로그 (수행자 - 대기중) */}
+      <ConfirmationDialog
+        isOpen={showCancelApplicationDialog}
+        onClose={() => setShowCancelApplicationDialog(false)}
+        onConfirm={async () => {
+          if (!myPendingApplication || !request) return;
+          setIsProcessing(true);
+          try {
+            await cancelApplication(myPendingApplication.id, request.id);
+            setShowCancelApplicationDialog(false);
+          } catch (err) {
+            console.error('Failed to cancel application:', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+        title="신청 취소"
+        message="작업 신청을 취소하시겠습니까?"
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}
@@ -629,6 +695,31 @@ export function RequestDetailCard({
         }}
         title="의뢰 취소"
         message="정말로 의뢰를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmText="예, 취소합니다"
+        cancelText="아니오"
+        isLoading={isProcessing}
+        variant="danger"
+      />
+
+      {/* 신청 취소 확인 다이얼로그 (의뢰 등록자 - 진행중) */}
+      <ConfirmationDialog
+        isOpen={showCancelWorkDialog}
+        onClose={() => setShowCancelWorkDialog(false)}
+        onConfirm={async () => {
+          if (!request || !onCancelWork) return;
+          setIsProcessing(true);
+          try {
+            await onCancelWork(request.id);
+            setShowCancelWorkDialog(false);
+            onClose();
+          } catch (err) {
+            console.error('Failed to cancel work:', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+        title="신청 취소"
+        message="수행자의 신청을 취소하시겠습니까? 수행자에게 알림이 전송됩니다."
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}
