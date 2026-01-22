@@ -86,24 +86,29 @@ function MyRequestCard({
                 width={8}
                 height={8}
                 borderRadius={4}
-                backgroundColor="#22C55E"
+                backgroundColor={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'}
                 style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
               />
-              <Text fontSize={14} color="#22C55E" fontWeight="600">
-                {acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중
+              <Text fontSize={14} color={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'} fontWeight="600">
+                {acceptedApp.completion_requested
+                  ? `${acceptedApp.applicant_profile?.nickname || '수행자'}님이 작업 완료 요청`
+                  : `${acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중`}
               </Text>
             </XStack>
-            <View onClick={(e: any) => e.stopPropagation()}>
-              <Button
-                size="$2"
-                backgroundColor={brandColors.primary}
-                color="white"
-                onPress={() => setShowCompleteDialog(true)}
-                hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-              >
-                의뢰 종료
-              </Button>
-            </View>
+            {acceptedApp.completion_requested && (
+              <View onClick={(e: any) => e.stopPropagation()}>
+                <Button
+                  size="$4"
+                  backgroundColor={brandColors.primary}
+                  color="white"
+                  fontWeight="600"
+                  onPress={() => setShowCompleteDialog(true)}
+                  hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+                >
+                  작업 완료
+                </Button>
+              </View>
+            )}
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
             <img
@@ -190,18 +195,20 @@ function MyRequestCard({
               </YStack>
               <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
                 <Button
-                  size="$2"
+                  size="$4"
                   backgroundColor="#f0f0f0"
                   color="#000"
+                  fontWeight="600"
                   onPress={() => onReject(app.id)}
                   hoverStyle={{ backgroundColor: '#e8e8e8' }}
                 >
                   거절
                 </Button>
                 <Button
-                  size="$2"
+                  size="$4"
                   backgroundColor={brandColors.primary}
                   color="white"
+                  fontWeight="600"
                   onPress={() => onAccept(app.id, app.request_id)}
                   hoverStyle={{ backgroundColor: brandColors.primaryHover }}
                 >
@@ -232,14 +239,18 @@ function MyRequestCard({
 function MyApplicationCard({
   application,
   onCancel,
+  onRequestCompletion,
   onCardPress,
 }: {
   application: RequestApplication;
   onCancel: (appId: string, reqId: string) => Promise<void>;
+  onRequestCompletion: (appId: string, reqId: string) => Promise<void>;
   onCardPress: () => void;
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isRequestingCompletion, setIsRequestingCompletion] = useState(false);
   const req = application.request;
 
   if (!req) return null;
@@ -256,11 +267,24 @@ function MyApplicationCard({
     }
   };
 
+  const handleConfirmCompletion = async () => {
+    setIsRequestingCompletion(true);
+    try {
+      await onRequestCompletion(application.id, application.request_id);
+      setShowCompletionDialog(false);
+    } catch (err) {
+      console.error('Failed to request completion:', err);
+    } finally {
+      setIsRequestingCompletion(false);
+    }
+  };
+
   const cancelButton = (application.status === 'pending' || application.status === 'accepted') ? (
     <Button
-      size="$2"
+      size="$4"
       backgroundColor="#fee2e2"
       color="#dc2626"
+      fontWeight="600"
       onPress={(e: any) => {
         e.stopPropagation();
         setShowCancelDialog(true);
@@ -283,6 +307,44 @@ function MyApplicationCard({
       onCardPress={onCardPress}
       rightAction={cancelButton}
     >
+      {/* 진행중인 경우 - 작업 완료 요청 버튼 */}
+      {application.status === 'accepted' && !application.completion_requested && (
+        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+          <View onClick={(e: any) => e.stopPropagation()}>
+            <Button
+              size="$4"
+              backgroundColor={brandColors.primary}
+              color="white"
+              fontWeight="600"
+              width="100%"
+              onPress={() => setShowCompletionDialog(true)}
+              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+            >
+              작업 완료 요청
+            </Button>
+          </View>
+        </YStack>
+      )}
+
+      {/* 완료 요청 대기중인 경우 */}
+      {application.status === 'accepted' && application.completion_requested && (
+        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+          <XStack alignItems="center" gap="$2">
+            <View
+              width={8}
+              height={8}
+              borderRadius={4}
+              backgroundColor="#F59E0B"
+              // @ts-ignore
+              style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
+            />
+            <Text fontSize={14} color="#F59E0B" fontWeight="600">
+              작업 완료 요청 대기중
+            </Text>
+          </XStack>
+        </YStack>
+      )}
+
       {/* 완료된 경우 - 완료 정보 표시 */}
       {application.status === 'completed' && (
         <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
@@ -312,6 +374,18 @@ function MyApplicationCard({
         isLoading={isCanceling}
         variant="danger"
       />
+
+      {/* 작업 완료 요청 확인 다이얼로그 */}
+      <ConfirmationDialog
+        isOpen={showCompletionDialog}
+        onClose={() => setShowCompletionDialog(false)}
+        onConfirm={handleConfirmCompletion}
+        title="작업 완료 요청"
+        message="의뢰자에게 작업 완료 요청을 보내시겠습니까?"
+        confirmText="예, 요청합니다"
+        cancelText="아니오"
+        isLoading={isRequestingCompletion}
+      />
     </RequestCard>
   );
 }
@@ -332,6 +406,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
     acceptApplication,
     rejectApplication,
     cancelApplication,
+    requestCompletion,
     refetch,
   } = useRequestApplications();
   useRequests(); // 의뢰 데이터 초기화
@@ -675,6 +750,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       key={app.id}
                       application={app}
                       onCancel={handleCancel}
+                      onRequestCompletion={requestCompletion}
                       onCardPress={() => app.request && setSelectedDetailRequest(app.request as unknown as Request)}
                     />
                   ))

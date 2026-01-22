@@ -9,6 +9,7 @@ export interface RequestApplication {
   status: string;
   created_at: string;
   updated_at: string;
+  completion_requested: boolean;
   // 조인된 데이터
   request?: {
     id: string;
@@ -475,6 +476,40 @@ export function useRequestApplications() {
     console.log('Refetch completed');
   };
 
+  // 작업 완료 요청 (수행자가)
+  const requestCompletion = async (applicationId: string, requestId: string) => {
+    if (!user) throw new Error('로그인이 필요합니다');
+
+    // completion_requested를 true로 설정
+    const { error } = await supabase
+      .from('request_applications')
+      .update({ completion_requested: true, updated_at: new Date().toISOString() })
+      .eq('id', applicationId);
+
+    if (error) throw error;
+
+    // 의뢰 정보 조회 (의뢰자에게 알림 보내기 위해)
+    const { data: requestData } = await supabase
+      .from('requests')
+      .select('user_id, title')
+      .eq('id', requestId)
+      .single();
+
+    // 의뢰자에게 알림 전송
+    if (requestData) {
+      const applicantName = user.user_metadata?.name || user.user_metadata?.full_name || '수행자';
+      await supabase.from('notifications').insert({
+        user_id: requestData.user_id,
+        type: 'completion_requested',
+        title: '작업 완료 요청',
+        message: `${applicantName}님이 "${requestData.title}" 의뢰의 작업 완료를 요청했습니다.`,
+        request_id: requestId,
+      });
+    }
+
+    await fetchAll();
+  };
+
   return {
     myApplications,
     applicationsToMyRequests,
@@ -483,6 +518,7 @@ export function useRequestApplications() {
     acceptApplication,
     rejectApplication,
     cancelApplication,
+    requestCompletion,
     refetch: fetchAll,
   };
 }
