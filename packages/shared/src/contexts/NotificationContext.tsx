@@ -53,19 +53,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // 읽지 않은 알림 수 조회
-      const { count: unread } = await supabase
+      // 첫 페이지 조회 (count도 함께 가져오기)
+      const { data, error, count } = await supabase
         .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      setUnreadCount(unread || 0);
-
-      // 첫 페이지 조회
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
@@ -74,6 +65,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       setNotifications(data || []);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
+
+      // 읽지 않은 알림 수 계산 - 먼저 로드된 데이터에서 계산
+      const unreadInData = (data || []).filter(n => !n.is_read).length;
+
+      // 전체 읽지 않은 수가 더 많을 수 있으므로 별도 쿼리
+      const { count: unreadTotal } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      // 둘 중 더 큰 값 사용 (안전하게)
+      setUnreadCount(Math.max(unreadInData, unreadTotal ?? 0));
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {

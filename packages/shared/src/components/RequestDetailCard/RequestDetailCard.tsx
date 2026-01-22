@@ -256,7 +256,7 @@ export function RequestDetailCard({
           <XStack gap="$2" alignItems="center">
             <XStack alignItems="center" gap="$1.5">
               <AsTypeIcon type={request.as_type} size={16} />
-              <Text fontSize={16} fontWeight="600" color="#000">{request.as_type}</Text>
+              <Text fontSize={18} fontWeight="600" color="#000">{request.as_type}</Text>
             </XStack>
             {/* 상태 배지 */}
             <View
@@ -306,7 +306,7 @@ export function RequestDetailCard({
                 {formatPrice(request.expected_fee)}원
               </Text>
               <XStack alignItems="center" gap="$2">
-                <Text fontSize={16} color="#000">세금계산서 발행</Text>
+                <Text fontSize={18} color="#000">세금계산서 발행</Text>
                 {request.needs_invoice ? (
                   <View
                     width={18}
@@ -429,7 +429,7 @@ export function RequestDetailCard({
           {/* 상세정보 */}
           {request.description && (
             <YStack gap={4}>
-              <Text fontSize={18} fontWeight="600" color="#000" marginTop={8}>상세정보</Text>
+              <Text fontSize={18} fontWeight="600" color="#000" marginTop={8}>상세설명</Text>
               <Text fontSize={18} color="#000" lineHeight={26}>
                 {request.description}
               </Text>
@@ -521,31 +521,19 @@ export function RequestDetailCard({
                   </Text>
                 </View>
               ) : alreadyApplied ? (
-                <XStack gap="$2" marginTop="$2">
-                  <Button
-                    flex={1}
-                    size="$5"
-                    backgroundColor="#999"
-                    color="white"
-                    fontWeight="700"
-                    disabled={true}
-                  >
-                    신청 완료
-                  </Button>
-                  <Button
-                    flex={1}
-                    size="$5"
-                    backgroundColor="#fee2e2"
-                    color="#dc2626"
-                    fontWeight="700"
-                    onPress={() => setShowCancelApplicationDialog(true)}
-                    disabled={isProcessing}
-                    hoverStyle={{ backgroundColor: '#fecaca' }}
-                    pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
-                  >
-                    신청 취소
-                  </Button>
-                </XStack>
+                <Button
+                  size="$5"
+                  backgroundColor="#fee2e2"
+                  color="#dc2626"
+                  fontWeight="700"
+                  marginTop="$2"
+                  onPress={() => setShowCancelApplicationDialog(true)}
+                  disabled={isProcessing}
+                  hoverStyle={{ backgroundColor: '#fecaca' }}
+                  pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+                >
+                  신청 취소
+                </Button>
               ) : (
                 <Button
                   size="$5"
@@ -561,7 +549,7 @@ export function RequestDetailCard({
                   {isApplying ? (
                     <Spinner size="small" color="white" />
                   ) : (
-                    '작업 수락하기'
+                    '가능합니다'
                   )}
                 </Button>
               )}
