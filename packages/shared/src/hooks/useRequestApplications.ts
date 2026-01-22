@@ -46,6 +46,7 @@ export interface RequestApplication {
   };
   requester_profile?: {
     nickname: string | null;
+    business_card_url: string | null;
   };
 }
 
@@ -79,7 +80,7 @@ export function useRequestApplications() {
         const requesterIds = [...new Set(data.map(a => a.request?.user_id).filter(Boolean))] as string[];
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('user_id, nickname')
+          .select('user_id, nickname, business_card_url')
           .in('user_id', requesterIds);
 
         const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);

@@ -8,7 +8,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { ProfileSetupModal } from '../ProfileSetupModal';
 import { AddressSearch } from '../AddressSearch';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
-import type { RequestFormData, RequestFormModalProps, VisitType, AsType } from './types';
+import type { RequestFormData, RequestFormModalProps, VisitType, AsType, EditRequest } from './types';
 import { AS_TYPES } from './types';
 import { ImagePreviewModal } from '../ImagePreviewModal';
 
@@ -188,7 +188,7 @@ function Toast({ message, isVisible, onClose }: { message: string; isVisible: bo
   );
 }
 
-export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = '' }: RequestFormModalProps) {
+export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = '', editRequest }: RequestFormModalProps) {
   const { user } = useAuth();
   const { hasBusinessCard, refetch: refetchProfile } = useProfile();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -200,6 +200,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollViewRef = useRef<any>(null);
+
+  const isEditMode = !!editRequest;
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<RequestFormData>({
     defaultValues: {
@@ -220,8 +222,36 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       requiredPersonnel: 1,
       description: '',
       isUrgent: false,
+      needsInvoice: false,
     },
   });
+
+  // 수정 모드일 때 폼 초기화
+  useEffect(() => {
+    if (isOpen && editRequest) {
+      reset({
+        visitType: (editRequest.visit_type as VisitType) || '방문',
+        asType: (editRequest.as_type as AsType) || '복합기/OA',
+        title: editRequest.title || '',
+        address: editRequest.address || '',
+        addressDetail: editRequest.address_detail || '',
+        latitude: editRequest.latitude || null,
+        longitude: editRequest.longitude || null,
+        model: editRequest.model || '',
+        symptom: editRequest.symptom || '',
+        symptomImages: editRequest.symptom_images || [],
+        expectedFee: editRequest.expected_fee || 50000,
+        duration: editRequest.duration || '2시간',
+        scheduleDate: editRequest.schedule_date || new Date().toISOString().split('T')[0],
+        scheduleTime: editRequest.schedule_time || '17:00',
+        requiredPersonnel: editRequest.required_personnel || 1,
+        description: editRequest.description || '',
+        isUrgent: editRequest.is_urgent || false,
+        needsInvoice: editRequest.needs_invoice || false,
+      });
+      setSymptomImages(editRequest.symptom_images || []);
+    }
+  }, [isOpen, editRequest, reset]);
 
   // 이미지 업로드 핸들러
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -280,8 +310,8 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
-  // 명함 미등록 시 프로필 설정 모달 먼저 표시
-  const needsBusinessCard = isOpen && user && !hasBusinessCard;
+  // 명함 미등록 시 프로필 설정 모달 먼저 표시 (수정 모드에서는 체크 안함)
+  const needsBusinessCard = isOpen && user && !hasBusinessCard && !isEditMode;
 
   // 의뢰 제출 핸들러
   const handleFormSubmit = handleSubmit(async (data: RequestFormData) => {
@@ -300,8 +330,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
     setIsSubmitting(true);
     try {
-      const { data: insertedData, error } = await supabase.from('requests').insert({
-        user_id: user.id,
+      const requestData = {
         visit_type: data.visitType,
         as_type: data.asType,
         title: data.title,
@@ -318,14 +347,34 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         schedule_time: data.scheduleTime,
         required_personnel: data.requiredPersonnel,
         description: data.description,
-        status: 'pending',
         is_urgent: data.isUrgent,
-      }).select('id').single();
+        needs_invoice: data.needsInvoice,
+      };
 
-      if (error) throw error;
+      let resultId: string | null = null;
+
+      if (isEditMode && editRequest) {
+        // 수정 모드
+        const { error } = await supabase.from('requests')
+          .update(requestData)
+          .eq('id', editRequest.id);
+
+        if (error) throw error;
+        resultId = editRequest.id;
+      } else {
+        // 신규 등록 모드
+        const { data: insertedData, error } = await supabase.from('requests').insert({
+          ...requestData,
+          user_id: user.id,
+          status: 'pending',
+        }).select('id').single();
+
+        if (error) throw error;
+        resultId = insertedData?.id || null;
+      }
 
       // 좌표와 ID 저장 (성공 다이얼로그 닫힐 때 전달)
-      setLastCoords({ lat: data.latitude, lng: data.longitude, id: insertedData?.id || null });
+      setLastCoords({ lat: data.latitude, lng: data.longitude, id: resultId });
       // 폼 초기화
       reset({
         visitType: '방문',
@@ -345,13 +394,19 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         requiredPersonnel: 1,
         description: '',
         isUrgent: false,
+        needsInvoice: false,
       });
       setSymptomImages([]);
       onClose();
-      setShowSuccessDialog(true);
+      if (!isEditMode) {
+        setShowSuccessDialog(true);
+      } else {
+        // 수정 완료 시 바로 콜백
+        onSuccess?.(data.latitude, data.longitude, resultId);
+      }
     } catch (error) {
-      console.error('Failed to create request:', error);
-      alert('의뢰 등록에 실패했습니다.');
+      console.error('Failed to save request:', error);
+      alert(isEditMode ? '의뢰 수정에 실패했습니다.' : '의뢰 등록에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -413,7 +468,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
           backgroundColor="white"
         >
           <Text fontSize={20} fontWeight="700" color="#000">
-            의뢰 등록
+            {isEditMode ? '의뢰 수정' : '의뢰 등록'}
           </Text>
           <View cursor="pointer" onPress={handleClose} padding="$1">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -689,6 +744,38 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               {errors.expectedFee && <Text color="#ff4444" fontSize={14}>{errors.expectedFee.message}</Text>}
             </YStack>
 
+            {/* 세금계산서 발행 */}
+            <Controller
+              control={control}
+              name="needsInvoice"
+              render={({ field: { onChange, value } }) => (
+                <XStack
+                  alignItems="center"
+                  justifyContent="space-between"
+                  cursor="pointer"
+                  onPress={() => onChange(!value)}
+                >
+                  <Text fontSize={16} fontWeight="600" color="#000">세금계산서 발행</Text>
+                  <View
+                    width={24}
+                    height={24}
+                    borderRadius={4}
+                    borderWidth={2}
+                    borderColor={value ? brandColors.primary : '#ccc'}
+                    backgroundColor={value ? brandColors.primary : 'white'}
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {value && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </View>
+                </XStack>
+              )}
+            />
+
             {/* 소요 시간 */}
             <YStack gap="$2">
               <Text fontSize={16} fontWeight="600" color="#000">예상 소요시간</Text>
@@ -883,7 +970,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               hoverStyle={{ backgroundColor: brandColors.primaryHover }}
               pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
             >
-              {isSubmitting ? '등록 중...' : '의뢰 등록하기'}
+              {isSubmitting ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정 완료' : '의뢰 등록하기')}
             </Button>
           </YStack>
         </ScrollView>

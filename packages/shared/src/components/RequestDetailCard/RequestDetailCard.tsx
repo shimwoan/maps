@@ -3,11 +3,13 @@ import { View, Text, XStack, YStack, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { Request } from '../../hooks/useRequests';
+import type { RequestApplication } from '../../hooks/useRequestApplications';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfile } from '../../hooks/useProfile';
 import { useRequestApplications } from '../../hooks/useRequestApplications';
 import { LoginModal } from '../LoginModal';
 import { ProfileSetupModal } from '../ProfileSetupModal';
+import { ConfirmationDialog } from '../ConfirmationDialog';
 import { BottomSheet } from '../BottomSheet';
 import { formatPrice, formatDate } from '../../utils/format';
 import { AsTypeIcon } from '../AsTypeIcon';
@@ -130,14 +132,34 @@ interface RequestDetailCardProps {
   request: Request | null;
   onClose: () => void;
   onAccept?: (requestId: string) => void;
+  // 수행자용 props
+  myApplication?: RequestApplication | null;
+  onCancelApplication?: (appId: string, reqId: string) => Promise<void>;
+  onRequestCompletion?: (appId: string, reqId: string) => Promise<void>;
+  onEditRequest?: (request: Request) => void;
+  // 의뢰 등록자용 props
+  onDeleteRequest?: (requestId: string) => Promise<void>;
 }
 
-export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailCardProps) {
+export function RequestDetailCard({
+  request,
+  onClose,
+  onAccept,
+  myApplication,
+  onCancelApplication,
+  onRequestCompletion,
+  onEditRequest,
+  onDeleteRequest,
+}: RequestDetailCardProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCompletionRequestDialog, setShowCompletionRequestDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
   const { hasBusinessCard, refetch: refetchProfile } = useProfile();
   const { applyToRequest, myApplications } = useRequestApplications();
@@ -266,12 +288,34 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
 
           {/* 제목 + 금액 */}
           <YStack gap="$1">
-            <Text fontSize={18} fontWeight="700" color="#000">
+            <Text fontSize={20} fontWeight="700" color="#000">
               {request.title}
             </Text>
-            <Text fontSize={16} fontWeight="600" color={brandColors.primary} marginTop="$1">
-              {formatPrice(request.expected_fee)}원
-            </Text>
+            <XStack alignItems="center" gap="$3" marginTop="$1">
+              <Text fontSize={20} fontWeight="700" color={brandColors.primary}>
+                {formatPrice(request.expected_fee)}원
+              </Text>
+              <XStack alignItems="center" gap="$1.5">
+                <Text fontSize={16} color="#000">세금계산서 발행</Text>
+                {request.needs_invoice ? (
+                  <View
+                    width={22}
+                    height={22}
+                    borderRadius={11}
+                    borderWidth={2}
+                    borderColor="#EF4444"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <View width={10} height={10} borderRadius={5} backgroundColor="#EF4444" />
+                  </View>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                )}
+              </XStack>
+            </XStack>
           </YStack>
 
           {/* 상세 정보 */}
@@ -282,9 +326,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3B82F6"/>
                   <circle cx="12" cy="9" r="2.5" fill="white"/>
                 </svg>
-                <Text fontSize={16} color="#000">주소</Text>
+                <Text fontSize={18} color="#000">주소</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>
+              <Text fontSize={18} color="#000" flex={1}>
                 {request.address}
                 {request.address_detail ? ` ${request.address_detail}` : ''}
               </Text>
@@ -299,9 +343,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                     <circle cx="12" cy="15" r="1" fill="white"/>
                     <circle cx="15" cy="15" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={16} color="#000">기종</Text>
+                  <Text fontSize={18} color="#000">기종</Text>
                 </XStack>
-                <Text fontSize={16} color="#000" flex={1}>{request.model}</Text>
+                <Text fontSize={18} color="#000" flex={1}>{request.model}</Text>
               </XStack>
             )}
             {request.symptom && (
@@ -312,9 +356,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                     <path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                     <circle cx="12" cy="17" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={16} color="#000">증상</Text>
+                  <Text fontSize={18} color="#000">증상</Text>
                 </XStack>
-                <Text fontSize={16} color="#000" flex={1}>{request.symptom}</Text>
+                <Text fontSize={18} color="#000" flex={1}>{request.symptom}</Text>
               </XStack>
             )}
             <XStack alignItems="center">
@@ -323,9 +367,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <circle cx="12" cy="12" r="10" fill="#10B981"/>
                   <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                <Text fontSize={16} color="#000">예상소요</Text>
+                <Text fontSize={18} color="#000">예상소요</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>{request.duration}</Text>
+              <Text fontSize={18} color="#000" flex={1}>{request.duration}</Text>
             </XStack>
             <XStack alignItems="center">
               <XStack width={100} alignItems="center" gap="$1.5">
@@ -335,9 +379,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <path d="M8 2v4M16 2v4" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
                   <circle cx="12" cy="15" r="2" fill="white"/>
                 </svg>
-                <Text fontSize={16} color="#000">처리요청</Text>
+                <Text fontSize={18} color="#000">처리요청</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>
+              <Text fontSize={18} color="#000" flex={1}>
                 {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
               </Text>
             </XStack>
@@ -347,9 +391,9 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
                   <circle cx="12" cy="7" r="4" fill="#EC4899"/>
                   <path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" fill="#EC4899"/>
                 </svg>
-                <Text fontSize={16} color="#000">필요인원</Text>
+                <Text fontSize={18} color="#000">필요인원</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>{request.required_personnel}명</Text>
+              <Text fontSize={18} color="#000" flex={1}>{request.required_personnel}명</Text>
             </XStack>
           </YStack>
 
@@ -379,15 +423,51 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
           {/* 상세정보 */}
           {request.description && (
             <YStack gap={4}>
-              <Text fontSize={16} fontWeight="600" color="#000" marginTop={8}>상세정보</Text>
-              <Text fontSize={16} color="#000" lineHeight={22}>
+              <Text fontSize={18} fontWeight="600" color="#000" marginTop={8}>상세정보</Text>
+              <Text fontSize={18} color="#000" lineHeight={26}>
                 {request.description}
               </Text>
             </YStack>
           )}
 
-          {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시 */}
-          {canAccept && (
+          {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 */}
+          {!canAccept && !isInProgress && !isCompleted && (
+            <XStack gap="$2.5" marginTop="$2">
+              <Button
+                flex={1}
+                size="$5"
+                backgroundColor="white"
+                color={brandColors.primary}
+                fontWeight="700"
+                borderWidth={2}
+                borderColor={brandColors.primary}
+                onPress={() => {
+                  if (onEditRequest && request) {
+                    onEditRequest(request);
+                  }
+                }}
+                hoverStyle={{ backgroundColor: '#f0f7ff' }}
+                pressStyle={{ backgroundColor: '#e0efff', scale: 0.98 }}
+              >
+                수정하기
+              </Button>
+              <Button
+                flex={1}
+                size="$5"
+                backgroundColor="#fee2e2"
+                color="#dc2626"
+                fontWeight="700"
+                onPress={() => setShowDeleteDialog(true)}
+                hoverStyle={{ backgroundColor: '#fecaca' }}
+                pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+              >
+                의뢰 취소
+              </Button>
+            </XStack>
+          )}
+
+          {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시, 수행자용 모달에서는 숨김 */}
+          {canAccept && !myApplication && (
             <>
               {isInProgress ? (
                 <View
@@ -428,8 +508,132 @@ export function RequestDetailCard({ request, onClose, onAccept }: RequestDetailC
               )}
             </>
           )}
+
+          {/* 수행자용 버튼 - 내가 신청한 의뢰이고 진행중일 때 */}
+          {myApplication && myApplication.status === 'accepted' && (
+            <YStack gap="$2" marginTop="$3">
+              {/* 완료 요청 대기중 표시 */}
+              {myApplication.completion_requested && (
+                <View
+                  backgroundColor="#FEF3C7"
+                  padding="$3"
+                  borderRadius={8}
+                >
+                  <Text fontSize={16} color="#D97706" textAlign="center" fontWeight="600">
+                    작업 완료 요청 대기중
+                  </Text>
+                </View>
+              )}
+              {/* 버튼 영역 */}
+              <XStack gap="$2.5" justifyContent="center">
+                {/* 작업 완료 요청 버튼 - 아직 요청 안했을 때 */}
+                {!myApplication.completion_requested && (
+                  <Button
+                    flex={1}
+                    size="$4"
+                    backgroundColor={brandColors.primary}
+                    color="white"
+                    fontWeight="700"
+                    onPress={() => setShowCompletionRequestDialog(true)}
+                    disabled={isProcessing}
+                    hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+                    pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
+                  >
+                    작업 완료 요청
+                  </Button>
+                )}
+                {/* 작업 취소 버튼 */}
+                <Button
+                  flex={1}
+                  size="$4"
+                  backgroundColor="#fee2e2"
+                  color="#dc2626"
+                  fontWeight="700"
+                  onPress={() => setShowCancelDialog(true)}
+                  disabled={isProcessing}
+                  hoverStyle={{ backgroundColor: '#fecaca' }}
+                  pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+                >
+                  작업 취소
+                </Button>
+              </XStack>
+            </YStack>
+          )}
         </YStack>
       </BottomSheet>
+
+      {/* 작업 완료 요청 확인 다이얼로그 */}
+      <ConfirmationDialog
+        isOpen={showCompletionRequestDialog}
+        onClose={() => setShowCompletionRequestDialog(false)}
+        onConfirm={async () => {
+          if (!myApplication || !onRequestCompletion) return;
+          setIsProcessing(true);
+          try {
+            await onRequestCompletion(myApplication.id, myApplication.request_id);
+            setShowCompletionRequestDialog(false);
+          } catch (err) {
+            console.error('Failed to request completion:', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+        title="작업 완료 요청"
+        message="의뢰자에게 작업 완료 요청을 보내시겠습니까?"
+        confirmText="예, 요청합니다"
+        cancelText="아니오"
+        isLoading={isProcessing}
+      />
+
+      {/* 작업 취소 확인 다이얼로그 */}
+      <ConfirmationDialog
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onConfirm={async () => {
+          if (!myApplication || !onCancelApplication) return;
+          setIsProcessing(true);
+          try {
+            await onCancelApplication(myApplication.id, myApplication.request_id);
+            setShowCancelDialog(false);
+            onClose();
+          } catch (err) {
+            console.error('Failed to cancel:', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+        title="작업 취소"
+        message="정말로 작업을 취소하시겠습니까?"
+        confirmText="예, 취소합니다"
+        cancelText="아니오"
+        isLoading={isProcessing}
+        variant="danger"
+      />
+
+      {/* 의뢰 삭제 확인 다이얼로그 */}
+      <ConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={async () => {
+          if (!request || !onDeleteRequest) return;
+          setIsProcessing(true);
+          try {
+            await onDeleteRequest(request.id);
+            setShowDeleteDialog(false);
+            onClose();
+          } catch (err) {
+            console.error('Failed to delete request:', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+        title="의뢰 취소"
+        message="정말로 의뢰를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmText="예, 취소합니다"
+        cancelText="아니오"
+        isLoading={isProcessing}
+        variant="danger"
+      />
 
       {/* 로그인 모달 */}
       <LoginModal

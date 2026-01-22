@@ -1147,11 +1147,6 @@ export function HomeScreen() {
                               <Text fontSize={14} color="#DC2626" fontWeight="600">긴급</Text>
                             </View>
                           )}
-                          {isApplied && (
-                            <View paddingHorizontal={8} paddingVertical={4} backgroundColor="#DCFCE7" borderRadius={6}>
-                              <Text fontSize={14} color="#16A34A" fontWeight="600">신청함</Text>
-                            </View>
-                          )}
                         </XStack>
                         <Text fontSize={16} fontWeight="600" color="#000" numberOfLines={1}>
                           {request.title}

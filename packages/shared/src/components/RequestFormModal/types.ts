@@ -23,6 +23,29 @@ export interface RequestFormData {
   requiredPersonnel: number;
   description: string;
   isUrgent: boolean;
+  needsInvoice: boolean;
+}
+
+export interface EditRequest {
+  id: string;
+  visit_type: string;
+  as_type: string;
+  title: string;
+  address: string;
+  address_detail?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  model?: string | null;
+  symptom?: string | null;
+  symptom_images?: string[] | null;
+  expected_fee: number;
+  duration: string;
+  schedule_date: string;
+  schedule_time: string;
+  required_personnel: number;
+  description?: string | null;
+  is_urgent?: boolean;
+  needs_invoice?: boolean;
 }
 
 export interface RequestFormModalProps {
@@ -30,4 +53,5 @@ export interface RequestFormModalProps {
   onClose: () => void;
   onSuccess?: (latitude: number | null, longitude: number | null, requestId: string | null) => void;
   defaultAddress?: string;
+  editRequest?: EditRequest | null;
 }

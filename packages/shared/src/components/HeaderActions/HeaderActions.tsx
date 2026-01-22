@@ -40,9 +40,14 @@ export function HeaderActions({ onNotificationPress }: HeaderActionsProps) {
         />
       </svg>
       {unreadCount > 0 && (
-        <Text fontSize={14} fontWeight="600" color="#000">
-          읽지않은 알림 {unreadCount > 99 ? '99+' : unreadCount}
-        </Text>
+        <XStack alignItems="center">
+          <Text fontSize={14} fontWeight="600" color="#000">
+            읽지않은 알림{' '}
+          </Text>
+          <Text fontSize={14} fontWeight="600" color="#EF4444">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </Text>
+        </XStack>
       )}
     </XStack>
   );

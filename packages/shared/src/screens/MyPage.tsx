@@ -16,6 +16,7 @@ import { useRequests, Request } from '../hooks/useRequests';
 import { useNotifications } from '../contexts/NotificationContext';
 import { EmptyState } from '../components/EmptyState';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
+import { RequestFormModal } from '../components/RequestFormModal';
 import { formatCompletedDateTime } from '../utils/format';
 
 type TabType = 'myRequests' | 'myApplications';
@@ -111,15 +112,24 @@ function MyRequestCard({
             )}
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
-            <img
-              src={acceptedApp.applicant_profile.business_card_url}
-              alt="명함"
-              style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer' }}
-              onClick={(e) => {
+            <View
+              width="100%"
+              maxWidth={280}
+              aspectRatio={9/5}
+              borderRadius={8}
+              overflow="hidden"
+              cursor="pointer"
+              onClick={(e: any) => {
                 e.stopPropagation();
                 onImageClick(acceptedApp.applicant_profile?.business_card_url || '');
               }}
-            />
+            >
+              <img
+                src={acceptedApp.applicant_profile.business_card_url}
+                alt="명함"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </View>
           )}
         </YStack>
       )}
@@ -139,15 +149,25 @@ function MyRequestCard({
             </Text>
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
-            <img
-              src={acceptedApp.applicant_profile.business_card_url}
-              alt="명함"
-              style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer', opacity: 0.7 }}
-              onClick={(e) => {
+            <View
+              width="100%"
+              maxWidth={280}
+              aspectRatio={9/5}
+              borderRadius={8}
+              overflow="hidden"
+              cursor="pointer"
+              opacity={0.7}
+              onClick={(e: any) => {
                 e.stopPropagation();
                 onImageClick(acceptedApp.applicant_profile?.business_card_url || '');
               }}
-            />
+            >
+              <img
+                src={acceptedApp.applicant_profile.business_card_url}
+                alt="명함"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </View>
           )}
         </YStack>
       )}
@@ -162,40 +182,53 @@ function MyRequestCard({
             <XStack
               key={app.id}
               backgroundColor="#f9f9f9"
-              padding="$2"
+              padding="$2.5"
               borderRadius={8}
               alignItems="center"
               justifyContent="space-between"
+              gap="$2"
             >
-              <YStack gap="$2" flex={1}>
-                <Text fontSize={16} color="#000" fontWeight="600">
-                  {app.applicant_profile?.nickname || '신청자'}
-                </Text>
-                {app.applicant_profile?.business_card_url ? (
+              {/* 명함 썸네일 - 9:5 비율 */}
+              {app.applicant_profile?.business_card_url ? (
+                <View
+                  width={72}
+                  height={40}
+                  borderRadius={6}
+                  overflow="hidden"
+                  cursor="pointer"
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    onImageClick(app.applicant_profile?.business_card_url || '');
+                  }}
+                >
                   <img
                     src={app.applicant_profile.business_card_url}
                     alt="명함"
-                    style={{ width: 'fit-content', maxWidth: '280px', borderRadius: 8, cursor: 'pointer' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onImageClick(app.applicant_profile?.business_card_url || '');
-                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                ) : (
-                  <View
-                    height={60}
-                    borderRadius={8}
-                    backgroundColor="#f5f5f5"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Text fontSize={14} color="#999">명함없음</Text>
-                  </View>
-                )}
-              </YStack>
+                </View>
+              ) : (
+                <View
+                  width={72}
+                  height={40}
+                  borderRadius={6}
+                  backgroundColor="#e5e5e5"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Text fontSize={10} color="#999">명함없음</Text>
+                </View>
+              )}
+
+              {/* 이름 */}
+              <Text fontSize={16} color="#000" fontWeight="600" flex={1}>
+                {app.applicant_profile?.nickname || '신청자'}
+              </Text>
+
+              {/* 버튼 */}
               <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
                 <Button
-                  size="$4"
+                  size="$3"
                   backgroundColor="#f0f0f0"
                   color="#000"
                   fontWeight="600"
@@ -205,7 +238,7 @@ function MyRequestCard({
                   거절
                 </Button>
                 <Button
-                  size="$4"
+                  size="$3"
                   backgroundColor={brandColors.primary}
                   color="white"
                   fontWeight="600"
@@ -239,18 +272,14 @@ function MyRequestCard({
 function MyApplicationCard({
   application,
   onCancel,
-  onRequestCompletion,
   onCardPress,
 }: {
   application: RequestApplication;
   onCancel: (appId: string, reqId: string) => Promise<void>;
-  onRequestCompletion: (appId: string, reqId: string) => Promise<void>;
   onCardPress: () => void;
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
-  const [isRequestingCompletion, setIsRequestingCompletion] = useState(false);
   const req = application.request;
 
   if (!req) return null;
@@ -267,19 +296,7 @@ function MyApplicationCard({
     }
   };
 
-  const handleConfirmCompletion = async () => {
-    setIsRequestingCompletion(true);
-    try {
-      await onRequestCompletion(application.id, application.request_id);
-      setShowCompletionDialog(false);
-    } catch (err) {
-      console.error('Failed to request completion:', err);
-    } finally {
-      setIsRequestingCompletion(false);
-    }
-  };
-
-  const cancelButton = (application.status === 'pending' || application.status === 'accepted') ? (
+  const cancelButton = application.status === 'pending' ? (
     <Button
       size="$4"
       backgroundColor="#fee2e2"
@@ -290,7 +307,7 @@ function MyApplicationCard({
         setShowCancelDialog(true);
       }}
     >
-      {application.status === 'accepted' ? '작업 취소' : '취소'}
+      취소
     </Button>
   ) : undefined;
 
@@ -307,22 +324,22 @@ function MyApplicationCard({
       onCardPress={onCardPress}
       rightAction={cancelButton}
     >
-      {/* 진행중인 경우 - 작업 완료 요청 버튼 */}
+      {/* 진행중인 경우 - 아직 완료 요청 전 */}
       {application.status === 'accepted' && !application.completion_requested && (
         <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
-          <View onClick={(e: any) => e.stopPropagation()}>
-            <Button
-              size="$4"
-              backgroundColor={brandColors.primary}
-              color="white"
-              fontWeight="600"
-              width="100%"
-              onPress={() => setShowCompletionDialog(true)}
-              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-            >
-              작업 완료 요청
-            </Button>
-          </View>
+          <XStack alignItems="center" gap="$2">
+            <View
+              width={8}
+              height={8}
+              borderRadius={4}
+              backgroundColor="#22C55E"
+              // @ts-ignore
+              style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
+            />
+            <Text fontSize={14} color="#22C55E" fontWeight="600">
+              진행중
+            </Text>
+          </XStack>
         </YStack>
       )}
 
@@ -359,6 +376,26 @@ function MyApplicationCard({
               {formatCompletedDateTime(application.updated_at)} {application.requester_profile?.nickname || '의뢰자'}님과 수행완료
             </Text>
           </XStack>
+          {application.requester_profile?.business_card_url && (
+            <View
+              width="100%"
+              maxWidth={280}
+              aspectRatio={9/5}
+              borderRadius={8}
+              overflow="hidden"
+              cursor="pointer"
+              opacity={0.7}
+              onClick={(e: any) => {
+                e.stopPropagation();
+              }}
+            >
+              <img
+                src={application.requester_profile.business_card_url}
+                alt="명함"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </View>
+          )}
         </YStack>
       )}
 
@@ -374,18 +411,6 @@ function MyApplicationCard({
         isLoading={isCanceling}
         variant="danger"
       />
-
-      {/* 작업 완료 요청 확인 다이얼로그 */}
-      <ConfirmationDialog
-        isOpen={showCompletionDialog}
-        onClose={() => setShowCompletionDialog(false)}
-        onConfirm={handleConfirmCompletion}
-        title="작업 완료 요청"
-        message="의뢰자에게 작업 완료 요청을 보내시겠습니까?"
-        confirmText="예, 요청합니다"
-        cancelText="아니오"
-        isLoading={isRequestingCompletion}
-      />
     </RequestCard>
   );
 }
@@ -396,6 +421,8 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedDetailRequest, setSelectedDetailRequest] = useState<Request | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<RequestApplication | null>(null);
+  const [editingRequest, setEditingRequest] = useState<Request | null>(null);
   const { user, signOut } = useAuth();
   const { profile, hasBusinessCard, refetch: refetchProfile } = useProfile();
   useNotifications(); // 알림 컨텍스트 초기화
@@ -505,6 +532,24 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
     setMyRequests(prev => prev.map(r =>
       r.id === reqId ? { ...r, status: 'completed' } : r
     ));
+
+    // 신청 목록도 리프레시
+    refetch();
+  };
+
+  const handleDeleteRequest = async (reqId: string) => {
+    const { supabase } = await import('../lib/supabase');
+
+    // 의뢰 삭제 (또는 cancelled 상태로 변경)
+    const { error } = await supabase
+      .from('requests')
+      .delete()
+      .eq('id', reqId);
+
+    if (error) throw error;
+
+    // 로컬 상태에서 제거
+    setMyRequests(prev => prev.filter(r => r.id !== reqId));
 
     // 신청 목록도 리프레시
     refetch();
@@ -685,7 +730,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 fontWeight="600"
                 color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
               >
-                내가 요청한 의뢰
+                작업해 주세요
               </Text>
             </View>
             <View
@@ -702,7 +747,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 fontWeight="600"
                 color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
               >
-                신청한 의뢰
+                가능합니다
               </Text>
             </View>
           </XStack>
@@ -750,8 +795,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       key={app.id}
                       application={app}
                       onCancel={handleCancel}
-                      onRequestCompletion={requestCompletion}
-                      onCardPress={() => app.request && setSelectedDetailRequest(app.request as unknown as Request)}
+                      onCardPress={() => {
+                        if (app.request) {
+                          setSelectedDetailRequest(app.request as unknown as Request);
+                          setSelectedApplication(app);
+                        }
+                      }}
                     />
                   ))
                 )
@@ -801,9 +850,33 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       {selectedDetailRequest && (
         <RequestDetailCard
           request={selectedDetailRequest}
-          onClose={() => setSelectedDetailRequest(null)}
+          onClose={() => {
+            setSelectedDetailRequest(null);
+            setSelectedApplication(null);
+          }}
+          myApplication={selectedApplication}
+          onCancelApplication={handleCancel}
+          onRequestCompletion={requestCompletion}
+          onEditRequest={(req) => {
+            setEditingRequest(req);
+            setSelectedDetailRequest(null);
+            setSelectedApplication(null);
+          }}
+          onDeleteRequest={handleDeleteRequest}
         />
       )}
+
+      {/* 의뢰 수정 모달 */}
+      <RequestFormModal
+        isOpen={!!editingRequest}
+        onClose={() => setEditingRequest(null)}
+        onSuccess={() => {
+          setEditingRequest(null);
+          fetchMyRequests();
+          refetch();
+        }}
+        editRequest={editingRequest}
+      />
     </View>
   );
 }
