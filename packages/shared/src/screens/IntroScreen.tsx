@@ -42,7 +42,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
       >
         {/* 상단: 로고 + 슬로건 */}
         <YStack alignItems="center" gap="$2">
-          <img src="/logo.png" alt="협업" width={140} height={140} style={{ objectFit: 'contain' }} />
+          <img src="/logo.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 28 }} />
           <Text fontSize={18} fontWeight="600" marginRight="$2">
             가장 빠른 현장 연결
           </Text>
@@ -114,8 +114,8 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
 function FeatureItem({ icon, text }: { icon: string; text: string }) {
   return (
     <XStack alignItems="center" gap="$1.5">
-      <Text fontSize={16}>{icon}</Text>
-      <Text fontSize={14} color="#666">{text}</Text>
+      <Text fontSize={18}>{icon}</Text>
+      <Text fontSize={16} color="#666">{text}</Text>
     </XStack>
   );
 }
