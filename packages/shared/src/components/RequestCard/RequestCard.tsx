@@ -109,7 +109,7 @@ export function RequestCard({
               }}
               // @ts-ignore - CSS transition
               style={{
-                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
                 transition: 'transform 0.2s ease',
               }}
             >

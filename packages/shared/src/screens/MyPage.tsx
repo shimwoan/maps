@@ -823,9 +823,9 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               </View>
             </XStack>
             {/* 상태 필터 */}
-            <XStack padding="$3" gap="$2">
+            <XStack padding="$3" gap="$2" width="100%">
               <View
-                flex={1}
+                width="50%"
                 paddingVertical="$2"
                 alignItems="center"
                 backgroundColor={statusFilter === 'active' ? brandColors.primary : '#f5f5f5'}
@@ -842,7 +842,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 </Text>
               </View>
               <View
-                flex={1}
+                width="50%"
                 paddingVertical="$2"
                 alignItems="center"
                 backgroundColor={statusFilter === 'completed' ? brandColors.primary : '#f5f5f5'}
