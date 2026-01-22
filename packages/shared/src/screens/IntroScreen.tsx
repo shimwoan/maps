@@ -42,8 +42,8 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
       >
         {/* 상단: 로고 + 슬로건 */}
         <YStack alignItems="center" gap="$2">
-          <img src="/logo.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 28 }} />
-          <Text fontSize={18} fontWeight="600" marginRight="$2">
+          <img src="/logo.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 40,marginLeft:12 }} />
+          <Text fontSize={18} fontWeight="600" marginTop={12} marginLeft={4}>
             가장 빠른 현장 연결
           </Text>
         </YStack>
