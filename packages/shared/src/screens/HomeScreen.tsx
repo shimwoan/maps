@@ -893,7 +893,7 @@ export function HomeScreen() {
                 className={notification.isExiting ? 'realtime-notification-exit' : 'realtime-notification-enter'}
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  padding: '10px 14px',
+                  padding: '6px 12px',
                   borderRadius: 8,
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                 }}
@@ -919,12 +919,12 @@ export function HomeScreen() {
                   </svg>
                   <View flex={1}>
                     <XStack alignItems="flex-start" justifyContent="space-between">
-                      <Text fontSize={14} color="#000" fontWeight="500">
+                      <Text fontSize={12} color="#000" fontWeight="500">
                         실시간 접수 현황
                       </Text>
                       <RelativeTime timestamp={notification.timestamp} />
                     </XStack>
-                    <Text fontSize={16} color="#000" fontWeight="600" marginTop={2}>
+                    <Text fontSize={14} color="#000" fontWeight="600">
                       {notification.message}
                     </Text>
                   </View>
