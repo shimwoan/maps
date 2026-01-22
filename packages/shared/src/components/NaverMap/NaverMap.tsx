@@ -98,21 +98,67 @@ const getMarkerSize = (zoom: number) => {
   const scale = getMarkerScale(zoom);
   return {
     scale,
-    fontSize: Math.round(16 * scale),
-    fontSizeSm: Math.round(17 * scale),
-    fontSizeLg: Math.round(21 * scale),
-    badgeFontSize: Math.round(12 * scale),
-    paddingV: Math.round(12 * scale),
-    paddingH: Math.round(16 * scale),
-    badgePaddingV: Math.round(3 * scale),
-    badgePaddingH: Math.round(8 * scale),
-    borderRadius: Math.round(14 * scale),
+    fontSize: Math.round(14 * scale),
+    fontSizeSm: Math.round(15 * scale),
+    fontSizeLg: Math.round(19 * scale),
+    badgeFontSize: Math.round(11 * scale),
+    iconSize: Math.round(18 * scale),
+    paddingV: Math.round(10 * scale),
+    paddingH: Math.round(14 * scale),
+    badgePaddingV: Math.round(2 * scale),
+    badgePaddingH: Math.round(6 * scale),
+    borderRadius: Math.round(12 * scale),
     borderWidth: Math.max(2, Math.round(2.5 * scale)),
-    arrowWidth: Math.round(24 * scale),
-    arrowHeight: Math.round(12 * scale),
-    totalHeight: Math.round(90 * scale),
-    minWidth: Math.round(160 * scale),
+    arrowWidth: Math.round(22 * scale),
+    arrowHeight: Math.round(10 * scale),
+    totalHeight: Math.round(80 * scale),
+    minWidth: Math.round(140 * scale),
   };
+};
+
+// 카테고리별 흰색 아이콘 SVG 생성
+const getCategoryIconSvg = (asType: string, size: number): string => {
+  switch (asType) {
+    case '복합기/OA':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M7 3h10v5H7z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="1.5"/>
+        <rect x="4" y="8" width="16" height="8" rx="1" fill="white"/>
+        <path d="M7 16h10v5H7z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="1"/>
+      </svg>`;
+    case '전기/통신':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="white" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      </svg>`;
+    case '가전/설비':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="white" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      </svg>`;
+    case '인테리어':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="white" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      </svg>`;
+    case '청소':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M12 2v5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 7l5 15H7l5-15z" fill="white" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      </svg>`;
+    case '소프트웨어':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <rect x="2" y="3" width="20" height="14" rx="2" fill="white" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+        <rect x="4" y="5" width="16" height="10" fill="rgba(255,255,255,0.3)"/>
+      </svg>`;
+    case '운반/설치':
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M1 3h15v13H1z" fill="white" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+        <path d="M16 8h4l3 3v5h-7V8z" fill="rgba(255,255,255,0.7)" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      </svg>`;
+    default:
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;">
+        <path d="M7 3h10v5H7z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="1.5"/>
+        <rect x="4" y="8" width="16" height="8" rx="1" fill="white"/>
+        <path d="M7 16h10v5H7z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="1"/>
+      </svg>`;
+  }
 };
 
 // 마커 HTML 생성
@@ -163,8 +209,8 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
         text-align: center;
         position: relative;
       ">
-        <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center;">${statusBadge}${marker.title}</div>
-        <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
+        <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center; display: flex; align-items: center; justify-content: center;">${statusBadge}${getCategoryIconSvg(marker.asType, size.iconSize)}${marker.title}</div>
+        <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center; margin-top: 4px;">${formatPrice(marker.price)}원</div>
         ${myText}
       </div>
       <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 10" style="margin-top: -1px;">

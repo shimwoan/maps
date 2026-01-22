@@ -302,11 +302,11 @@ export function RequestDetailCard({
               {request.title}
             </Text>
             <XStack alignItems="center" gap="$3" marginTop="$1">
-              <Text fontSize={20} fontWeight="700" color={brandColors.primary}>
+              <Text fontSize={16} fontWeight="700" color={brandColors.primary}>
                 {formatPrice(request.expected_fee)}원
               </Text>
               <XStack alignItems="center" gap="$2">
-                <Text fontSize={18} color="#000">세금계산서 발행</Text>
+                <Text fontSize={16} color="#000">세금계산서 발행</Text>
                 {request.needs_invoice ? (
                   <View
                     width={18}
@@ -332,9 +332,9 @@ export function RequestDetailCard({
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3B82F6"/>
                   <circle cx="12" cy="9" r="2.5" fill="white"/>
                 </svg>
-                <Text fontSize={18} color="#000">주소</Text>
+                <Text fontSize={16} color="#000">주소</Text>
               </XStack>
-              <Text fontSize={18} color="#000" flex={1}>
+              <Text fontSize={16} color="#000" flex={1}>
                 {request.address}
                 {request.address_detail ? ` ${request.address_detail}` : ''}
               </Text>
@@ -349,9 +349,9 @@ export function RequestDetailCard({
                     <circle cx="12" cy="15" r="1" fill="white"/>
                     <circle cx="15" cy="15" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={18} color="#000">기종</Text>
+                  <Text fontSize={16} color="#000">기종</Text>
                 </XStack>
-                <Text fontSize={18} color="#000" flex={1}>{request.model}</Text>
+                <Text fontSize={16} color="#000" flex={1}>{request.model}</Text>
               </XStack>
             )}
             {request.symptom && (
@@ -362,9 +362,9 @@ export function RequestDetailCard({
                     <path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                     <circle cx="12" cy="17" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={18} color="#000">증상</Text>
+                  <Text fontSize={16} color="#000">증상</Text>
                 </XStack>
-                <Text fontSize={18} color="#000" flex={1}>{request.symptom}</Text>
+                <Text fontSize={16} color="#000" flex={1}>{request.symptom}</Text>
               </XStack>
             )}
             <XStack alignItems="center">
@@ -373,9 +373,9 @@ export function RequestDetailCard({
                   <circle cx="12" cy="12" r="10" fill="#10B981"/>
                   <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                <Text fontSize={18} color="#000">예상소요</Text>
+                <Text fontSize={16} color="#000">예상소요</Text>
               </XStack>
-              <Text fontSize={18} color="#000" flex={1}>{request.duration}</Text>
+              <Text fontSize={16} color="#000" flex={1}>{request.duration}</Text>
             </XStack>
             <XStack alignItems="center">
               <XStack width={100} alignItems="center" gap="$1.5">
@@ -385,9 +385,9 @@ export function RequestDetailCard({
                   <path d="M8 2v4M16 2v4" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
                   <circle cx="12" cy="15" r="2" fill="white"/>
                 </svg>
-                <Text fontSize={18} color="#000">처리요청</Text>
+                <Text fontSize={16} color="#000">처리요청</Text>
               </XStack>
-              <Text fontSize={18} color="#000" flex={1}>
+              <Text fontSize={16} color="#000" flex={1}>
                 {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
               </Text>
             </XStack>
@@ -397,9 +397,9 @@ export function RequestDetailCard({
                   <circle cx="12" cy="7" r="4" fill="#EC4899"/>
                   <path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" fill="#EC4899"/>
                 </svg>
-                <Text fontSize={18} color="#000">필요인원</Text>
+                <Text fontSize={16} color="#000">필요인원</Text>
               </XStack>
-              <Text fontSize={18} color="#000" flex={1}>{request.required_personnel}명</Text>
+              <Text fontSize={16} color="#000" flex={1}>{request.required_personnel}명</Text>
             </XStack>
           </YStack>
 
@@ -428,12 +428,12 @@ export function RequestDetailCard({
 
           {/* 상세정보 */}
           {request.description && (
-            <YStack gap={4}>
-              <Text fontSize={18} fontWeight="600" color="#000" marginTop={8}>상세설명</Text>
-              <Text fontSize={18} color="#000" lineHeight={26}>
+            <XStack alignItems="baseline" gap="$2">
+              <Text fontSize={16} fontWeight="600" color="#000" flexShrink={0}>상세설명:</Text>
+              <Text fontSize={16} color="#000" lineHeight={24} flex={1}>
                 {request.description}
               </Text>
-            </YStack>
+            </XStack>
           )}
 
           {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 (대기중) */}

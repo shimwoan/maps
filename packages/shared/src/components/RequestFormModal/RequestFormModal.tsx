@@ -11,6 +11,7 @@ import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { RequestFormData, RequestFormModalProps, VisitType, AsType, EditRequest } from './types';
 import { AS_TYPES } from './types';
 import { ImagePreviewModal } from '../ImagePreviewModal';
+import { TimePicker } from '../TimePicker';
 
 // 성공 팝업 컴포넌트
 function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -831,15 +832,10 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                   name="scheduleTime"
                   rules={{ required: '시간을 선택해주세요' }}
                   render={({ field: { onChange, value } }) => (
-                    <Input
-                      width={100}
-                      size="$4"
-                      placeholder="HH:MM"
+                    <TimePicker
                       value={value}
-                      onChangeText={onChange}
-                      backgroundColor="#f9f9f9"
-                      borderColor={errors.scheduleTime ? '#ff4444' : '#eee'}
-                      color="#000"
+                      onChange={onChange}
+                      hasError={!!errors.scheduleTime}
                     />
                   )}
                 />

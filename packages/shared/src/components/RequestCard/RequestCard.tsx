@@ -41,8 +41,10 @@ export function RequestCard({
     <YStack
       backgroundColor={isCompleted ? '#f8f8f8' : 'white'}
       borderRadius={12}
-      padding="$3"
-      gap="$2"
+      paddingHorizontal="$3"
+      paddingTop="$2.5"
+      paddingBottom="$2"
+      gap="$1.5"
       borderWidth={1}
       borderColor={isCompleted ? '#e0e0e0' : '#eee'}
       opacity={isCompleted ? 0.7 : 1}
@@ -50,7 +52,7 @@ export function RequestCard({
       onPress={onCardPress}
     >
       {/* 카테고리 */}
-      <XStack alignItems="center" gap="$1.5" marginBottom="$1">
+      <XStack alignItems="center" gap="$1.5">
         <AsTypeIcon type={asType} size={14} />
         <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>{asType}</Text>
       </XStack>
@@ -82,7 +84,7 @@ export function RequestCard({
       )}
 
       {/* 날짜/시간 + 가격 + 우측 액션 + 토글 화살표 */}
-      <XStack justifyContent="space-between" alignItems="center">
+      <XStack justifyContent="space-between" alignItems="center" minHeight={24}>
         <XStack gap="$3">
           <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
             {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
@@ -96,8 +98,9 @@ export function RequestCard({
           {hasChildren && (
             <View
               cursor="pointer"
-              padding="$2"
-              marginRight={-8}
+              padding={6}
+              marginRight={-6}
+              marginVertical={-6}
               onPress={(e: any) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
@@ -108,8 +111,8 @@ export function RequestCard({
                 transition: 'transform 0.2s ease',
               }}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path d="M18 15l-6-6-6 6" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 15l-6-6-6 6" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </View>
           )}
