@@ -141,7 +141,7 @@ export function BottomNavigation({
             color={activeMode === 'requests' ? activeColor : textColor}
             marginTop={4}
           >
-            진행중인 외주
+            진행중인 협업
           </Text>
         </View>
 
