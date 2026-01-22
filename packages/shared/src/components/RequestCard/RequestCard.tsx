@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { View, Text, XStack, YStack } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { formatPrice, formatDate, getStatusLabel } from '../../utils/format';
@@ -15,6 +16,7 @@ interface RequestCardProps {
   onCardPress?: () => void;
   children?: React.ReactNode;
   rightAction?: React.ReactNode;
+  defaultExpanded?: boolean;
 }
 
 export function RequestCard({
@@ -29,8 +31,11 @@ export function RequestCard({
   onCardPress,
   children,
   rightAction,
+  defaultExpanded = false,
 }: RequestCardProps) {
   const statusInfo = getStatusLabel(status);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const hasChildren = React.Children.toArray(children).filter(Boolean).length > 0;
 
   return (
     <YStack
@@ -76,7 +81,7 @@ export function RequestCard({
         </Text>
       )}
 
-      {/* 날짜/시간 + 가격 + 우측 액션 */}
+      {/* 날짜/시간 + 가격 + 우측 액션 + 토글 화살표 */}
       <XStack justifyContent="space-between" alignItems="center">
         <XStack gap="$3">
           <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
@@ -86,11 +91,42 @@ export function RequestCard({
             {formatPrice(expectedFee)}원
           </Text>
         </XStack>
-        {rightAction}
+        <XStack alignItems="center" gap="$2">
+          {rightAction}
+          {hasChildren && (
+            <View
+              cursor="pointer"
+              onPress={(e: any) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              // @ts-ignore - CSS transition
+              style={{
+                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M18 15l-6-6-6 6" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </View>
+          )}
+        </XStack>
       </XStack>
 
-      {/* 추가 콘텐츠 (신청자 목록, 진행중 정보 등) */}
-      {children}
+      {/* 추가 콘텐츠 (신청자 목록, 진행중 정보 등) - 접기/펼치기 */}
+      {hasChildren && (
+        <View
+          // @ts-ignore - CSS transition
+          style={{
+            maxHeight: isExpanded ? '1000px' : '0px',
+            overflow: 'hidden',
+            transition: 'max-height 0.3s ease',
+          }}
+        >
+          {children}
+        </View>
+      )}
     </YStack>
   );
 }

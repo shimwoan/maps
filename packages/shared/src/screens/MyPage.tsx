@@ -64,7 +64,7 @@ function MyRequestCard({
     >
       {/* 진행중인 경우 - 수락된 신청자 정보 표시 */}
       {request.status === 'accepted' && acceptedApp && (
-        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+        <YStack gap="$2" marginTop="$2">
           <XStack alignItems="center" gap="$2">
             {/* @ts-ignore - animation defined in index.css */}
             <View
@@ -105,7 +105,7 @@ function MyRequestCard({
 
       {/* 완료된 경우 - 수행자 정보 표시 */}
       {request.status === 'completed' && acceptedApp && (
-        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+        <YStack gap="$2" marginTop="$2">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -143,7 +143,7 @@ function MyRequestCard({
 
       {/* 신청자 목록 - pending 상태일 때만 */}
       {pendingApps.length > 0 && request.status !== 'accepted' && (
-        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+        <YStack gap="$2" marginTop="$2">
           <Text fontSize={14} color="#000" fontWeight="600">
             신청자 ({pendingApps.length}명)
           </Text>
@@ -271,7 +271,7 @@ function MyApplicationCard({
     >
       {/* 진행중인 경우 - 아직 완료 요청 전 */}
       {application.status === 'accepted' && !application.completion_requested && (
-        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+        <YStack gap="$2" marginTop="$2">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -310,7 +310,7 @@ function MyApplicationCard({
 
       {/* 완료 요청 대기중인 경우 */}
       {application.status === 'accepted' && application.completion_requested && (
-        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+        <YStack gap="$2" marginTop="$2">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -349,7 +349,7 @@ function MyApplicationCard({
 
       {/* 완료된 경우 - 완료 정보 표시 */}
       {application.status === 'completed' && (
-        <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
+        <YStack gap="$2" marginTop="$2">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -678,7 +678,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               </svg>
             </View>
             <Text fontSize={18} fontWeight="700" color="#000">
-              {mode === 'profile' ? 'MY' : '내 의뢰'}
+              {mode === 'profile' ? 'MY' : '실시간 현황'}
             </Text>
           </XStack>
           <HeaderActions
@@ -783,7 +783,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   fontWeight="600"
                   color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
                 >
-                  작업해 주세요
+                  요청합니다
                 </Text>
               </View>
               <View
@@ -863,7 +863,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 (() => {
                   const filteredRequests = myRequests.filter(req =>
                     statusFilter === 'active'
-                      ? req.status === 'pending' || req.status === 'accepted'
+                      ? req.status === 'pending' || req.status === 'applied' || req.status === 'accepted'
                       : req.status === 'completed'
                   );
                   return filteredRequests.length === 0 ? (
