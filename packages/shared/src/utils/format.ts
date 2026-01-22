@@ -46,7 +46,7 @@ export function formatCompletedDateTime(dateStr: string): string {
 export function getStatusLabel(status: string): { label: string; color: string; bgColor: string } {
   switch (status) {
     case 'pending':
-      return { label: '대기', color: '#3B82F6', bgColor: '#fff' };
+      return { label: '대기중', color: '#3B82F6', bgColor: '#fff' };
     case 'applied':
       return { label: '신청있음', color: '#3B82F6', bgColor: '#EFF6FF' };
     case 'accepted':

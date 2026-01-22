@@ -67,16 +67,16 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
             {/* 제목 */}
             <Text fontSize={20} fontWeight="700" color="#000" textAlign="center">
-              의뢰 등록 완료
+              등록 완료
             </Text>
 
             {/* 안내 문구 */}
             <YStack gap="$2" alignItems="center">
               <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
-                의뢰가 성공적으로 등록되었습니다.
+                협업요청이 성공적으로 등록되었습니다.
               </Text>
               <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
-                전문가가 의뢰를 수락하면{'\n'}
+                전문가가 협업을 수락하면{'\n'}
                 <Text color={brandColors.primary} fontWeight="600">등록된 연락처로 문자를 발송해 드립니다.</Text>
               </Text>
             </YStack>
@@ -407,7 +407,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       }
     } catch (error) {
       console.error('Failed to save request:', error);
-      alert(isEditMode ? '의뢰 수정에 실패했습니다.' : '의뢰 등록에 실패했습니다.');
+      alert(isEditMode ? '협업요청 수정에 실패했습니다.' : '협업요청 등록에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -469,7 +469,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
           backgroundColor="white"
         >
           <Text fontSize={20} fontWeight="700" color="#000">
-            {isEditMode ? '의뢰 수정' : '의뢰 등록'}
+            {isEditMode ? '수정하기' : '요청하기'}
           </Text>
           <View cursor="pointer" onPress={handleClose} padding="$1">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -539,7 +539,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
             {/* 의뢰 제목 */}
             <YStack gap="$2">
-              <RequiredLabel>의뢰 제목</RequiredLabel>
+              <RequiredLabel>요청 제목</RequiredLabel>
               <Controller
                 control={control}
                 name="title"
@@ -757,7 +757,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                   gap="$2"
                   onPress={() => onChange(!value)}
                 >
-                  <Text fontSize={16} fontWeight="600" color="#000">세금계산서 발행</Text>
+                  <Text fontSize={16} fontWeight="600" color="#EF4444">세금계산서 발행</Text>
                   <View
                     width={18}
                     height={18}
@@ -967,7 +967,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               hoverStyle={{ backgroundColor: brandColors.primaryHover }}
               pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
             >
-              {isSubmitting ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정 완료' : '의뢰 등록하기')}
+              {isSubmitting ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정 완료' : '협업 요청하기')}
             </Button>
           </YStack>
         </ScrollView>

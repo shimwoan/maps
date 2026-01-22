@@ -31,6 +31,52 @@ interface RealtimeNotification {
   isExiting?: boolean;
 }
 
+// 상대 시간 포맷 함수
+const formatRelativeTime = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return '방금 전';
+  if (minutes < 60) return `${minutes}분 전`;
+  if (hours < 24) return `${hours}시간 전`;
+  return `${days}일 전`;
+};
+
+// 상대 시간 표시 컴포넌트 (자체 업데이트)
+function RelativeTime({ timestamp }: { timestamp: number }) {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    // 10분마다 업데이트
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 600000);
+
+    // 페이지 재진입 시 업데이트
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setTick(t => t + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <Text fontSize={12} color="#888" marginTop={-2}>
+      {formatRelativeTime(timestamp)}
+    </Text>
+  );
+}
+
 // 모바일 overscroll 방지 CSS 삽입
 const injectOverscrollStyles = () => {
   if (document.getElementById('overscroll-prevention-styles')) return;
@@ -275,7 +321,6 @@ export function HomeScreen() {
     injectRealtimeStyles();
   }, []);
 
-
   // 실시간 알림 추가 함수
   const addRealtimeNotification = useCallback((message: string, type: 'new' | 'matched' | 'completed') => {
     const notification: RealtimeNotification = {
@@ -305,6 +350,47 @@ export function HomeScreen() {
     const match = address.match(/([가-힣]+[구군시])/);
     return match ? match[1] : '';
   };
+
+  // 페이지 로드 시 가장 최근 이벤트 가져오기
+  useEffect(() => {
+    const fetchLatestEvent = async () => {
+      const { data } = await supabase
+        .from('requests')
+        .select('id, address, as_type, status, created_at, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        const district = extractDistrict(data.address);
+        const timestamp = new Date(data.updated_at || data.created_at).getTime();
+
+        let message = '';
+        let type: 'new' | 'matched' | 'completed' = 'new';
+
+        if (data.status === 'completed') {
+          message = `${district} [${data.as_type}] 작업 완료`;
+          type = 'completed';
+        } else if (data.status === 'accepted') {
+          message = `${district} [${data.as_type}] 매칭 완료`;
+          type = 'matched';
+        } else {
+          message = `${district} [${data.as_type}] 새 협업 요청 등록`;
+          type = 'new';
+        }
+
+        setRealtimeNotifications([{
+          id: data.id,
+          message,
+          type,
+          timestamp,
+          isExiting: false,
+        }]);
+      }
+    };
+
+    fetchLatestEvent();
+  }, []);
 
   // 실시간 현황 구독
   useEffect(() => {
@@ -336,7 +422,7 @@ export function HomeScreen() {
               const newRequest = payload.new as { address: string; as_type: string; title: string };
               const district = extractDistrict(newRequest.address);
               addRealtimeNotification(
-                `${district} [${newRequest.as_type}] 새 의뢰 등록`,
+                `${district} [${newRequest.as_type}] 새 협업 요청 등록`,
                 'new'
               );
             } else if (payload.eventType === 'UPDATE') {
@@ -466,7 +552,7 @@ export function HomeScreen() {
       // @ts-ignore
       style={{ touchAction: 'none', overscrollBehavior: 'none' }}
     >
-    <View position="relative" width="100%" maxWidth={768} height="100%" overflow="hidden" backgroundColor="#f5f5f5">
+    <View position="relative" width="100%" height="100%" overflow="hidden" backgroundColor="#f5f5f5">
       {/* 상단 주소 표시 - 홈에서만 표시 */}
       {!isMyPageOpen && (
       <View
@@ -481,8 +567,6 @@ export function HomeScreen() {
         justifyContent="center"
         borderBottomWidth={1}
         borderBottomColor="#eee"
-        maxWidth={768}
-        marginHorizontal="auto"
         // @ts-ignore - 모바일 스크롤 방지
         style={{ touchAction: 'none', overscrollBehavior: 'none' }}
       >
@@ -490,13 +574,13 @@ export function HomeScreen() {
           <XStack alignItems="center" gap="$3">
             <XStack
               alignItems="center"
-              gap="$2.5"
+              gap={6}
               cursor="pointer"
               tag="a"
               href="/"
               style={{ textDecoration: 'none' }}
             >
-              <img src="/logo.png" alt="협업" width={28} height={28} style={{ objectFit: 'contain' }} />
+              <img src="/logo.png" alt="협업" width={24} height={24} style={{ objectFit: 'contain' }} />
               <Text fontSize={20} fontWeight="600" color={brandColors.primary}>
                 협업
               </Text>
@@ -551,8 +635,6 @@ export function HomeScreen() {
         backgroundColor="white"
         borderBottomWidth={1}
         borderBottomColor="#f0f0f0"
-        maxWidth={768}
-        marginHorizontal="auto"
       >
         <ScrollView
           horizontal
@@ -584,7 +666,7 @@ export function HomeScreen() {
               >
                 {selectedStatusFilters.length === 0
                   ? '상태 전체'
-                  : selectedStatusFilters.map(s => s === 'pending' ? '대기' : s === 'accepted' ? '진행중' : '완료').join(',')}
+                  : selectedStatusFilters.map(s => s === 'pending' ? '대기중' : s === 'accepted' ? '진행중' : '완료').join(',')}
               </Text>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M6 9l6 6 6-6" stroke={selectedStatusFilters.length > 0 ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -687,7 +769,7 @@ export function HomeScreen() {
               {filterModalType === 'status' ? (
                 <XStack gap={10}>
                   {[
-                    { key: 'pending', label: '대기' },
+                    { key: 'pending', label: '대기중' },
                     { key: 'accepted', label: '진행중' },
                     { key: 'completed', label: '완료' },
                   ].map((item) => {
@@ -811,7 +893,7 @@ export function HomeScreen() {
                 className={notification.isExiting ? 'realtime-notification-exit' : 'realtime-notification-enter'}
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  padding: '8px 12px',
+                  padding: '10px 14px',
                   borderRadius: 8,
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                 }}
@@ -835,11 +917,14 @@ export function HomeScreen() {
                     <line x1="79.6" y1="21.6" x2="86.7" y2="18.2" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
                     <line x1="79.6" y1="49.2" x2="86.7" y2="52.6" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
-                  <View>
-                    <Text fontSize={14} color="#000" fontWeight="500">
-                      실시간 접수 현황
-                    </Text>
-                    <Text fontSize={14} color="#000" fontWeight="600">
+                  <View flex={1}>
+                    <XStack alignItems="flex-start" justifyContent="space-between">
+                      <Text fontSize={14} color="#000" fontWeight="500">
+                        실시간 접수 현황
+                      </Text>
+                      <RelativeTime timestamp={notification.timestamp} />
+                    </XStack>
+                    <Text fontSize={16} color="#000" fontWeight="600" marginTop={2}>
                       {notification.message}
                     </Text>
                   </View>
@@ -1088,7 +1173,7 @@ export function HomeScreen() {
           <View padding={16} borderBottomWidth={1} borderBottomColor="#eee">
             <XStack justifyContent="space-between" alignItems="center">
               <Text fontSize={16} fontWeight="600" color="#000">
-                같은 위치 의뢰 {clusterRequests.length}건
+                같은 위치 협업요청 {clusterRequests.length}건
               </Text>
               <View
                 padding={4}
@@ -1132,7 +1217,7 @@ export function HomeScreen() {
                             borderRadius={6}
                           >
                             <Text fontSize={14} color={request.status === 'accepted' ? '#D97706' : request.status === 'completed' ? '#6B7280' : '#2563EB'} fontWeight="600">
-                              {request.status === 'accepted' ? '진행중' : request.status === 'completed' ? '완료' : '대기'}
+                              {request.status === 'accepted' ? '진행중' : request.status === 'completed' ? '완료' : '대기중'}
                             </Text>
                           </View>
                           {request.is_urgent && (

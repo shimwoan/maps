@@ -57,7 +57,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             <XStack alignItems="center" gap="$3">
               <XStack alignItems="center" gap="$1.5">
                 <View width={8} height={8} borderRadius={4} backgroundColor="#FF6B6B" />
-                <Text fontSize={14} color="#666">의뢰 요청</Text>
+                <Text fontSize={14} color="#666">협업 요청</Text>
               </XStack>
               <XStack alignItems="center" gap="$1.5">
                 <View width={8} height={8} borderRadius={4} backgroundColor={brandColors.primary} />

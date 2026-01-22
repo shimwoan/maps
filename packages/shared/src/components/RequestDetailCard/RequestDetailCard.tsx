@@ -280,7 +280,7 @@ export function RequestDetailCard({
               >
                 {request.status === 'completed' ? '완료' :
                  request.status === 'accepted' ? '진행' :
-                 '대기'}
+                 '대기중'}
               </Text>
             </View>
             {/* 긴급 태그 - 대기 상태에서만 표시 */}
@@ -486,7 +486,7 @@ export function RequestDetailCard({
                 hoverStyle={{ backgroundColor: '#fecaca' }}
                 pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
               >
-                의뢰 취소
+                협업요청 취소
               </Button>
               {completionRequested && (
                 <Button
@@ -517,7 +517,7 @@ export function RequestDetailCard({
                   marginTop="$2"
                 >
                   <Text fontSize={16} color="#D97706" textAlign="center" fontWeight="600">
-                    이미 진행중인 의뢰입니다
+                    이미 진행중인 협업입니다
                   </Text>
                 </View>
               ) : alreadyApplied ? (
@@ -648,7 +648,7 @@ export function RequestDetailCard({
           }
         }}
         title="작업 완료 요청"
-        message="의뢰자에게 작업 완료 요청을 보내시겠습니까?"
+        message="협업 요청자에게 작업 완료 요청을 보내시겠습니까?"
         confirmText="예, 요청합니다"
         cancelText="아니오"
         isLoading={isProcessing}
@@ -745,8 +745,8 @@ export function RequestDetailCard({
             setIsProcessing(false);
           }
         }}
-        title="의뢰 취소"
-        message="진행중인 의뢰를 취소하시겠습니까?"
+        title="협업요청 취소"
+        message="진행중인 협업을 취소하시겠습니까?"
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}

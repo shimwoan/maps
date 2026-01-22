@@ -293,7 +293,7 @@ export function useRequestApplications() {
 
     if (error) {
       if (error.code === '23505') {
-        throw new Error('이미 신청한 의뢰입니다');
+        throw new Error('이미 신청한 협업입니다');
       }
       throw error;
     }
@@ -310,8 +310,8 @@ export function useRequestApplications() {
       await supabase.from('notifications').insert({
         user_id: requestData.user_id,
         type: 'application_received',
-        title: '새로운 작업 신청',
-        message: `${applicantName}님이 "${requestData.title}" 의뢰에 작업을 신청했습니다.`,
+        title: '새로운 협업 신청',
+        message: `${applicantName}님이 "${requestData.title}" 협업을 신청했습니다.`,
         request_id: requestId,
       });
     }
@@ -376,8 +376,8 @@ export function useRequestApplications() {
       await supabase.from('notifications').insert({
         user_id: appData.applicant_id,
         type: 'application_accepted',
-        title: '작업 신청 수락됨',
-        message: `"${requestData.title}" 의뢰의 작업 신청이 수락되었습니다.`,
+        title: '협업 신청 수락됨',
+        message: `"${requestData.title}"에 협업 신청이 수락되었습니다.`,
         request_id: requestId,
       });
     }
@@ -459,7 +459,7 @@ export function useRequestApplications() {
           user_id: requestData.user_id,
           type: 'application_received',
           title: '작업 취소됨',
-          message: `${applicantName}님이 "${requestData.title}" 의뢰 작업을 취소했습니다.`,
+          message: `${applicantName}님이 "${requestData.title}" 협업을 취소했습니다.`,
           request_id: requestId,
         });
       }
@@ -503,7 +503,7 @@ export function useRequestApplications() {
         user_id: requestData.user_id,
         type: 'completion_requested',
         title: '작업 완료 요청',
-        message: `${applicantName}님이 "${requestData.title}" 의뢰의 작업 완료를 요청했습니다.`,
+        message: `${applicantName}님이 "${requestData.title}" 협업에 작업 완료를 요청했습니다.`,
         request_id: requestId,
       });
     }

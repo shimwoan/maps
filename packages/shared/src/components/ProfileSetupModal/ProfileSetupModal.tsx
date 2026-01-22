@@ -267,7 +267,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
           <Text fontSize={16} color="#000" textAlign="center">
             {isEdit
               ? '새로운 명함 이미지 or 사업자 등록증를 업로드해주세요.'
-              : '작업을 수락하려면 명함 이미지 or 사업자 등록증을 등록해주세요.\n의뢰인에게 전문가 정보로 제공됩니다.'}
+              : '작업을 수락하려면 명함 이미지 or 사업자 등록증을 등록해주세요.\n요청자에게 전문가 정보로 제공됩니다.'}
           </Text>
 
           {/* 이미지 업로드 영역 */}

@@ -299,7 +299,7 @@ function MyApplicationCard({
               style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
             />
             <Text fontSize={14} color="#22C55E" fontWeight="600">
-              {application.requester_profile?.nickname || '의뢰자'}님과 진행중
+              {application.requester_profile?.nickname || '협업 요청자'}님과 진행중
             </Text>
           </XStack>
           {application.requester_profile?.business_card_url && (
@@ -338,7 +338,7 @@ function MyApplicationCard({
               style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
             />
             <Text fontSize={14} color="#F59E0B" fontWeight="600">
-              {application.requester_profile?.nickname || '의뢰자'}님이 작업 완료 요청
+              {application.requester_profile?.nickname || '협업 요청자'}님이 작업 완료 요청
             </Text>
           </XStack>
           {application.requester_profile?.business_card_url && (
@@ -375,7 +375,7 @@ function MyApplicationCard({
               backgroundColor="#9CA3AF"
             />
             <Text fontSize={14} color="#9CA3AF" fontWeight="600">
-              {formatCompletedDateTime(application.updated_at)} {application.requester_profile?.nickname || '의뢰자'}님과 수행완료
+              {formatCompletedDateTime(application.updated_at)} {application.requester_profile?.nickname || '협업 요청자'}님과 수행완료
             </Text>
           </XStack>
           {application.requester_profile?.business_card_url && (
@@ -529,8 +529,8 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       await supabase.from('notifications').insert({
         user_id: acceptedApp.applicant_id,
         type: 'request_completed',
-        title: '의뢰 완료',
-        message: `"${requestData.title}" 의뢰가 완료되었습니다.`,
+        title: '협업 완료',
+        message: `"${requestData.title}" 협업이 완료되었습니다.`,
         request_id: reqId,
       });
     }
@@ -608,12 +608,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
     // 수행자에게 알림 전송
     if (acceptedApp && requestData && user) {
-      const requesterName = profile?.nickname || user.user_metadata?.name || '의뢰자';
+      const requesterName = profile?.nickname || user.user_metadata?.name || '협업 요청자';
       await supabase.from('notifications').insert({
         user_id: acceptedApp.applicant_id,
         type: 'work_cancelled',
         title: '작업 취소됨',
-        message: `${requesterName}님이 "${requestData.title}" 의뢰의 작업을 취소했습니다.`,
+        message: `${requesterName}님이 "${requestData.title}" 협업 요청을 취소했습니다.`,
         request_id: reqId,
       });
     }
@@ -838,7 +838,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   fontWeight="600"
                   color={statusFilter === 'active' ? 'white' : '#666'}
                 >
-                  대기/진행중
+                  대기중/진행중
                 </Text>
               </View>
               <View
@@ -885,7 +885,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       : req.status === 'completed'
                   );
                   return filteredRequests.length === 0 ? (
-                    <EmptyState message={statusFilter === 'active' ? "대기/진행중인 의뢰가 없습니다" : "완료된 의뢰가 없습니다"} />
+                    <EmptyState message={statusFilter === 'active' ? "대기중/진행중인 협업 요청이 없습니다" : "완료된 협업 요청이 없습니다"} />
                   ) : (
                     filteredRequests.map((req) => (
                       <MyRequestCard
@@ -912,7 +912,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       : app.status === 'completed'
                   );
                   return filteredApplications.length === 0 ? (
-                    <EmptyState message={statusFilter === 'active' ? "대기/진행중인 신청이 없습니다" : "완료된 신청이 없습니다"} />
+                    <EmptyState message={statusFilter === 'active' ? "대기중/진행중인 신청이 없습니다" : "완료된 신청이 없습니다"} />
                   ) : (
                     filteredApplications.map((app) => (
                       <MyApplicationCard
