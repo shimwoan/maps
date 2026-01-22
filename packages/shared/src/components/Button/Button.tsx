@@ -16,22 +16,22 @@ export const Button: TamaguiComponent = styled(TamaguiButton, {
       '$2': {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        fontSize: 12,
+        fontSize: 14,
       },
       '$3': {
         paddingHorizontal: 16,
         paddingVertical: 10,
-        fontSize: 14,
+        fontSize: 15,
       },
       '$4': {
         paddingHorizontal: 20,
         paddingVertical: 12,
-        fontSize: 15,
+        fontSize: 16,
       },
       '$5': {
         paddingHorizontal: 24,
         paddingVertical: 14,
-        fontSize: 16,
+        fontSize: 17,
       },
     },
   } as const,

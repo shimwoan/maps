@@ -77,6 +77,54 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
           </svg>
         </View>
       );
+    case 'completion_requested':
+      return (
+        <View
+          width={36}
+          height={36}
+          borderRadius={18}
+          backgroundColor="#FFEDD5"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M9 11l3 3L22 4" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </View>
+      );
+    case 'work_cancelled':
+      return (
+        <View
+          width={36}
+          height={36}
+          borderRadius={18}
+          backgroundColor="#FEE2E2"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#EF4444" strokeWidth="2"/>
+            <path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </View>
+      );
+    default:
+      return (
+        <View
+          width={36}
+          height={36}
+          borderRadius={18}
+          backgroundColor="#E5E7EB"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </View>
+      );
   }
 }
 
@@ -148,12 +196,19 @@ export function NotificationModal({ isOpen, onClose, onNavigate }: NotificationM
 
     // 알림 타입에 따라 해당 탭으로 이동
     if (onNavigate) {
-      if (notification.type === 'application_received') {
-        // 의뢰자가 받은 알림 -> 내 의뢰 탭
-        onNavigate('myRequests');
-      } else {
-        // 수행자가 받은 알림 -> 신청한 의뢰 탭
-        onNavigate('myApplications');
+      switch (notification.type) {
+        // 의뢰자가 받는 알림 → 작업해주세요 (myRequests)
+        case 'application_received':  // 누군가 내 의뢰에 신청함
+        case 'completion_requested':  // 수행자가 작업 완료 요청함
+          onNavigate('myRequests');
+          break;
+        // 수행자가 받는 알림 → 가능합니다 (myApplications)
+        case 'application_accepted':  // 내 신청이 수락됨
+        case 'request_completed':     // 의뢰가 완료됨
+        case 'work_cancelled':        // 의뢰자가 작업 취소함
+        default:
+          onNavigate('myApplications');
+          break;
       }
     }
     handleClose();

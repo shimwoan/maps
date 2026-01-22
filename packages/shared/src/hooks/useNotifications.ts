@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'application_received' | 'application_accepted' | 'request_completed';
+  type: 'application_received' | 'application_accepted' | 'request_completed' | 'completion_requested' | 'work_cancelled';
   title: string;
   message: string;
   request_id: string | null;

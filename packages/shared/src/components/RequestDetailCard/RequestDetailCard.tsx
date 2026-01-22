@@ -140,6 +140,8 @@ interface RequestDetailCardProps {
   // 의뢰 등록자용 props
   onDeleteRequest?: (requestId: string) => Promise<void>;
   onCancelWork?: (requestId: string) => Promise<void>;
+  onCompleteRequest?: (requestId: string) => Promise<void>;
+  completionRequested?: boolean;
 }
 
 export function RequestDetailCard({
@@ -152,6 +154,8 @@ export function RequestDetailCard({
   onEditRequest,
   onDeleteRequest,
   onCancelWork,
+  onCompleteRequest,
+  completionRequested,
 }: RequestDetailCardProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -162,6 +166,7 @@ export function RequestDetailCard({
   const [showCancelApplicationDialog, setShowCancelApplicationDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCancelWorkDialog, setShowCancelWorkDialog] = useState(false);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showCompletionRequestDialog, setShowCompletionRequestDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
@@ -469,19 +474,36 @@ export function RequestDetailCard({
 
           {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 (진행중) */}
           {!canAccept && isInProgress && !isCompleted && (
-            <Button
-              size="$5"
-              backgroundColor="#fee2e2"
-              color="#dc2626"
-              fontWeight="700"
-              marginTop="$2"
-              onPress={() => setShowCancelWorkDialog(true)}
-              disabled={isProcessing}
-              hoverStyle={{ backgroundColor: '#fecaca' }}
-              pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
-            >
-              의뢰 취소
-            </Button>
+            <XStack gap="$2.5" marginTop="$2">
+              <Button
+                flex={1}
+                size="$5"
+                backgroundColor="#fee2e2"
+                color="#dc2626"
+                fontWeight="700"
+                onPress={() => setShowCancelWorkDialog(true)}
+                disabled={isProcessing}
+                hoverStyle={{ backgroundColor: '#fecaca' }}
+                pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+              >
+                의뢰 취소
+              </Button>
+              {completionRequested && (
+                <Button
+                  flex={1}
+                  size="$5"
+                  backgroundColor="#22C55E"
+                  color="white"
+                  fontWeight="700"
+                  onPress={() => setShowCompleteDialog(true)}
+                  disabled={isProcessing}
+                  hoverStyle={{ backgroundColor: '#16A34A' }}
+                  pressStyle={{ backgroundColor: '#15803D', scale: 0.98 }}
+                >
+                  작업 완료
+                </Button>
+              )}
+            </XStack>
           )}
 
           {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시, 수행자용 모달에서는 숨김 */}
@@ -741,6 +763,30 @@ export function RequestDetailCard({
         cancelText="아니오"
         isLoading={isProcessing}
         variant="danger"
+      />
+
+      {/* 작업 완료 확인 다이얼로그 (의뢰 등록자) */}
+      <ConfirmationDialog
+        isOpen={showCompleteDialog}
+        onClose={() => setShowCompleteDialog(false)}
+        onConfirm={async () => {
+          if (!request || !onCompleteRequest) return;
+          setIsProcessing(true);
+          try {
+            await onCompleteRequest(request.id);
+            setShowCompleteDialog(false);
+            onClose();
+          } catch (err) {
+            console.error('Failed to complete request:', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+        title="작업 완료"
+        message="작업을 완료 처리하시겠습니까?"
+        confirmText="예, 완료합니다"
+        cancelText="아니오"
+        isLoading={isProcessing}
       />
 
       {/* 로그인 모달 */}

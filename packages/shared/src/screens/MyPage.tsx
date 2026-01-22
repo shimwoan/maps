@@ -36,7 +36,6 @@ function MyRequestCard({
   applications,
   onAccept,
   onReject,
-  onComplete,
   onImageClick,
   onCardPress,
 }: {
@@ -44,27 +43,12 @@ function MyRequestCard({
   applications: RequestApplication[];
   onAccept: (appId: string, reqId: string) => void;
   onReject: (appId: string) => void;
-  onComplete: (reqId: string) => Promise<void>;
   onImageClick: (url: string) => void;
   onCardPress: () => void;
 }) {
-  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
-  const [isCompleting, setIsCompleting] = useState(false);
   const pendingApps = applications.filter(a => a.status === 'pending');
   const acceptedApp = applications.find(a => a.status === 'accepted' || a.status === 'completed');
   const isCompleted = request.status === 'completed';
-
-  const handleConfirmComplete = async () => {
-    setIsCompleting(true);
-    try {
-      await onComplete(request.id);
-      setShowCompleteDialog(false);
-    } catch (err) {
-      console.error('Failed to complete:', err);
-    } finally {
-      setIsCompleting(false);
-    }
-  };
 
   return (
     <RequestCard
@@ -81,36 +65,20 @@ function MyRequestCard({
       {/* 진행중인 경우 - 수락된 신청자 정보 표시 */}
       {request.status === 'accepted' && acceptedApp && (
         <YStack gap="$2" marginTop="$2" paddingTop="$2" borderTopWidth={1} borderTopColor="#eee">
-          <XStack alignItems="center" justifyContent="space-between">
-            <XStack alignItems="center" gap="$2">
-              {/* @ts-ignore - animation defined in index.css */}
-              <View
-                width={8}
-                height={8}
-                borderRadius={4}
-                backgroundColor={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'}
-                style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
-              />
-              <Text fontSize={14} color={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'} fontWeight="600">
-                {acceptedApp.completion_requested
-                  ? `${acceptedApp.applicant_profile?.nickname || '수행자'}님이 작업 완료 요청`
-                  : `${acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중`}
-              </Text>
-            </XStack>
-            {acceptedApp.completion_requested && (
-              <View onClick={(e: any) => e.stopPropagation()}>
-                <Button
-                  size="$4"
-                  backgroundColor={brandColors.primary}
-                  color="white"
-                  fontWeight="600"
-                  onPress={() => setShowCompleteDialog(true)}
-                  hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-                >
-                  작업 완료
-                </Button>
-              </View>
-            )}
+          <XStack alignItems="center" gap="$2">
+            {/* @ts-ignore - animation defined in index.css */}
+            <View
+              width={8}
+              height={8}
+              borderRadius={4}
+              backgroundColor={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'}
+              style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
+            />
+            <Text fontSize={14} color={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'} fontWeight="600">
+              {acceptedApp.completion_requested
+                ? `${acceptedApp.applicant_profile?.nickname || '수행자'}님이 작업 완료 요청`
+                : `${acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중`}
+            </Text>
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
             <View
@@ -254,17 +222,6 @@ function MyRequestCard({
         </YStack>
       )}
 
-      {/* 의뢰 종료 확인 다이얼로그 */}
-      <ConfirmationDialog
-        isOpen={showCompleteDialog}
-        onClose={() => setShowCompleteDialog(false)}
-        onConfirm={handleConfirmComplete}
-        title="의뢰 종료"
-        message="의뢰를 종료하시겠습니까?"
-        confirmText="예, 종료합니다"
-        cancelText="아니오"
-        isLoading={isCompleting}
-      />
     </RequestCard>
   );
 }
@@ -415,6 +372,7 @@ function MyApplicationCard({
               opacity={0.7}
               onClick={(e: any) => {
                 e.stopPropagation();
+                onImageClick(application.requester_profile?.business_card_url || '');
               }}
             >
               <img
@@ -918,7 +876,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                         applications={applicationsByRequest[req.id] || []}
                         onAccept={handleAccept}
                         onReject={handleReject}
-                        onComplete={handleComplete}
                         onImageClick={(url) => setEnlargedImageUrl(url)}
                         onCardPress={() => setSelectedDetailRequest(req)}
                       />
@@ -1012,6 +969,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           }}
           onDeleteRequest={handleDeleteRequest}
           onCancelWork={handleCancelWork}
+          onCompleteRequest={handleComplete}
+          completionRequested={
+            applicationsByRequest[selectedDetailRequest.id]?.find(
+              (app) => app.status === 'accepted'
+            )?.completion_requested ?? false
+          }
         />
       )}
 
