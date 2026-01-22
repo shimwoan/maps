@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -38,25 +38,28 @@ const PAGE_SIZE = 20;
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
 
+  // unreadCount를 notifications에서 직접 계산 (단일 소스)
+  const unreadCount = useMemo(() => {
+    return notifications.filter(n => !n.is_read).length;
+  }, [notifications]);
+
   const fetchNotifications = useCallback(async () => {
     if (!user) {
       setNotifications([]);
-      setUnreadCount(0);
       setIsLoading(false);
       return;
     }
 
     try {
-      // 첫 페이지 조회 (count도 함께 가져오기)
-      const { data, error, count } = await supabase
+      // 알림 조회
+      const { data, error } = await supabase
         .from('notifications')
-        .select('*', { count: 'exact' })
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
@@ -65,19 +68,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       setNotifications(data || []);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
-
-      // 읽지 않은 알림 수 계산 - 먼저 로드된 데이터에서 계산
-      const unreadInData = (data || []).filter(n => !n.is_read).length;
-
-      // 전체 읽지 않은 수가 더 많을 수 있으므로 별도 쿼리
-      const { count: unreadTotal } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      // 둘 중 더 큰 값 사용 (안전하게)
-      setUnreadCount(Math.max(unreadInData, unreadTotal ?? 0));
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {
@@ -142,11 +132,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const notification = notifications.find(n => n.id === notificationId);
     if (!notification || notification.is_read) return;
 
-    // 낙관적 업데이트 (UI 먼저 반영)
+    // 낙관적 업데이트 (UI 먼저 반영) - unreadCount는 자동 계산됨
     setNotifications(prev =>
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
-    setUnreadCount(prev => Math.max(0, prev - 1));
 
     try {
       const { error } = await supabase
@@ -161,7 +150,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, is_read: false } : n)
       );
-      setUnreadCount(prev => prev + 1);
     }
   }, [notifications]);
 
@@ -169,9 +157,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const markAllAsRead = useCallback(async () => {
     if (!user) return;
 
-    // 낙관적 업데이트
+    // 낙관적 업데이트 - unreadCount는 자동 계산됨
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    setUnreadCount(0);
 
     try {
       const { error } = await supabase
@@ -224,33 +211,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           },
           (payload) => {
             if (payload.eventType === 'INSERT') {
-              // 새 알림 추가
+              // 새 알림 추가 - unreadCount는 자동 계산됨
               const newNotification = payload.new as Notification;
               setNotifications(prev => [newNotification, ...prev]);
-              if (!newNotification.is_read) {
-                setUnreadCount(prev => prev + 1);
-              }
             } else if (payload.eventType === 'UPDATE') {
-              // 알림 업데이트 (읽음 처리 등)
+              // 알림 업데이트 (읽음 처리 등) - unreadCount는 자동 계산됨
               const updatedNotification = payload.new as Notification;
               setNotifications(prev =>
                 prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
               );
-              // 읽음 처리된 경우 카운트 업데이트
-              const oldNotification = payload.old as { is_read?: boolean };
-              if (!oldNotification.is_read && updatedNotification.is_read) {
-                setUnreadCount(prev => Math.max(0, prev - 1));
-              }
             } else if (payload.eventType === 'DELETE') {
-              // 알림 삭제
+              // 알림 삭제 - unreadCount는 자동 계산됨
               const deletedId = (payload.old as { id: string }).id;
-              setNotifications(prev => {
-                const deletedNotification = prev.find(n => n.id === deletedId);
-                if (deletedNotification && !deletedNotification.is_read) {
-                  setUnreadCount(c => Math.max(0, c - 1));
-                }
-                return prev.filter(n => n.id !== deletedId);
-              });
+              setNotifications(prev => prev.filter(n => n.id !== deletedId));
             }
           }
         )
