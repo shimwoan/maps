@@ -17,7 +17,7 @@ import { useRequestApplications } from '../hooks/useRequestApplications';
 import { useNotifications } from '../contexts/NotificationContext';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
-import { AS_TYPES, type AsType } from '../components/RequestFormModal/types';
+import { AS_TYPES, type AsType, type EditRequest } from '../components/RequestFormModal/types';
 import { supabase } from '../lib/supabase';
 import { formatPrice } from '../utils/format';
 import { AsTypeIcon } from '../components/AsTypeIcon';
@@ -190,7 +190,7 @@ export function HomeScreen() {
   const [tempAsTypeFilters, setTempAsTypeFilters] = useState<AsType[]>([]);
   const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
   const [clusterRequestIds, setClusterRequestIds] = useState<string[]>([]); // 클러스터 클릭 시 표시할 의뢰 ID 목록
-  const [editingRequest, setEditingRequest] = useState<Request | null>(null); // 수정할 의뢰
+  const [editingRequest, setEditingRequest] = useState<EditRequest | null>(null); // 수정할 의뢰
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
@@ -1179,7 +1179,7 @@ export function HomeScreen() {
             refetchApplications();
           }}
           onEditRequest={(req) => {
-            setEditingRequest(req);
+            setEditingRequest(req as EditRequest);
             setSelectedRequestId(null);
           }}
         />

@@ -17,6 +17,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { EmptyState } from '../components/EmptyState';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
 import { RequestFormModal } from '../components/RequestFormModal';
+import type { EditRequest } from '../components/RequestFormModal/types';
 import { formatCompletedDateTime } from '../utils/format';
 
 type TabType = 'myRequests' | 'myApplications';
@@ -410,7 +411,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedDetailRequest, setSelectedDetailRequest] = useState<Request | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<RequestApplication | null>(null);
-  const [editingRequest, setEditingRequest] = useState<Request | null>(null);
+  const [editingRequest, setEditingRequest] = useState<EditRequest | null>(null);
   const { user, signOut } = useAuth();
   const { profile, hasBusinessCard, refetch: refetchProfile } = useProfile();
   useNotifications(); // 알림 컨텍스트 초기화
@@ -962,7 +963,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           onCancelApplication={handleCancel}
           onRequestCompletion={requestCompletion}
           onEditRequest={(req) => {
-            setEditingRequest(req);
+            setEditingRequest(req as EditRequest);
             setSelectedDetailRequest(null);
             setSelectedApplication(null);
           }}

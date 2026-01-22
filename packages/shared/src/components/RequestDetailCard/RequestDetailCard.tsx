@@ -462,7 +462,7 @@ export function RequestDetailCard({
                 hoverStyle={{ backgroundColor: '#fecaca' }}
                 pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
               >
-                의뢰 취소
+                삭제
               </Button>
             </XStack>
           )}
@@ -480,7 +480,7 @@ export function RequestDetailCard({
               hoverStyle={{ backgroundColor: '#fecaca' }}
               pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
             >
-              작업 취소
+              의뢰 취소
             </Button>
           )}
 
@@ -710,9 +710,9 @@ export function RequestDetailCard({
             setIsProcessing(false);
           }
         }}
-        title="의뢰 취소"
-        message="정말로 의뢰를 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-        confirmText="예, 취소합니다"
+        title="삭제"
+        message="정말로 삭제하시겠습니까?"
+        confirmText="예, 삭제합니다"
         cancelText="아니오"
         isLoading={isProcessing}
         variant="danger"
