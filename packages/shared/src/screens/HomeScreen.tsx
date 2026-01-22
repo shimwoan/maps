@@ -374,7 +374,7 @@ export function HomeScreen() {
           message = `[${data.title}] 매칭 완료`;
           type = 'matched';
         } else {
-          message = `[${data.title}] 새. 협업 요청 등록`;
+          message = `[${data.title}] 새 협업 요청 등록`;
           type = 'new';
         }
 
@@ -420,7 +420,7 @@ export function HomeScreen() {
               // 새 의뢰 등록
               const newRequest = payload.new as { address: string; as_type: string; title: string };
               addRealtimeNotification(
-                `${newRequest.title} 등록`,
+                `[${newRequest.title}] 새 협업 요청 등록`,
                 'new'
               );
             } else if (payload.eventType === 'UPDATE') {
@@ -430,13 +430,13 @@ export function HomeScreen() {
               if (oldData.status !== 'accepted' && newData.status === 'accepted') {
                 // 매칭 완료
                 addRealtimeNotification(
-                  `${newData.title} 매칭 완료`,
+                  `[${newData.title}] 매칭 완료`,
                   'matched'
                 );
               } else if (oldData.status !== 'completed' && newData.status === 'completed') {
                 // 의뢰 완료
                 addRealtimeNotification(
-                  `${newData.title} 작업 완료`,
+                  `[${newData.title}] 작업 완료`,
                   'completed'
                 );
               }
