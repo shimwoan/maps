@@ -480,7 +480,7 @@ export function RequestDetailCard({
               hoverStyle={{ backgroundColor: '#fecaca' }}
               pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
             >
-              신청 취소
+              작업 취소
             </Button>
           )}
 
@@ -601,6 +601,23 @@ export function RequestDetailCard({
               </XStack>
             </YStack>
           )}
+
+          {/* 수행자용 버튼 - 내가 신청한 의뢰이고 대기중일 때 */}
+          {myApplication && myApplication.status === 'pending' && (
+            <Button
+              size="$5"
+              backgroundColor="#fee2e2"
+              color="#dc2626"
+              fontWeight="700"
+              marginTop="$2"
+              onPress={() => setShowCancelDialog(true)}
+              disabled={isProcessing}
+              hoverStyle={{ backgroundColor: '#fecaca' }}
+              pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+            >
+              신청 취소
+            </Button>
+          )}
         </YStack>
       </BottomSheet>
 
@@ -627,7 +644,7 @@ export function RequestDetailCard({
         isLoading={isProcessing}
       />
 
-      {/* 작업 취소 확인 다이얼로그 (수행자 - 진행중) */}
+      {/* 작업/신청 취소 확인 다이얼로그 (수행자) */}
       <ConfirmationDialog
         isOpen={showCancelDialog}
         onClose={() => setShowCancelDialog(false)}
@@ -644,8 +661,8 @@ export function RequestDetailCard({
             setIsProcessing(false);
           }
         }}
-        title="작업 취소"
-        message="정말로 작업을 취소하시겠습니까?"
+        title={myApplication?.status === 'pending' ? '신청 취소' : '작업 취소'}
+        message={myApplication?.status === 'pending' ? '정말로 신청을 취소하시겠습니까?' : '정말로 작업을 취소하시겠습니까?'}
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}
@@ -701,7 +718,7 @@ export function RequestDetailCard({
         variant="danger"
       />
 
-      {/* 신청 취소 확인 다이얼로그 (의뢰 등록자 - 진행중) */}
+      {/* 작업 취소 확인 다이얼로그 (의뢰 등록자 - 진행중) */}
       <ConfirmationDialog
         isOpen={showCancelWorkDialog}
         onClose={() => setShowCancelWorkDialog(false)}
@@ -718,8 +735,8 @@ export function RequestDetailCard({
             setIsProcessing(false);
           }
         }}
-        title="신청 취소"
-        message="수행자의 신청을 취소하시겠습니까? 수행자에게 알림이 전송됩니다."
+        title="작업 취소"
+        message="진행중인 작업을 취소하시겠습니까? 수행자에게 알림이 전송됩니다."
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}
