@@ -718,7 +718,7 @@ export function RequestDetailCard({
         variant="danger"
       />
 
-      {/* 작업 취소 확인 다이얼로그 (의뢰 등록자 - 진행중) */}
+      {/* 의뢰 취소 확인 다이얼로그 (의뢰 등록자 - 진행중) */}
       <ConfirmationDialog
         isOpen={showCancelWorkDialog}
         onClose={() => setShowCancelWorkDialog(false)}
@@ -735,8 +735,8 @@ export function RequestDetailCard({
             setIsProcessing(false);
           }
         }}
-        title="작업 취소"
-        message="진행중인 작업을 취소하시겠습니까? 수행자에게 알림이 전송됩니다."
+        title="의뢰 취소"
+        message="진행중인 의뢰를 취소하시겠습니까? 수행자에게 알림이 전송됩니다."
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}

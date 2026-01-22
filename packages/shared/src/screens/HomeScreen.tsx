@@ -1182,6 +1182,11 @@ export function HomeScreen() {
             setEditingRequest(req as EditRequest);
             setSelectedRequestId(null);
           }}
+          onDeleteRequest={async (reqId) => {
+            await supabase.from('requests').delete().eq('id', reqId);
+            setSelectedRequestId(null);
+            refetchRequests();
+          }}
         />
       )}
 
