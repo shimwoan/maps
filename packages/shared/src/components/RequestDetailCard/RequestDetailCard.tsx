@@ -576,10 +576,10 @@ export function RequestDetailCard({
                   </Text>
                 </View>
               )}
-              {/* 버튼 영역 */}
-              <XStack gap="$2.5" justifyContent="center">
-                {/* 작업 완료 요청 버튼 - 아직 요청 안했을 때 */}
-                {!myApplication.completion_requested && (
+              {/* 버튼 영역 - 완료 요청 대기중이 아닐 때만 표시 */}
+              {!myApplication.completion_requested && (
+                <XStack gap="$2.5" justifyContent="center">
+                  {/* 작업 완료 요청 버튼 */}
                   <Button
                     flex={1}
                     size="$4"
@@ -593,22 +593,22 @@ export function RequestDetailCard({
                   >
                     작업 완료 요청
                   </Button>
-                )}
-                {/* 작업 취소 버튼 */}
-                <Button
-                  flex={1}
-                  size="$4"
-                  backgroundColor="#fee2e2"
-                  color="#dc2626"
-                  fontWeight="700"
-                  onPress={() => setShowCancelDialog(true)}
-                  disabled={isProcessing}
-                  hoverStyle={{ backgroundColor: '#fecaca' }}
-                  pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
-                >
-                  작업 취소
-                </Button>
-              </XStack>
+                  {/* 작업 취소 버튼 */}
+                  <Button
+                    flex={1}
+                    size="$4"
+                    backgroundColor="#fee2e2"
+                    color="#dc2626"
+                    fontWeight="700"
+                    onPress={() => setShowCancelDialog(true)}
+                    disabled={isProcessing}
+                    hoverStyle={{ backgroundColor: '#fecaca' }}
+                    pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
+                  >
+                    작업 취소
+                  </Button>
+                </XStack>
+              )}
             </YStack>
           )}
 

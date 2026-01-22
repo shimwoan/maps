@@ -877,7 +877,10 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                         onAccept={handleAccept}
                         onReject={handleReject}
                         onImageClick={(url) => setEnlargedImageUrl(url)}
-                        onCardPress={() => setSelectedDetailRequest(req)}
+                        onCardPress={() => {
+                          refetch(); // 최신 데이터 가져오기
+                          setSelectedDetailRequest(req);
+                        }}
                       />
                     ))
                   );
@@ -900,6 +903,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                         onCancel={handleCancel}
                         onCardPress={() => {
                           if (app.request) {
+                            refetch(); // 최신 데이터 가져오기
                             setSelectedDetailRequest(app.request as unknown as Request);
                             setSelectedApplication(app);
                           }

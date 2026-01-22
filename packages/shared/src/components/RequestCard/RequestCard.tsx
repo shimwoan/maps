@@ -96,6 +96,8 @@ export function RequestCard({
           {hasChildren && (
             <View
               cursor="pointer"
+              padding="$2"
+              marginRight={-8}
               onPress={(e: any) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
@@ -106,7 +108,7 @@ export function RequestCard({
                 transition: 'transform 0.2s ease',
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                 <path d="M18 15l-6-6-6 6" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </View>
