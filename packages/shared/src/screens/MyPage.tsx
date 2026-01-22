@@ -415,8 +415,11 @@ function MyApplicationCard({
   );
 }
 
+type StatusFilter = 'active' | 'completed';
+
 export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = 'requests' }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -715,42 +718,81 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
         {/* 탭 - requests 모드에서만 표시 */}
         {mode === 'requests' && (
-          <XStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
-            <View
-              flex={1}
-              paddingVertical="$3"
-              alignItems="center"
-              borderBottomWidth={2}
-              borderBottomColor={activeTab === 'myRequests' ? brandColors.primary : 'transparent'}
-              cursor="pointer"
-              onPress={() => setActiveTab('myRequests')}
-            >
-              <Text
-                fontSize={16}
-                fontWeight="600"
-                color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
+          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
+            <XStack>
+              <View
+                flex={1}
+                paddingVertical="$3"
+                alignItems="center"
+                borderBottomWidth={2}
+                borderBottomColor={activeTab === 'myRequests' ? brandColors.primary : 'transparent'}
+                cursor="pointer"
+                onPress={() => setActiveTab('myRequests')}
               >
-                작업해 주세요
-              </Text>
-            </View>
-            <View
-              flex={1}
-              paddingVertical="$3"
-              alignItems="center"
-              borderBottomWidth={2}
-              borderBottomColor={activeTab === 'myApplications' ? brandColors.primary : 'transparent'}
-              cursor="pointer"
-              onPress={() => setActiveTab('myApplications')}
-            >
-              <Text
-                fontSize={16}
-                fontWeight="600"
-                color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
+                <Text
+                  fontSize={16}
+                  fontWeight="600"
+                  color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
+                >
+                  작업해 주세요
+                </Text>
+              </View>
+              <View
+                flex={1}
+                paddingVertical="$3"
+                alignItems="center"
+                borderBottomWidth={2}
+                borderBottomColor={activeTab === 'myApplications' ? brandColors.primary : 'transparent'}
+                cursor="pointer"
+                onPress={() => setActiveTab('myApplications')}
               >
-                가능합니다
-              </Text>
-            </View>
-          </XStack>
+                <Text
+                  fontSize={16}
+                  fontWeight="600"
+                  color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
+                >
+                  가능합니다
+                </Text>
+              </View>
+            </XStack>
+            {/* 상태 필터 */}
+            <XStack padding="$3" gap="$2">
+              <View
+                flex={1}
+                paddingVertical="$2"
+                alignItems="center"
+                backgroundColor={statusFilter === 'active' ? brandColors.primary : '#f5f5f5'}
+                borderRadius={8}
+                cursor="pointer"
+                onPress={() => setStatusFilter('active')}
+              >
+                <Text
+                  fontSize={14}
+                  fontWeight="600"
+                  color={statusFilter === 'active' ? 'white' : '#666'}
+                >
+                  대기/진행중
+                </Text>
+              </View>
+              <View
+                flex={1}
+                paddingVertical="$2"
+                alignItems="center"
+                backgroundColor={statusFilter === 'completed' ? brandColors.primary : '#f5f5f5'}
+                borderRadius={8}
+                cursor="pointer"
+                onPress={() => setStatusFilter('completed')}
+              >
+                <Text
+                  fontSize={14}
+                  fontWeight="600"
+                  color={statusFilter === 'completed' ? 'white' : '#666'}
+                >
+                  완료
+                </Text>
+              </View>
+            </XStack>
+          </YStack>
         )}
 
         {/* 컨텐츠 - requests 모드에서만 표시 */}
@@ -769,41 +811,55 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 </View>
               ) : activeTab === 'myRequests' ? (
                 // 내 의뢰 탭
-                myRequests.length === 0 ? (
-                  <EmptyState message="등록한 의뢰가 없습니다" />
-                ) : (
-                  myRequests.map((req) => (
-                    <MyRequestCard
-                      key={req.id}
-                      request={req}
-                      applications={applicationsByRequest[req.id] || []}
-                      onAccept={handleAccept}
-                      onReject={handleReject}
-                      onComplete={handleComplete}
-                      onImageClick={(url) => setEnlargedImageUrl(url)}
-                      onCardPress={() => setSelectedDetailRequest(req)}
-                    />
-                  ))
-                )
+                (() => {
+                  const filteredRequests = myRequests.filter(req =>
+                    statusFilter === 'active'
+                      ? req.status === 'pending' || req.status === 'accepted'
+                      : req.status === 'completed'
+                  );
+                  return filteredRequests.length === 0 ? (
+                    <EmptyState message={statusFilter === 'active' ? "대기/진행중인 의뢰가 없습니다" : "완료된 의뢰가 없습니다"} />
+                  ) : (
+                    filteredRequests.map((req) => (
+                      <MyRequestCard
+                        key={req.id}
+                        request={req}
+                        applications={applicationsByRequest[req.id] || []}
+                        onAccept={handleAccept}
+                        onReject={handleReject}
+                        onComplete={handleComplete}
+                        onImageClick={(url) => setEnlargedImageUrl(url)}
+                        onCardPress={() => setSelectedDetailRequest(req)}
+                      />
+                    ))
+                  );
+                })()
               ) : (
                 // 신청한 의뢰 탭
-                myApplications.length === 0 ? (
-                  <EmptyState message="신청한 의뢰가 없습니다" />
-                ) : (
-                  myApplications.map((app) => (
-                    <MyApplicationCard
-                      key={app.id}
-                      application={app}
-                      onCancel={handleCancel}
-                      onCardPress={() => {
-                        if (app.request) {
-                          setSelectedDetailRequest(app.request as unknown as Request);
-                          setSelectedApplication(app);
-                        }
-                      }}
-                    />
-                  ))
-                )
+                (() => {
+                  const filteredApplications = myApplications.filter(app =>
+                    statusFilter === 'active'
+                      ? app.status === 'pending' || app.status === 'accepted'
+                      : app.status === 'completed'
+                  );
+                  return filteredApplications.length === 0 ? (
+                    <EmptyState message={statusFilter === 'active' ? "대기/진행중인 신청이 없습니다" : "완료된 신청이 없습니다"} />
+                  ) : (
+                    filteredApplications.map((app) => (
+                      <MyApplicationCard
+                        key={app.id}
+                        application={app}
+                        onCancel={handleCancel}
+                        onCardPress={() => {
+                          if (app.request) {
+                            setSelectedDetailRequest(app.request as unknown as Request);
+                            setSelectedApplication(app);
+                          }
+                        }}
+                      />
+                    ))
+                  );
+                })()
               )}
             </YStack>
           </ScrollView>

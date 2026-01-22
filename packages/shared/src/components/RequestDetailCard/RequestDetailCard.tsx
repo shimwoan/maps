@@ -273,8 +273,8 @@ export function RequestDetailCard({
                  '대기'}
               </Text>
             </View>
-            {/* 긴급 태그 */}
-            {request.is_urgent && (
+            {/* 긴급 태그 - 대기 상태에서만 표시 */}
+            {request.is_urgent && request.status === 'pending' && (
               <View
                 backgroundColor="#EF4444"
                 paddingHorizontal={10}

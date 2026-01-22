@@ -93,168 +93,82 @@ const createClusterContent = (count: number, clusterKey: string): string => {
   `;
 };
 
-// 마커 크기 계산 - 고정 80x80
+// 마커 크기 계산 (줌 레벨에 따라)
 const getMarkerSize = (zoom: number) => {
   const scale = getMarkerScale(zoom);
   return {
     scale,
-    width: 86, // 고정 86px
-    height: 86, // 고정 86px
-    fontSize: 11,
-    fontSizeSm: 10,
-    fontSizeLg: 12,
-    badgeFontSize: 9,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    arrowWidth: 12,
-    arrowHeight: 7,
-    iconSize: 14,
-    totalHeight: 93, // 86 + 7 (arrow)
+    fontSize: Math.round(16 * scale),
+    fontSizeSm: Math.round(17 * scale),
+    fontSizeLg: Math.round(21 * scale),
+    badgeFontSize: Math.round(12 * scale),
+    paddingV: Math.round(12 * scale),
+    paddingH: Math.round(16 * scale),
+    badgePaddingV: Math.round(3 * scale),
+    badgePaddingH: Math.round(8 * scale),
+    borderRadius: Math.round(14 * scale),
+    borderWidth: Math.max(2, Math.round(2.5 * scale)),
+    arrowWidth: Math.round(24 * scale),
+    arrowHeight: Math.round(12 * scale),
+    totalHeight: Math.round(90 * scale),
+    minWidth: Math.round(160 * scale),
   };
 };
 
-// 카테고리별 아이콘 SVG
-const getCategoryIcon = (asType: string, size: number, color: string): string => {
-  const icons: Record<string, string> = {
-    '복합기/OA': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="${color}" stroke-width="1.5"/><rect x="4" y="8" width="16" height="8" rx="1" fill="${color}"/><path d="M7 16h10v5H7z" fill="white" stroke="${color}" stroke-width="1"/></svg>`,
-    '전기/통신': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#FBBF24" stroke="${color}" stroke-width="1.5"/></svg>`,
-    '가전/설비': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="${color}" stroke="${color}" stroke-width="1"/></svg>`,
-    '인테리어': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="${color}" stroke="${color}" stroke-width="1.5"/></svg>`,
-    '청소': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M12 2v5" stroke="${color}" stroke-width="2" stroke-linecap="round"/><path d="M12 7l5 15H7l5-15z" fill="#FCD34D" stroke="${color}" stroke-width="1.5"/></svg>`,
-    '소프트웨어': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" fill="${color}"/><rect x="4" y="5" width="16" height="10" fill="#60A5FA"/></svg>`,
-    '운반/설치': `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"><path d="M1 3h15v13H1z" fill="${color}" stroke="${color}" stroke-width="1"/><path d="M16 8h4l3 3v5h-7V8z" fill="#FDBA74" stroke="${color}" stroke-width="1"/></svg>`,
-  };
-  return icons[asType] || icons['복합기/OA'];
-};
-
-// 마커 HTML 생성 - 세로형
-const createMarkerContent = (marker: RequestMarker, _isOwn: boolean, isApplied: boolean, zoom: number): string => {
+// 마커 HTML 생성
+const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
   const isCompleted = marker.status === 'completed';
   const isUrgent = marker.isUrgent;
 
-  // 상태에 따른 border 색상: 완료(회색), 진행중(주황), 신청중(초록), 긴급대기(빨강), 기본(파랑)
-  const borderColor = isCompleted ? '#9CA3AF' : isInProgress ? '#F59E0B' : isApplied ? '#22C55E' : isUrgent ? '#EF4444' : '#3B82F6';
+  // 완료: 회색, 신청중: 초록색, 진행중: 주황색, 긴급: 빨간색, 기본: 파란색
+  const primaryColor = isCompleted ? '#9CA3AF' : isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : (isUrgent ? '#EF4444' : '#3B82F6');
+  const bgColor = primaryColor;
+  const textColor = '#ffffff';
   const size = getMarkerSize(zoom);
 
-  // 상태 텍스트 (짧게)
-  let statusText = '';
-  let statusBgColor = '';
-  let statusTextColor = '#fff';
+  // 상태 배지 (완료, 신청중, 진행중, 긴급)
+  let statusBadge = '';
   if (isCompleted) {
-    statusText = '완료';
-    statusBgColor = '#9CA3AF';
+    statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">완료</span>`;
+  } else if (isApplied) {
+    statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">신청중</span>`;
   } else if (isInProgress) {
-    statusText = '진행중';
-    statusBgColor = '#F59E0B';
-  } else {
-    // pending, applied 모두 대기로 표시
-    statusText = '대기';
-    statusBgColor = '#fff';
-    statusTextColor = '#3B82F6';
+    statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">진행중</span>`;
+  } else if (isUrgent) {
+    statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">긴급</span>`;
   }
 
-  // 긴급 배지 HTML (상태 배지 옆에 표시)
-  const urgentBadge = isUrgent && !isCompleted ? `
-    <div style="
-      background: #EF4444;
-      color: #fff;
-      font-size: ${size.badgeFontSize}px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    ">긴급</div>
-  ` : '';
+  // MY 텍스트 (마커 내부 절대 위치 우측 하단)
+  const myText = isOwn ? `<span style="position: absolute; bottom: 4px; right: 6px; font-size: ${size.badgeFontSize}px; color: rgba(255,255,255,0.7); font-weight: 600;">MY</span>` : '';
 
   return `
     <div data-marker-id="${marker.id}" style="
       display: flex;
       flex-direction: column;
       align-items: center;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,${isUrgent && !isCompleted ? '0.2' : '0.12'}));
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
     ">
       <div class="marker-box" style="
-        --marker-border-color: ${borderColor};
-        position: relative;
-        background: #ffffff;
-        border: ${size.borderWidth}px solid ${borderColor};
-        padding: 10px 8px 6px 8px;
+        --marker-border-color: ${primaryColor};
+        background: ${bgColor};
+        color: ${textColor};
+        padding: ${size.paddingV}px ${size.paddingH}px;
         border-radius: ${size.borderRadius}px;
-        width: ${size.width}px;
-        height: ${size.height}px;
-        min-height: ${size.height}px;
-        max-height: ${size.height}px;
-        box-sizing: border-box;
+        font-size: ${size.fontSize}px;
+        font-weight: 600;
+        white-space: nowrap;
         cursor: pointer;
-        display: flex;
-        flex-direction: column;
+        min-width: ${size.minWidth}px;
+        text-align: center;
+        position: relative;
       ">
-        <!-- 상태 배지 + 긴급 배지 (좌측 상단) -->
-        <div style="
-          position: absolute;
-          top: -10px;
-          left: -5px;
-          display: flex;
-          gap: 4px;
-        ">
-          <div style="
-            background: ${statusBgColor};
-            color: ${statusTextColor};
-            font-size: ${size.badgeFontSize}px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            ${statusText === '대기' ? 'border: 1px solid #e5e7eb;' : ''}
-          ">${statusText}</div>
-          ${urgentBadge}
-        </div>
-
-        <!-- 상단 콘텐츠 -->
-        <div style="flex: 1; overflow: hidden;">
-          <!-- 카테고리 아이콘 + 카테고리명 -->
-          <div style="
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 4px;
-            margin-top: 2px;
-            white-space: nowrap;
-          ">
-            ${getCategoryIcon(marker.asType, size.iconSize, '#333')}
-            <span style="font-size: ${size.fontSizeSm}px; color: #333; font-weight: 500;">${marker.asType}</span>
-          </div>
-
-          <!-- 제목 (2줄 제한) -->
-          <div style="
-            font-size: ${size.fontSize}px;
-            color: #222;
-            font-weight: 600;
-            line-height: 1.3;
-            max-height: ${Math.round(size.fontSize * 1.3 * 2)}px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-          ">${marker.title}</div>
-        </div>
-
-        <!-- 가격 (항상 하단) -->
-        <div style="
-          font-size: ${size.fontSizeSm}px;
-          color: #333;
-          font-weight: normal;
-          margin-top: auto;
-        ">${formatPrice(marker.price)}원</div>
+        <div style="font-size: ${size.fontSizeSm}px; opacity: 0.9; text-align: center;">${statusBadge}${marker.title}</div>
+        <div style="font-size: ${size.fontSizeLg}px; font-weight: 700; text-align: center;">${formatPrice(marker.price)}원</div>
+        ${myText}
       </div>
-
-      <!-- 화살표 -->
-      <svg width="${size.arrowWidth}" height="${size.arrowHeight + 3}" viewBox="0 -3 14 11" style="margin-top: -${size.borderWidth + 2}px; position: relative; z-index: 1;">
-        <rect x="0" y="-3" width="14" height="4" fill="#ffffff"/>
-        <path d="M0,0 L7,8 L14,0" fill="#ffffff"/>
-        <path d="M1,0 L7,7" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
-        <path d="M13,0 L7,7" stroke="${borderColor}" stroke-width="${size.borderWidth}" stroke-linecap="round" fill="none"/>
+      <svg width="${size.arrowWidth}" height="${size.arrowHeight}" viewBox="0 0 16 10" style="margin-top: -1px;">
+        <path d="M0,0 L8,10 L16,0" fill="${bgColor}"/>
       </svg>
     </div>
   `;
@@ -570,7 +484,8 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         const isApplied = appliedRequestIds.includes(markerData.id);
         const existingMarker = requestMarkersRef.current.get(markerData.id);
         const size = getMarkerSize(currentZoom);
-        const anchorX = Math.round(size.width / 2) + size.borderWidth;
+        // 마커 앵커는 화살표 끝에 위치
+        const anchorX = 60; // 대략적인 마커 중앙
         const anchorY = size.totalHeight;
 
         if (existingMarker) {
