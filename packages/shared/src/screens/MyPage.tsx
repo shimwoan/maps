@@ -780,6 +780,39 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 {hasBusinessCard ? '명함 or 사업자 등록증 수정' : '명함 or 사업자 등록증 등록'}
               </Button>
             </YStack>
+
+            {/* 고객센터 */}
+            <YStack padding="$4" paddingTop="$2" gap="$3" borderTopWidth={1} borderTopColor="#eee">
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                paddingVertical="$3"
+                cursor="pointer"
+                onPress={() => window.open('https://open.kakao.com/o/sVjluNci', '_blank')}
+              >
+                <XStack alignItems="center" gap="$3">
+                  <View
+                    width={40}
+                    height={40}
+                    borderRadius={10}
+                    backgroundColor="#FEE500"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.82 5.32 4.55 6.72-.14.52-.57 2.13-.65 2.46-.1.41.15.41.32.3.13-.09 2.1-1.43 2.96-2.02.58.09 1.18.14 1.82.14 5.52 0 10-3.58 10-8S17.52 3 12 3z" fill="#3C1E1E"/>
+                    </svg>
+                  </View>
+                  <YStack>
+                    <Text fontSize={16} fontWeight="600" color="#000">채팅 고객센터</Text>
+                    <Text fontSize={13} color="#888">카카오톡 오픈채팅</Text>
+                  </YStack>
+                </XStack>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18l6-6-6-6" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </XStack>
+            </YStack>
           </YStack>
         )}
 

@@ -345,10 +345,20 @@ export function HomeScreen() {
     }, 300);
   }, []);
 
-  // 주소에서 구 이름 추출
+  // 주소에서 시도 + 구 이름 추출 (예: "서울 중구")
   const extractDistrict = (address: string): string => {
-    const match = address.match(/([가-힣]+[구군시])/);
-    return match ? match[1] : '';
+    // 시도 추출 (서울특별시 -> 서울, 경기도 -> 경기)
+    const sidoMatch = address.match(/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/);
+    const sido = sidoMatch ? sidoMatch[1] : '';
+
+    // 구/군/시 추출
+    const guMatch = address.match(/([가-힣]+[구군시])(?=\s|$)/);
+    const gu = guMatch ? guMatch[1] : '';
+
+    if (sido && gu) {
+      return `${sido} ${gu}`;
+    }
+    return gu || sido || '';
   };
 
   // 페이지 로드 시 가장 최근 이벤트 가져오기
@@ -362,19 +372,20 @@ export function HomeScreen() {
         .single();
 
       if (data) {
+        const district = extractDistrict(data.address);
         const timestamp = new Date(data.updated_at || data.created_at).getTime();
 
         let message = '';
         let type: 'new' | 'matched' | 'completed' = 'new';
 
         if (data.status === 'completed') {
-          message = `[${data.title}] 작업 완료`;
+          message = `${district} [${data.title}] 작업 완료`;
           type = 'completed';
         } else if (data.status === 'accepted') {
-          message = `[${data.title}] 매칭 완료`;
+          message = `${district} [${data.title}] 매칭 완료`;
           type = 'matched';
         } else {
-          message = `[${data.title}] 새 협업 요청 등록`;
+          message = `${district} [${data.title}] 새 협업 요청 등록`;
           type = 'new';
         }
 
@@ -419,24 +430,26 @@ export function HomeScreen() {
             if (payload.eventType === 'INSERT') {
               // 새 의뢰 등록
               const newRequest = payload.new as { address: string; as_type: string; title: string };
+              const district = extractDistrict(newRequest.address);
               addRealtimeNotification(
-                `[${newRequest.title}] 새 협업 요청 등록`,
+                `${district} [${newRequest.title}] 새 협업 요청 등록`,
                 'new'
               );
             } else if (payload.eventType === 'UPDATE') {
               const newData = payload.new as { status: string; address: string; as_type: string; title: string };
               const oldData = payload.old as { status: string };
+              const district = extractDistrict(newData.address);
 
               if (oldData.status !== 'accepted' && newData.status === 'accepted') {
                 // 매칭 완료
                 addRealtimeNotification(
-                  `[${newData.title}] 매칭 완료`,
+                  `${district} [${newData.title}] 매칭 완료`,
                   'matched'
                 );
               } else if (oldData.status !== 'completed' && newData.status === 'completed') {
                 // 의뢰 완료
                 addRealtimeNotification(
-                  `[${newData.title}] 작업 완료`,
+                  `${district} [${newData.title}] 작업 완료`,
                   'completed'
                 );
               }
@@ -893,6 +906,18 @@ export function HomeScreen() {
                   padding: '6px 12px',
                   borderRadius: 8,
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  // 해당 의뢰 찾기
+                  const request = requests.find(r => r.id === notification.id);
+                  if (request && request.latitude && request.longitude) {
+                    // 지도 이동 및 마커 선택
+                    naverMapRef.current?.moveTo(request.latitude, request.longitude, 14);
+                    setSelectedRequestId(request.id);
+                    setClusterRequestIds([]);
+                    setSelectedClusterKey(null);
+                  }
                 }}
               >
                 <XStack alignItems="center" gap={8}>
@@ -975,12 +1000,9 @@ export function HomeScreen() {
         <View
           position="fixed"
           bottom={90}
+          left={16}
           zIndex={100}
           gap="$2"
-          // @ts-ignore
-          style={{
-            left: 'max(16px, calc(50vw - 384px + 16px))',
-          }}
         >
           {/* 현재 위치 버튼 - 위치 권한이 허용된 경우에만 표시 */}
           {currentLocation && (
