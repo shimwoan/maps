@@ -506,8 +506,8 @@ export function RequestDetailCard({
             </XStack>
           )}
 
-          {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시, 수행자용 모달에서는 숨김 */}
-          {canAccept && !myApplication && (
+          {/* 작업 수락하기 버튼 - 작성자가 아닌 경우에만 표시, 수행자용 모달에서는 숨김, 완료된 의뢰에서는 숨김 */}
+          {canAccept && !myApplication && !isCompleted && (
             <>
               {isInProgress ? (
                 <View
