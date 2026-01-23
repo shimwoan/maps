@@ -11,7 +11,7 @@ interface TimePickerProps {
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
 
-const ITEM_HEIGHT = 44;
+const ITEM_HEIGHT = 36;
 
 function WheelPicker({
   items,
@@ -129,10 +129,11 @@ export function TimePicker({ value, onChange, hasError }: TimePickerProps) {
       justifyContent="center"
       gap="$2"
       backgroundColor="white"
-      borderRadius={12}
+      borderRadius={8}
       borderWidth={1}
       borderColor={hasError ? '#ff4444' : '#eee'}
-      padding="$2"
+      height={44}
+      paddingHorizontal="$2"
     >
       <WheelPicker
         items={HOURS}

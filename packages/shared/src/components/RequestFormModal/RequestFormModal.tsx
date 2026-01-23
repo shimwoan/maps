@@ -752,15 +752,14 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               render={({ field: { onChange, value } }) => (
                 <XStack
                   alignItems="center"
-                  justifyContent="space-between"
                   cursor="pointer"
-                  gap="$2"
+                  gap="$3"
                   onPress={() => onChange(!value)}
                 >
                   <Text fontSize={16} fontWeight="600" color="#EF4444">세금계산서 발행</Text>
                   <View
-                    width={18}
-                    height={18}
+                    width={22}
+                    height={22}
                     borderRadius={4}
                     borderWidth={2}
                     borderColor={value ? brandColors.primary : '#ccc'}
@@ -769,7 +768,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                     justifyContent="center"
                   >
                     {value && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     )}
@@ -808,7 +807,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
             {/* 처리 일정 */}
             <YStack gap="$2">
-              <RequiredLabel>처리 일정</RequiredLabel>
+              <RequiredLabel>처리 요청 시간</RequiredLabel>
               <XStack gap="$2">
                 <Controller
                   control={control}
