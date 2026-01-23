@@ -9,7 +9,27 @@ interface BottomNavigationProps {
   onNavigate: (mode: PageMode) => void;
   onLoginRequired?: () => void;
   isLoggedIn: boolean;
+  hasActiveWork?: boolean; // 진행중인 협업이 있는지
 }
+
+// 딸랑거리는 애니메이션 CSS 삽입
+const injectShakeStyles = () => {
+  if (document.getElementById('shake-animation-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'shake-animation-styles';
+  style.textContent = `
+    @keyframes shake-bell {
+      0%, 100% { transform: rotate(0deg); }
+      15%, 45%, 75% { transform: rotate(-8deg); }
+      30%, 60%, 90% { transform: rotate(8deg); }
+    }
+    .shake-bell {
+      animation: shake-bell 1.5s ease-in-out infinite;
+      transform-origin: top center;
+    }
+  `;
+  document.head.appendChild(style);
+};
 
 // PC 디바이스 체크 (터치 미지원 + 모바일 UA 아님)
 const checkIsPC = () => {
@@ -24,11 +44,13 @@ export function BottomNavigation({
   onNavigate,
   onLoginRequired,
   isLoggedIn,
+  hasActiveWork = false,
 }: BottomNavigationProps) {
   const [isPC, setIsPC] = useState(false);
 
   useEffect(() => {
     setIsPC(checkIsPC());
+    injectShakeStyles();
   }, []);
 
   const handlePress = (mode: PageMode) => {
@@ -104,37 +126,67 @@ export function BottomNavigation({
           paddingHorizontal={16}
           onPress={() => handlePress('requests')}
         >
-          {activeMode === 'requests' ? (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
-                fill={activeColor}
-              />
-              <path
-                d="M14 2v6h6"
-                stroke={activeColor}
-                strokeWidth="1.5"
-              />
-            </svg>
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                stroke={inactiveColor}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-              <path
-                d="M14 2v6h6"
-                stroke={inactiveColor}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
+          <View position="relative">
+            {activeMode === 'requests' ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                  fill={activeColor}
+                />
+                <path
+                  d="M14 2v6h6"
+                  stroke={activeColor}
+                  strokeWidth="1.5"
+                />
+              </svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  stroke={inactiveColor}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                <path
+                  d="M14 2v6h6"
+                  stroke={inactiveColor}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+            {/* 진행중인 협업 알림 아이콘 */}
+            {hasActiveWork && (
+              <View
+                position="absolute"
+                top={-4}
+                right={-8}
+                // @ts-ignore
+                className="shake-bell"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                    fill="#EF4444"
+                    stroke="#EF4444"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M13.73 21a2 2 0 0 1-3.46 0"
+                    stroke="#EF4444"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </View>
+            )}
+          </View>
           <Text
             fontSize={14}
             fontWeight={activeMode === 'requests' ? "600" : "400"}

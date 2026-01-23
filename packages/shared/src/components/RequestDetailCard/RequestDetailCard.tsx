@@ -169,6 +169,7 @@ export function RequestDetailCard({
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showCompletionRequestDialog, setShowCompletionRequestDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showShareToast, setShowShareToast] = useState(false);
   const { user } = useAuth();
   const { hasBusinessCard, refetch: refetchProfile } = useProfile();
   const { applyToRequest, myApplications, cancelApplication } = useRequestApplications();
@@ -243,6 +244,40 @@ export function RequestDetailCard({
     }
   };
 
+  // 공유하기 핸들러
+  const handleShare = async () => {
+    const params = new URLSearchParams();
+    params.set('requestId', request.id);
+    if (request.latitude) params.set('lat', String(request.latitude));
+    if (request.longitude) params.set('lng', String(request.longitude));
+
+    const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+
+    try {
+      // Web Share API 지원 여부 확인
+      if (navigator.share) {
+        await navigator.share({ url: shareUrl });
+      } else {
+        // Fallback: 클립보드에 복사
+        await navigator.clipboard.writeText(shareUrl);
+        setShowShareToast(true);
+        setTimeout(() => setShowShareToast(false), 2000);
+      }
+    } catch (err) {
+      // 사용자가 공유 취소한 경우 무시
+      if ((err as Error).name !== 'AbortError') {
+        // 클립보드 복사 시도
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          setShowShareToast(true);
+          setTimeout(() => setShowShareToast(false), 2000);
+        } catch {
+          console.error('Failed to share:', err);
+        }
+      }
+    }
+  };
+
   return (
     <>
       <BottomSheet
@@ -252,48 +287,69 @@ export function RequestDetailCard({
         accentColor={accentColor}
       >
         <YStack gap="$3" paddingBottom="$4">
-          {/* 상단: AS종류 + 상태 배지 + 긴급 태그 */}
-          <XStack gap="$2" alignItems="center">
-            <XStack alignItems="center" gap="$1.5">
-              <AsTypeIcon type={request.as_type} size={16} />
-              <Text fontSize={18} fontWeight="600" color="#000">{request.as_type}</Text>
-            </XStack>
-            {/* 상태 배지 */}
-            <View
-              backgroundColor={
-                request.status === 'completed' ? '#9CA3AF' :
-                request.status === 'accepted' ? '#F59E0B' :
-                '#fff'
-              }
-              paddingHorizontal={10}
-              paddingVertical={4}
-              borderRadius={6}
-              borderWidth={request.status !== 'completed' && request.status !== 'accepted' ? 1 : 0}
-              borderColor="#e5e7eb"
-            >
-              <Text
-                fontSize={14}
-                fontWeight="600"
-                color={
-                  request.status === 'completed' || request.status === 'accepted' ? '#fff' : '#3B82F6'
-                }
-              >
-                {request.status === 'completed' ? '완료' :
-                 request.status === 'accepted' ? '진행' :
-                 '대기중'}
-              </Text>
-            </View>
-            {/* 긴급 태그 - 대기 상태에서만 표시 */}
-            {request.is_urgent && request.status === 'pending' && (
+          {/* 상단: AS종류 + 상태 배지 + 긴급 태그 + 공유하기 */}
+          <XStack gap="$2" alignItems="center" justifyContent="space-between">
+            <XStack gap="$2" alignItems="center" flex={1}>
+              <XStack alignItems="center" gap="$1.5">
+                <AsTypeIcon type={request.as_type} size={16} />
+                <Text fontSize={18} fontWeight="600" color="#000">{request.as_type}</Text>
+              </XStack>
+              {/* 상태 배지 */}
               <View
-                backgroundColor="#EF4444"
+                backgroundColor={
+                  request.status === 'completed' ? '#9CA3AF' :
+                  request.status === 'accepted' ? '#F59E0B' :
+                  '#fff'
+                }
                 paddingHorizontal={10}
                 paddingVertical={4}
                 borderRadius={6}
+                borderWidth={request.status !== 'completed' && request.status !== 'accepted' ? 1 : 0}
+                borderColor="#e5e7eb"
               >
-                <Text fontSize={14} fontWeight="700" color="white">긴급</Text>
+                <Text
+                  fontSize={14}
+                  fontWeight="600"
+                  color={
+                    request.status === 'completed' || request.status === 'accepted' ? '#fff' : '#3B82F6'
+                  }
+                >
+                  {request.status === 'completed' ? '완료' :
+                   request.status === 'accepted' ? '진행' :
+                   '대기중'}
+                </Text>
               </View>
-            )}
+              {/* 긴급 태그 - 대기 상태에서만 표시 */}
+              {request.is_urgent && request.status === 'pending' && (
+                <View
+                  backgroundColor="#EF4444"
+                  paddingHorizontal={10}
+                  paddingVertical={4}
+                  borderRadius={6}
+                >
+                  <Text fontSize={14} fontWeight="700" color="white">긴급</Text>
+                </View>
+              )}
+            </XStack>
+            {/* 공유하기 버튼 */}
+            <XStack
+              paddingHorizontal={12}
+              paddingVertical={8}
+              borderRadius={20}
+              backgroundColor="#f5f5f5"
+              alignItems="center"
+              justifyContent="center"
+              gap={6}
+              cursor="pointer"
+              hoverStyle={{ backgroundColor: '#e5e5e5' }}
+              pressStyle={{ backgroundColor: '#d5d5d5', scale: 0.95 }}
+              onPress={handleShare}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <Text fontSize={14} fontWeight="500" color="#333">공유하기</Text>
+            </XStack>
           </XStack>
 
           {/* 제목 + 금액 */}
@@ -793,6 +849,30 @@ export function RequestDetailCard({
 
       {/* 이미지 미리보기 모달 */}
       <ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
+
+      {/* 공유 링크 복사 토스트 */}
+      {showShareToast && (
+        <View
+          position="fixed"
+          bottom={100}
+          left={0}
+          right={0}
+          alignItems="center"
+          zIndex={9999}
+          pointerEvents="none"
+        >
+          <View
+            backgroundColor="rgba(0,0,0,0.8)"
+            paddingHorizontal={20}
+            paddingVertical={12}
+            borderRadius={8}
+          >
+            <Text fontSize={14} color="white" fontWeight="500">
+              링크가 복사되었습니다
+            </Text>
+          </View>
+        </View>
+      )}
     </>
   );
 }

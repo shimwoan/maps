@@ -215,16 +215,44 @@ function getAddressFromCoords(latitude: number, longitude: number): Address | nu
 
 const MIN_ZOOM_FOR_ADDRESS = 13;
 
+// URL에서 쿼리 파라미터 읽기
+function getUrlParam(param: string): string | null {
+  if (typeof window === 'undefined') return null;
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+// URL 쿼리 파라미터 설정/제거
+function setUrlParam(param: string, value: string | null) {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (value) {
+    url.searchParams.set(param, value);
+  } else {
+    url.searchParams.delete(param);
+  }
+  window.history.replaceState({}, '', url.toString());
+}
+
 export function HomeScreen() {
   const [location, setLocation] = useState<Location | null>(null);
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [address, setAddress] = useState<Address | null>(null);
-  const [zoom, setZoom] = useState(12);
+  const [zoom, setZoom] = useState(11);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [pendingShareRequestId, setPendingShareRequestId] = useState<string | null>(() => getUrlParam('requestId'));
+  const [pendingShareLocation, setPendingShareLocation] = useState<{ lat: number; lng: number } | null>(() => {
+    const lat = getUrlParam('lat');
+    const lng = getUrlParam('lng');
+    if (lat && lng) {
+      return { lat: parseFloat(lat), lng: parseFloat(lng) };
+    }
+    return null;
+  });
   const [isMyPageOpen, setIsMyPageOpen] = useState(false);
   const [myPageInitialTab, setMyPageInitialTab] = useState<'myRequests' | 'myApplications'>('myRequests');
   const [myPageMode, setMyPageMode] = useState<'requests' | 'profile'>('requests');
@@ -244,13 +272,22 @@ export function HomeScreen() {
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
-  const { myApplications, refetch: refetchApplications } = useRequestApplications();
+  const { myApplications, applicationsToMyRequests, refetch: refetchApplications } = useRequestApplications();
   useNotifications(); // 알림 컨텍스트 초기화
 
   // 내가 신청한 의뢰 ID 목록
   const appliedRequestIds = useMemo(() => {
     return myApplications.map(app => app.request_id);
   }, [myApplications]);
+
+  // 진행중인 협업이 있는지 (요청합니다 또는 가능합니다에서)
+  const hasActiveWork = useMemo(() => {
+    // 내가 신청한 것 중 진행중인 것
+    const hasActiveApplication = myApplications.some(app => app.status === 'accepted');
+    // 내 의뢰에 진행중인 것
+    const hasActiveRequest = applicationsToMyRequests.some(app => app.status === 'accepted');
+    return hasActiveApplication || hasActiveRequest;
+  }, [myApplications, applicationsToMyRequests]);
 
   // 의뢰를 마커 형식으로 변환 (필터 적용)
   const markers: RequestMarker[] = useMemo(() => {
@@ -314,6 +351,43 @@ export function HomeScreen() {
       setIsRequestModalOpen(true);
     }
   }, [user]);
+
+  // URL 공유 파라미터 처리 - 위치 이동 (지도 로딩 완료 시)
+  useEffect(() => {
+    if (!pendingShareLocation || isLocationLoading || !location) return;
+
+    // 지도 준비 후 바로 해당 위치로 이동
+    const timer = setTimeout(() => {
+      naverMapRef.current?.moveTo(pendingShareLocation.lat, pendingShareLocation.lng, 15);
+      setPendingShareLocation(null);
+      // URL에서 lat, lng 파라미터 제거
+      setUrlParam('lat', null);
+      setUrlParam('lng', null);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [pendingShareLocation, isLocationLoading, location]);
+
+  // URL 공유 파라미터 처리 - 모달 열기 (requests 로드 후)
+  useEffect(() => {
+    if (!pendingShareRequestId || requests.length === 0) return;
+
+    const sharedRequest = requests.find(r => r.id === pendingShareRequestId);
+    if (sharedRequest) {
+      // 마커 선택 (모달 열기)
+      setSelectedRequestId(sharedRequest.id);
+      // 처리 완료 후 pending 상태 클리어
+      setPendingShareRequestId(null);
+    } else {
+      // 의뢰를 찾을 수 없는 경우 URL 파라미터 제거
+      setUrlParam('requestId', null);
+      setPendingShareRequestId(null);
+    }
+  }, [pendingShareRequestId, requests]);
+
+  // selectedRequestId 변경 시 URL 업데이트
+  useEffect(() => {
+    setUrlParam('requestId', selectedRequestId);
+  }, [selectedRequestId]);
 
   // CSS 스타일 삽입
   useEffect(() => {
@@ -504,7 +578,7 @@ export function HomeScreen() {
       setLocation(loc);
       if (granted) {
         setCurrentLocation(loc);
-        setZoom(12);
+        setZoom(11);
       }
       setIsLocationLoading(false);
       // 초기 로딩 후 카메라 변경 시 중복 호출 방지
@@ -913,7 +987,7 @@ export function HomeScreen() {
                   const request = requests.find(r => r.id === notification.id);
                   if (request && request.latitude && request.longitude) {
                     // 지도 이동 및 마커 선택
-                    naverMapRef.current?.moveTo(request.latitude, request.longitude, 14);
+                    naverMapRef.current?.moveTo(request.latitude, request.longitude, 13);
                     setSelectedRequestId(request.id);
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);
@@ -1021,8 +1095,8 @@ export function HomeScreen() {
             onPress={() => {
               skipAddressUpdateRef.current = true;
               setLocation(currentLocation);
-              setZoom(12);
-              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 12);
+              setZoom(11);
+              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 11);
               setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
             }}
           >
@@ -1103,7 +1177,7 @@ export function HomeScreen() {
           await refetchRequests();
           // 새로 등록된 의뢰 위치로 지도 이동 및 마커 선택
           if (latitude && longitude) {
-            naverMapRef.current?.moveTo(latitude, longitude, 16);
+            naverMapRef.current?.moveTo(latitude, longitude, 15);
           }
           if (requestId) {
             setSelectedRequestId(requestId);
@@ -1164,6 +1238,7 @@ export function HomeScreen() {
         }}
         onLoginRequired={() => setIsLoginModalOpen(true)}
         isLoggedIn={!!user}
+        hasActiveWork={hasActiveWork}
       />
     </View>
 
