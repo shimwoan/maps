@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AdminLayout } from '../components/layout/admin-layout';
-import { Card } from '../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { supabase } from '@monorepo/shared';
-import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 interface Request {
   id: string;
@@ -21,7 +19,7 @@ interface Request {
   created_at: string;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'success' | 'warning' | 'destructive' | 'info' }> = {
   pending: { label: '대기중', variant: 'warning' },
@@ -44,21 +42,28 @@ const AS_TYPE_MAP: Record<string, string> = {
 export function RequestsPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchRequests();
-  }, [currentPage, statusFilter]);
-
-  async function fetchRequests() {
+  const fetchRequests = useCallback(async (reset = false) => {
     try {
-      setIsLoading(true);
+      if (reset) {
+        setIsLoading(true);
+        setRequests([]);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const currentLength = reset ? 0 : requests.length;
+
       let query = supabase
         .from('requests')
         .select('*', { count: 'exact' })
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
+        .range(currentLength, currentLength + PAGE_SIZE - 1)
         .order('created_at', { ascending: false });
 
       if (statusFilter) {
@@ -69,16 +74,52 @@ export function RequestsPage() {
 
       if (error) throw error;
 
-      setRequests(data || []);
+      if (reset) {
+        setRequests(data || []);
+      } else {
+        setRequests((prev) => [...prev, ...(data || [])]);
+      }
+
       setTotalCount(count || 0);
+      setHasMore((data?.length || 0) === PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching requests:', error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  }
+  }, [requests.length, statusFilter]);
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  // 초기 로드 및 필터 변경 시
+  useEffect(() => {
+    fetchRequests(true);
+  }, [statusFilter]);
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          fetchRequests(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoading, isLoadingMore, fetchRequests]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
@@ -101,10 +142,7 @@ export function RequestsPage() {
             <Button
               variant={statusFilter === null ? 'default' : 'outline'}
               size="sm"
-              onClick={() => {
-                setStatusFilter(null);
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter(null)}
             >
               전체
             </Button>
@@ -113,10 +151,7 @@ export function RequestsPage() {
                 key={key}
                 variant={statusFilter === key ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  setStatusFilter(key);
-                  setCurrentPage(1);
-                }}
+                onClick={() => setStatusFilter(key)}
               >
                 {label}
               </Button>
@@ -126,153 +161,82 @@ export function RequestsPage() {
 
         {/* 콘텐츠 */}
         <div>
-            {isLoading ? (
-              <div className="tw-space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="tw-h-12 tw-bg-gray-100 tw-rounded tw-animate-pulse" />
-                ))}
-              </div>
-            ) : requests.length === 0 ? (
-              <div className="tw-text-center tw-py-8 tw-text-muted-foreground">
-                등록된 의뢰가 없습니다.
-              </div>
-            ) : (
-              <>
-                {/* 모바일 카드 뷰 */}
-                <div className="tw-space-y-4 md:tw-hidden">
-                  {requests.map((request) => (
-                    <div
-                      key={request.id}
-                      className="tw-py-4 tw-border-b tw-border-gray-200 last:tw-border-b-0"
-                    >
-                      <div className="tw-flex tw-justify-between tw-items-start">
-                        <div className="tw-flex tw-items-center tw-gap-2">
-                          {request.is_urgent && (
-                            <AlertCircle className="tw-h-4 tw-w-4 tw-text-red-500" />
-                          )}
-                          <p className="tw-font-medium tw-text-base">
-                            {request.title || '-'}
-                          </p>
-                        </div>
-                        <Badge variant={STATUS_MAP[request.status]?.variant || 'secondary'}>
-                          {STATUS_MAP[request.status]?.label || request.status}
-                        </Badge>
-                      </div>
-                      <div className="tw-grid tw-grid-cols-2 tw-gap-2 tw-text-sm">
-                        <div>
-                          <span className="tw-text-gray-500">유형</span>
-                          <p className="tw-font-medium">
-                            {AS_TYPE_MAP[request.as_type] || request.as_type}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="tw-text-gray-500">예상 금액</span>
-                          <p className="tw-font-medium">{formatCurrency(request.expected_fee)}</p>
-                        </div>
-                        <div>
-                          <span className="tw-text-gray-500">일정</span>
-                          <p className="tw-font-medium">
-                            {request.schedule_date} {request.schedule_time}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="tw-text-gray-500">등록일</span>
-                          <p className="tw-font-medium">
-                            {request.created_at
-                              ? new Date(request.created_at).toLocaleDateString('ko-KR')
-                              : '-'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="tw-text-sm">
-                        <span className="tw-text-gray-500">주소</span>
-                        <p className="tw-font-medium">{request.address || '-'}</p>
-                      </div>
+          {isLoading ? (
+            <div className="tw-space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="tw-h-12 tw-bg-gray-100 tw-rounded tw-animate-pulse" />
+              ))}
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="tw-text-center tw-py-8 tw-text-muted-foreground">
+              등록된 의뢰가 없습니다.
+            </div>
+          ) : (
+            <>
+            <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
+              {requests.map((request) => (
+                <div
+                  key={request.id}
+                  className="tw-p-4 tw-bg-white tw-rounded-lg tw-border tw-border-gray-200 tw-shadow-sm"
+                >
+                  <div className="tw-flex tw-justify-between tw-items-start">
+                    <div className="tw-flex tw-items-center tw-gap-2">
+                      {request.is_urgent && (
+                        <AlertCircle className="tw-h-4 tw-w-4 tw-text-red-500" />
+                      )}
+                      <p className="tw-font-medium tw-text-base">
+                        {request.title || '-'}
+                      </p>
                     </div>
-                  ))}
-                </div>
-
-                {/* 데스크톱 테이블 뷰 */}
-                <Card className="tw-hidden md:tw-block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>제목</TableHead>
-                        <TableHead>유형</TableHead>
-                        <TableHead>주소</TableHead>
-                        <TableHead>예상 금액</TableHead>
-                        <TableHead>일정</TableHead>
-                        <TableHead>상태</TableHead>
-                        <TableHead>등록일</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {requests.map((request) => (
-                        <TableRow key={request.id}>
-                          <TableCell className="tw-font-medium">
-                            <div className="tw-flex tw-items-center tw-gap-2">
-                              {request.is_urgent && (
-                                <AlertCircle className="tw-h-4 tw-w-4 tw-text-red-500" />
-                              )}
-                              {request.title || '-'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {AS_TYPE_MAP[request.as_type] || request.as_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="tw-max-w-[200px] tw-truncate">
-                            {request.address || '-'}
-                          </TableCell>
-                          <TableCell>{formatCurrency(request.expected_fee)}</TableCell>
-                          <TableCell>
-                            {request.schedule_date} {request.schedule_time}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={STATUS_MAP[request.status]?.variant || 'secondary'}>
-                              {STATUS_MAP[request.status]?.label || request.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {request.created_at
-                              ? new Date(request.created_at).toLocaleDateString('ko-KR')
-                              : '-'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Card>
-
-                {totalPages > 1 && (
-                  <div className="tw-flex tw-items-center tw-justify-between tw-mt-4">
-                    <p className="tw-text-sm tw-text-muted-foreground">
-                      총 {totalCount}개 중 {(currentPage - 1) * PAGE_SIZE + 1}-
-                      {Math.min(currentPage * PAGE_SIZE, totalCount)}개
-                    </p>
-                    <div className="tw-flex tw-gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="tw-h-4 tw-w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        <ChevronRight className="tw-h-4 tw-w-4" />
-                      </Button>
+                    <Badge variant={STATUS_MAP[request.status]?.variant || 'secondary'}>
+                      {STATUS_MAP[request.status]?.label || request.status}
+                    </Badge>
+                  </div>
+                  <div className="tw-grid tw-grid-cols-2 tw-gap-2 tw-text-sm tw-mt-2">
+                    <div>
+                      <span className="tw-text-gray-500">유형</span>
+                      <p className="tw-font-medium">
+                        {AS_TYPE_MAP[request.as_type] || request.as_type}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="tw-text-gray-500">예상 금액</span>
+                      <p className="tw-font-medium">{formatCurrency(request.expected_fee)}</p>
+                    </div>
+                    <div>
+                      <span className="tw-text-gray-500">일정</span>
+                      <p className="tw-font-medium">
+                        {request.schedule_date} {request.schedule_time}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="tw-text-gray-500">등록일</span>
+                      <p className="tw-font-medium">
+                        {request.created_at
+                          ? new Date(request.created_at).toLocaleDateString('ko-KR')
+                          : '-'}
+                      </p>
                     </div>
                   </div>
-                )}
-              </>
-            )}
+                  <div className="tw-text-sm tw-mt-2">
+                    <span className="tw-text-gray-500">주소</span>
+                    <p className="tw-font-medium">{request.address || '-'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 로드 더 트리거 */}
+            <div ref={loadMoreRef} className="tw-py-4 tw-flex tw-justify-center">
+              {isLoadingMore && (
+                <Loader2 className="tw-h-6 tw-w-6 tw-animate-spin tw-text-gray-400" />
+              )}
+              {!hasMore && requests.length > 0 && (
+                <p className="tw-text-sm tw-text-gray-400">모든 의뢰를 불러왔습니다</p>
+              )}
+            </div>
+            </>
+          )}
         </div>
       </div>
     </AdminLayout>

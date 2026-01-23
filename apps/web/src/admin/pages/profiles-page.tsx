@@ -1,11 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AdminLayout } from '../components/layout/admin-layout';
-import { Card } from '../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { supabase } from '@monorepo/shared';
-import { ChevronLeft, ChevronRight, Search, User, X } from 'lucide-react';
+import { Search, User, X, Loader2 } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -17,27 +14,34 @@ interface Profile {
   updated_at: string;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export function ProfilesPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchProfiles();
-  }, [currentPage, searchTerm]);
-
-  async function fetchProfiles() {
+  const fetchProfiles = useCallback(async (reset = false) => {
     try {
-      setIsLoading(true);
+      if (reset) {
+        setIsLoading(true);
+        setProfiles([]);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const currentLength = reset ? 0 : profiles.length;
+
       let query = supabase
         .from('profiles')
         .select('*', { count: 'exact' })
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
+        .range(currentLength, currentLength + PAGE_SIZE - 1)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -48,16 +52,52 @@ export function ProfilesPage() {
 
       if (error) throw error;
 
-      setProfiles(data || []);
+      if (reset) {
+        setProfiles(data || []);
+      } else {
+        setProfiles((prev) => [...prev, ...(data || [])]);
+      }
+
       setTotalCount(count || 0);
+      setHasMore((data?.length || 0) === PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching profiles:', error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
-  }
+  }, [profiles.length, searchTerm]);
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  // 초기 로드 및 검색어 변경 시
+  useEffect(() => {
+    fetchProfiles(true);
+  }, [searchTerm]);
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          fetchProfiles(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoading, isLoadingMore, fetchProfiles]);
 
   return (
     <AdminLayout>
@@ -77,10 +117,7 @@ export function ProfilesPage() {
             <Input
               placeholder="닉네임 검색..."
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="tw-pl-9"
             />
           </div>
@@ -88,128 +125,66 @@ export function ProfilesPage() {
 
         {/* 콘텐츠 */}
         <div>
-            {isLoading ? (
-              <div className="tw-space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="tw-h-12 tw-bg-gray-100 tw-rounded tw-animate-pulse" />
-                ))}
-              </div>
-            ) : profiles.length === 0 ? (
-              <div className="tw-text-center tw-py-8 tw-text-muted-foreground">
-                {searchTerm ? '검색 결과가 없습니다.' : '등록된 프로필이 없습니다.'}
-              </div>
-            ) : (
-              <>
-                {/* 모바일 카드 뷰 */}
-                <div className="md:tw-hidden">
-                  {profiles.map((profile) => (
-                    <div
-                      key={profile.id}
-                      className="tw-py-4 tw-border-b tw-border-gray-200 last:tw-border-b-0"
-                    >
-                      <div className="tw-flex tw-justify-between tw-items-center">
-                        <p className="tw-font-medium tw-text-base">
-                          {profile.nickname || '-'}
-                        </p>
-                        <span className="tw-text-sm tw-text-gray-500">
-                          {profile.created_at
-                            ? new Date(profile.created_at).toLocaleDateString('ko-KR')
-                            : '-'}
-                        </span>
-                      </div>
-                      {profile.business_card_url ? (
-                        <button
-                          onClick={() => setSelectedImage(profile.business_card_url)}
-                          className="tw-block tw-w-full tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer"
-                        >
-                          <img
-                            src={profile.business_card_url}
-                            alt="명함"
-                            className="tw-w-full tw-h-40 tw-object-cover tw-rounded tw-border tw-border-gray-200 hover:tw-opacity-80 tw-transition-opacity"
-                          />
-                        </button>
-                      ) : (
-                        <div className="tw-flex tw-items-center tw-justify-center tw-w-full tw-h-40 tw-bg-gray-100 tw-rounded tw-border tw-border-gray-200">
-                          <User className="tw-h-8 tw-w-8 tw-text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* 데스크톱 테이블 뷰 */}
-                <Card className="tw-hidden md:tw-block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>닉네임</TableHead>
-                        <TableHead>명함</TableHead>
-                        <TableHead>가입일</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {profiles.map((profile) => (
-                        <TableRow key={profile.id}>
-                          <TableCell className="tw-font-medium">
-                            {profile.nickname || '-'}
-                          </TableCell>
-                          <TableCell>
-                            {profile.business_card_url ? (
-                              <button
-                                onClick={() => setSelectedImage(profile.business_card_url)}
-                                className="tw-block tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer"
-                              >
-                                <img
-                                  src={profile.business_card_url}
-                                  alt="명함"
-                                  className="tw-w-56 tw-h-32 tw-object-cover tw-rounded tw-border tw-border-gray-200 hover:tw-opacity-80 tw-transition-opacity"
-                                />
-                              </button>
-                            ) : (
-                              <div className="tw-flex tw-items-center tw-justify-center tw-w-56 tw-h-32 tw-bg-gray-100 tw-rounded tw-border tw-border-gray-200">
-                                <User className="tw-h-6 tw-w-6 tw-text-gray-400" />
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {profile.created_at
-                              ? new Date(profile.created_at).toLocaleDateString('ko-KR')
-                              : '-'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Card>
-
-                {totalPages > 1 && (
-                  <div className="tw-flex tw-items-center tw-justify-between tw-mt-4">
-                    <p className="tw-text-sm tw-text-muted-foreground">
-                      총 {totalCount}개 중 {(currentPage - 1) * PAGE_SIZE + 1}-
-                      {Math.min(currentPage * PAGE_SIZE, totalCount)}개
+          {isLoading ? (
+            <div className="tw-space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="tw-h-12 tw-bg-gray-100 tw-rounded tw-animate-pulse" />
+              ))}
+            </div>
+          ) : profiles.length === 0 ? (
+            <div className="tw-text-center tw-py-8 tw-text-muted-foreground">
+              {searchTerm ? '검색 결과가 없습니다.' : '등록된 프로필이 없습니다.'}
+            </div>
+          ) : (
+            <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
+              {profiles.map((profile) => (
+                <div
+                  key={profile.id}
+                  className="tw-p-4 tw-bg-white tw-rounded-lg tw-border tw-border-gray-200 tw-shadow-sm"
+                >
+                  <div className="tw-flex tw-justify-between tw-items-center tw-mb-2">
+                    <p className="tw-font-medium tw-text-base">
+                      {profile.nickname || '-'}
                     </p>
-                    <div className="tw-flex tw-gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="tw-h-4 tw-w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        <ChevronRight className="tw-h-4 tw-w-4" />
-                      </Button>
-                    </div>
+                    <span className="tw-text-sm tw-text-gray-500">
+                      {profile.created_at
+                        ? new Date(profile.created_at).toLocaleDateString('ko-KR')
+                        : '-'}
+                    </span>
                   </div>
-                )}
-              </>
-            )}
+                  {profile.business_card_url ? (
+                    <button
+                      onClick={() => setSelectedImage(profile.business_card_url)}
+                      className="tw-block tw-w-full tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer"
+                    >
+                      <img
+                        src={profile.business_card_url}
+                        alt="명함"
+                        className="tw-w-full tw-h-auto tw-object-contain tw-rounded tw-border tw-border-gray-200 hover:tw-opacity-80 tw-transition-opacity"
+                      />
+                    </button>
+                  ) : (
+                    <div className="tw-flex tw-items-center tw-justify-center tw-w-full tw-h-40 tw-bg-gray-100 tw-rounded tw-border tw-border-gray-200">
+                      <User className="tw-h-8 tw-w-8 tw-text-gray-400" />
+                    </div>
+                  )}
+                </div>
+              ))}
+
+            </div>
+          )}
+
+          {/* 로드 더 트리거 */}
+          {!isLoading && profiles.length > 0 && (
+            <div ref={loadMoreRef} className="tw-py-4 tw-flex tw-justify-center">
+              {isLoadingMore && (
+                <Loader2 className="tw-h-6 tw-w-6 tw-animate-spin tw-text-gray-400" />
+              )}
+              {!hasMore && profiles.length > 0 && (
+                <p className="tw-text-sm tw-text-gray-400">모든 프로필을 불러왔습니다</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

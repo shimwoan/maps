@@ -161,6 +161,99 @@ serve(async (req) => {
       );
     }
 
+    // 대시보드 통계 (오늘 기준)
+    if (type === 'dashboard') {
+      // 실시간 활성 사용자
+      const realtimeResponse = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runRealtimeReport`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            metrics: [{ name: 'activeUsers' }],
+          }),
+        }
+      );
+      const realtimeData = await realtimeResponse.json();
+
+      // 도시별 실시간 사용자
+      const cityResponse = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runRealtimeReport`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            dimensions: [{ name: 'city' }],
+            metrics: [{ name: 'activeUsers' }],
+          }),
+        }
+      );
+      const cityData = await cityResponse.json();
+
+      // 기간별 통계 (새 사용자, 이벤트 수, 참여 시간)
+      const periodResponse = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            dateRanges: [{ startDate, endDate }],
+            metrics: [
+              { name: 'newUsers' },
+              { name: 'eventCount' },
+              { name: 'userEngagementDuration' },
+              { name: 'activeUsers' },
+            ],
+          }),
+        }
+      );
+      const periodData = await periodResponse.json();
+
+      // 데이터 파싱
+      const activeUsers = realtimeData.rows?.[0]?.metricValues?.[0]?.value || '0';
+
+      // 도시별 사용자 파싱
+      const cityUsers = (cityData.rows || []).map((row: { dimensionValues: { value: string }[]; metricValues: { value: string }[] }) => ({
+        city: row.dimensionValues[0].value,
+        users: parseInt(row.metricValues[0].value, 10),
+      }));
+
+      const periodRow = periodData.rows?.[0]?.metricValues || [];
+      const newUsers = periodRow[0]?.value || '0';
+      const eventCount = periodRow[1]?.value || '0';
+      const engagementDuration = parseFloat(periodRow[2]?.value || '0');
+      const periodActiveUsers = parseInt(periodRow[3]?.value || '1', 10) || 1;
+
+      // 평균 참여 시간 계산 (초 단위)
+      const avgEngagementSeconds = Math.round(engagementDuration / periodActiveUsers);
+      const minutes = Math.floor(avgEngagementSeconds / 60);
+      const seconds = avgEngagementSeconds % 60;
+      const avgEngagementTime = `${minutes}분 ${seconds}초`;
+
+      return new Response(
+        JSON.stringify({
+          activeUsers: parseInt(activeUsers, 10),
+          newUsers: parseInt(newUsers, 10),
+          eventCount: parseInt(eventCount, 10),
+          avgEngagementTime,
+          avgEngagementSeconds,
+          cityUsers,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // GA4 Data API 호출 (일반 리포트)
     const response = await fetch(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
