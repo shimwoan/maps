@@ -1,6 +1,10 @@
 import { useState, useRef } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HomeScreen, IntroScreen, AuthProvider, NotificationProvider, useAuth } from '@monorepo/shared';
+import { YStack, Spinner } from 'tamagui';
+import { AdminAuthProvider, useAdminAuth } from './admin/contexts/AdminAuthContext';
+import { LoginPage as AdminLoginPage } from './admin/pages/LoginPage';
+import { DashboardPage as AdminDashboardPage } from './admin/pages/DashboardPage';
 
 // OAuth 리다이렉트 감지 (URL에 인증 관련 해시가 있는 경우)
 const checkOAuthReturn = () => {
@@ -38,12 +42,77 @@ function MainPage() {
   return <HomeScreen />;
 }
 
+// Admin Protected Route
+function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAdminAuth();
+
+  if (isLoading) {
+    return (
+      <YStack flex={1} justifyContent="center" alignItems="center" height="100vh">
+        <Spinner size="large" color="$blue9" />
+      </YStack>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Admin Public Route (로그인 페이지)
+function AdminPublicRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAdminAuth();
+
+  if (isLoading) {
+    return (
+      <YStack flex={1} justifyContent="center" alignItems="center" height="100vh">
+        <Spinner size="large" color="$blue9" />
+      </YStack>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Admin Routes
+function AdminRoutes() {
+  return (
+    <AdminAuthProvider>
+      <Routes>
+        <Route
+          path="login"
+          element={
+            <AdminPublicRoute>
+              <AdminLoginPage />
+            </AdminPublicRoute>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboardPage />
+            </AdminProtectedRoute>
+          }
+        />
+      </Routes>
+    </AdminAuthProvider>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <NotificationProvider>
           <Routes>
+            <Route path="/admin/*" element={<AdminRoutes />} />
             <Route path="/*" element={<MainPage />} />
           </Routes>
         </NotificationProvider>
