@@ -110,12 +110,58 @@ serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { startDate = '30daysAgo', endDate = 'today' } = body;
+    const { startDate = '30daysAgo', endDate = 'today', type = 'report' } = body;
 
     // Access Token 발급
     const accessToken = await getAccessToken(serviceAccountKey);
 
-    // GA4 Data API 호출
+    // 실시간 데이터 요청
+    if (type === 'realtime') {
+      const realtimeResponse = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runRealtimeReport`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            dimensions: [{ name: 'country' }],
+            metrics: [{ name: 'activeUsers' }],
+          }),
+        }
+      );
+
+      const realtimeData = await realtimeResponse.json();
+
+      // 분당 활성 사용자 (minutesAgo dimension)
+      const minuteResponse = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runRealtimeReport`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            dimensions: [{ name: 'minutesAgo' }],
+            metrics: [{ name: 'activeUsers' }],
+            minuteRanges: [{ startMinutesAgo: 29, endMinutesAgo: 0 }],
+          }),
+        }
+      );
+
+      const minuteData = await minuteResponse.json();
+
+      return new Response(
+        JSON.stringify({ realtime: realtimeData, perMinute: minuteData }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // GA4 Data API 호출 (일반 리포트)
     const response = await fetch(
       `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
       {
@@ -131,6 +177,8 @@ serve(async (req) => {
             { name: 'activeUsers' },
             { name: 'sessions' },
             { name: 'screenPageViews' },
+            { name: 'newUsers' },
+            { name: 'eventCount' },
           ],
         }),
       }

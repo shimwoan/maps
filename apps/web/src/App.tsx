@@ -1,10 +1,16 @@
 import { useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HomeScreen, IntroScreen, AuthProvider, NotificationProvider, useAuth } from '@monorepo/shared';
-import { YStack, Spinner } from 'tamagui';
 import { AdminAuthProvider, useAdminAuth } from './admin/contexts/AdminAuthContext';
-import { LoginPage as AdminLoginPage } from './admin/pages/LoginPage';
-import { DashboardPage as AdminDashboardPage } from './admin/pages/DashboardPage';
+import {
+  LoginPage as AdminLoginPage,
+  DashboardPage as AdminDashboardPage,
+  ProfilesPage as AdminProfilesPage,
+  RequestsPage as AdminRequestsPage,
+  ApplicationsPage as AdminApplicationsPage,
+} from './admin/pages';
+import { Loader2 } from 'lucide-react';
+import './admin/admin.css';
 
 // OAuth 리다이렉트 감지 (URL에 인증 관련 해시가 있는 경우)
 const checkOAuthReturn = () => {
@@ -42,16 +48,21 @@ function MainPage() {
   return <HomeScreen />;
 }
 
+// Admin Loading Spinner
+function AdminLoadingSpinner() {
+  return (
+    <div className="tw-flex tw-h-screen tw-items-center tw-justify-center">
+      <Loader2 className="tw-h-8 tw-w-8 tw-animate-spin tw-text-primary" />
+    </div>
+  );
+}
+
 // Admin Protected Route
 function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAdminAuth();
 
   if (isLoading) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center" height="100vh">
-        <Spinner size="large" color="$blue9" />
-      </YStack>
-    );
+    return <AdminLoadingSpinner />;
   }
 
   if (!isAuthenticated) {
@@ -66,11 +77,7 @@ function AdminPublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAdminAuth();
 
   if (isLoading) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center" height="100vh">
-        <Spinner size="large" color="$blue9" />
-      </YStack>
-    );
+    return <AdminLoadingSpinner />;
   }
 
   if (isAuthenticated) {
@@ -83,26 +90,60 @@ function AdminPublicRoute({ children }: { children: React.ReactNode }) {
 // Admin Routes
 function AdminRoutes() {
   return (
-    <AdminAuthProvider>
-      <Routes>
-        <Route
-          path="login"
-          element={
-            <AdminPublicRoute>
-              <AdminLoginPage />
-            </AdminPublicRoute>
-          }
-        />
-        <Route
-          path="/*"
-          element={
-            <AdminProtectedRoute>
-              <AdminDashboardPage />
-            </AdminProtectedRoute>
-          }
-        />
-      </Routes>
-    </AdminAuthProvider>
+    <div className="admin-root">
+      <AdminAuthProvider>
+        <Routes>
+          <Route
+            path="login"
+            element={
+              <AdminPublicRoute>
+                <AdminLoginPage />
+              </AdminPublicRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="profiles"
+            element={
+              <AdminProtectedRoute>
+                <AdminProfilesPage />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="requests"
+            element={
+              <AdminProtectedRoute>
+                <AdminRequestsPage />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="applications"
+            element={
+              <AdminProtectedRoute>
+                <AdminApplicationsPage />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="analytics"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            }
+          />
+        </Routes>
+      </AdminAuthProvider>
+    </div>
   );
 }
 

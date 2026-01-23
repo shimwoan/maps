@@ -1,41 +1,71 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@monorepo/shared/src/lib/supabase';
-import { useAdminAuth } from '../contexts/AdminAuthContext';
+import { useState, useEffect } from 'react';
+import { supabase } from '@monorepo/shared';
 
 interface AdminStats {
-  totalUsers: number;
+  totalProfiles: number;
   totalRequests: number;
-  requestsByStatus: { status: string; count: number }[];
-  dailyStats: { date: string; count: number }[];
-  recentRequests: Array<{
-    id: string;
-    title: string;
-    status: string;
-    created_at: string;
-    as_type: string;
-  }>;
+  totalApplications: number;
+  pendingRequests: number;
+  acceptedRequests: number;
+  completedRequests: number;
 }
 
 export function useAdminStats() {
-  const { password } = useAdminAuth();
-
-  return useQuery<AdminStats>({
-    queryKey: ['admin-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('admin-stats', {
-        headers: {
-          'x-admin-password': password || '',
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return data;
-    },
-    enabled: !!password,
-    staleTime: 1000 * 60 * 5, // 5분
-    refetchInterval: 1000 * 60 * 5, // 5분마다 자동 새로고침
+  const [stats, setStats] = useState<AdminStats>({
+    totalProfiles: 0,
+    totalRequests: 0,
+    totalApplications: 0,
+    pendingRequests: 0,
+    acceptedRequests: 0,
+    completedRequests: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // 프로필 수
+        const { count: profilesCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+
+        // 의뢰 수 및 상태별 카운트
+        const { data: requestsData, count: requestsCount } = await supabase
+          .from('requests')
+          .select('status', { count: 'exact' });
+
+        // 신청 수
+        const { count: applicationsCount } = await supabase
+          .from('request_applications')
+          .select('*', { count: 'exact', head: true });
+
+        // 상태별 의뢰 카운트
+        const requests = requestsData || [];
+        const pendingRequests = requests.filter(r => r.status === 'pending' || r.status === 'applied').length;
+        const acceptedRequests = requests.filter(r => r.status === 'accepted').length;
+        const completedRequests = requests.filter(r => r.status === 'completed').length;
+
+        setStats({
+          totalProfiles: profilesCount || 0,
+          totalRequests: requestsCount || 0,
+          totalApplications: applicationsCount || 0,
+          pendingRequests,
+          acceptedRequests,
+          completedRequests,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '통계 데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  return { stats, isLoading, error };
 }
