@@ -30,6 +30,7 @@ const STATUS_MAP: Record<string, { label: string; description: string; variant: 
   pending: { label: '대기중', description: '의뢰자 수락 대기중', variant: 'warning' },
   accepted: { label: '수락됨', description: '의뢰자가 수락함', variant: 'success' },
   rejected: { label: '거절됨', description: '의뢰자가 거절함', variant: 'destructive' },
+  completed: { label: '완료', description: '작업 완료됨', variant: 'default' },
 };
 
 export function ApplicationsPage() {
