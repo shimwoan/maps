@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfile } from '../../hooks/useProfile';
+import type { Profile } from '../../hooks/useProfile';
 import { ProfileSetupModal } from '../ProfileSetupModal';
 import { AddressSearch } from '../AddressSearch';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -75,10 +76,10 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
               <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
                 협업요청이 성공적으로 등록되었습니다.
               </Text>
-              {/* <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
+              <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
                 전문가가 협업을 수락하면{'\n'}
                 <Text color={brandColors.primary} fontWeight="600">등록된 연락처로 문자를 발송해 드립니다.</Text>
-              </Text> */}
+              </Text>
             </YStack>
 
             {/* 확인 버튼 */}
@@ -191,18 +192,54 @@ function Toast({ message, isVisible, onClose }: { message: string; isVisible: bo
 
 export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = '', editRequest }: RequestFormModalProps) {
   const { user } = useAuth();
-  const { hasBusinessCard, refetch: refetchProfile } = useProfile();
+  const { profile, hasBusinessCard, hasPhone, updatePhone, refetch: refetchProfile } = useProfile();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [lastCoords, setLastCoords] = useState<{ lat: number | null; lng: number | null; id: string | null }>({ lat: null, lng: null, id: null });
+  const [currentStep, setCurrentStep] = useState(1);
+  const [phone1, setPhone1] = useState('010');
+  const [phone2, setPhone2] = useState('');
+  const [phone3, setPhone3] = useState('');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [symptomImages, setSymptomImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const phone2Ref = useRef<any>(null);
+  const phone3Ref = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollViewRef = useRef<any>(null);
 
   const isEditMode = !!editRequest;
+
+  // 모달이 열릴 때 스텝 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(1);
+      // 기존 전화번호가 있으면 파싱
+      const existingPhone = profile?.phone || '';
+      if (existingPhone.length >= 10) {
+        setPhone1(existingPhone.slice(0, 3));
+        setPhone2(existingPhone.slice(3, 7));
+        setPhone3(existingPhone.slice(7, 11));
+      } else {
+        setPhone1('010');
+        setPhone2('');
+        setPhone3('');
+      }
+      setPhoneError(null);
+    }
+  }, [isOpen, profile?.phone]);
+
+  // 스텝2로 이동 시 두 번째 입력창에 포커스
+  useEffect(() => {
+    if (currentStep === 2) {
+      setTimeout(() => {
+        phone2Ref.current?.focus();
+      }, 100);
+    }
+  }, [currentStep]);
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<RequestFormData>({
     defaultValues: {
@@ -314,11 +351,60 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   // 명함 미등록 시 프로필 설정 모달 먼저 표시 (수정 모드에서는 체크 안함)
   const needsBusinessCard = isOpen && user && !hasBusinessCard && !isEditMode;
 
-  // 의뢰 제출 핸들러
-  const handleFormSubmit = handleSubmit(async (data: RequestFormData) => {
+  // 전화번호 유효성 검사
+  const validatePhone = (): boolean => {
+    if (!phone1 || !phone2 || !phone3) return false;
+    if (!/^01[0-9]$/.test(phone1)) return false;
+    if (!/^[0-9]{3,4}$/.test(phone2)) return false;
+    if (!/^[0-9]{4}$/.test(phone3)) return false;
+    return true;
+  };
+
+  // 전화번호 합치기
+  const getFullPhoneNumber = () => `${phone1}${phone2}${phone3}`;
+
+  // 스텝1 완료 -> 스텝2로 이동 (연락처 없는 경우) 또는 바로 제출
+  const handleStep1Submit = handleSubmit(async (data: RequestFormData) => {
     if (!user) return;
-    await submitRequest(data);
+
+    // 수정 모드이거나 이미 연락처가 있으면 바로 제출
+    if (isEditMode || hasPhone) {
+      await submitRequest(data);
+    } else {
+      // 연락처 입력 스텝으로 이동
+      setCurrentStep(2);
+    }
   }, onFormError);
+
+  // 스텝2에서 연락처 저장 후 의뢰 제출
+  const handleStep2Submit = async () => {
+    if (!phone2.trim() || !phone3.trim()) {
+      setPhoneError('연락처를 모두 입력해주세요');
+      return;
+    }
+
+    if (!validatePhone()) {
+      setPhoneError('올바른 연락처 형식이 아닙니다');
+      return;
+    }
+
+    setIsSavingPhone(true);
+    setPhoneError(null);
+
+    try {
+      // 연락처 저장
+      await updatePhone(getFullPhoneNumber());
+      await refetchProfile();
+
+      // 의뢰 제출
+      handleSubmit(submitRequest)();
+    } catch (error) {
+      console.error('Failed to save phone:', error);
+      setPhoneError('연락처 저장에 실패했습니다');
+    } finally {
+      setIsSavingPhone(false);
+    }
+  };
 
   // 명함 등록 완료 후 처리
   const handleProfileSuccess = async () => {
@@ -416,6 +502,11 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   const handleClose = () => {
     reset();
     setSymptomImages([]);
+    setCurrentStep(1);
+    setPhone1('010');
+    setPhone2('');
+    setPhone3('');
+    setPhoneError(null);
     onClose();
   };
 
@@ -468,9 +559,18 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
           borderBottomColor="#eee"
           backgroundColor="white"
         >
-          <Text fontSize={20} fontWeight="700" color="#000">
-            {isEditMode ? '수정하기' : '요청하기'}
-          </Text>
+          <XStack alignItems="center" gap="$2">
+            {currentStep === 2 && (
+              <View cursor="pointer" onPress={() => setCurrentStep(1)} padding="$1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </View>
+            )}
+            <Text fontSize={20} fontWeight="700" color="#000">
+              {isEditMode ? '수정하기' : (currentStep === 1 ? '요청하기' : '연락처 등록')}
+            </Text>
+          </XStack>
           <View cursor="pointer" onPress={handleClose} padding="$1">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
@@ -478,7 +578,121 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
           </View>
         </XStack>
 
-        {/* 의뢰 정보 입력 */}
+        {/* 스텝 2: 연락처 입력 */}
+        {currentStep === 2 && (
+          <YStack padding="$4" gap="$4" flex={1}>
+            {/* 안내 문구 */}
+            <View
+              backgroundColor="#FEF3C7"
+              padding="$3"
+              borderRadius={8}
+            >
+              <XStack gap="$2" alignItems="flex-start">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ marginTop: 2 }}>
+                  <circle cx="12" cy="12" r="10" stroke="#F59E0B" strokeWidth="2"/>
+                  <path d="M12 8v4M12 16h.01" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <Text fontSize={14} color="#92400E" lineHeight={22} flex={1}>
+                  전문가가 협업을 신청하면 등록된 연락처로 문자를 발송해 드립니다.
+                </Text>
+              </XStack>
+            </View>
+
+            {/* 연락처 입력 */}
+            <YStack gap="$2">
+              <XStack gap="$1" alignItems="center">
+                <Text fontSize={16} fontWeight="600" color="#000">연락처</Text>
+                <Text fontSize={16} fontWeight="600" color="#ff4444">*</Text>
+              </XStack>
+              <XStack gap="$2" alignItems="center">
+                <Input
+                  width={72}
+                  height={44}
+                  placeholder="010"
+                  value={phone1}
+                  onChangeText={(text: string) => {
+                    const numbers = text.replace(/[^0-9]/g, '').slice(0, 3);
+                    setPhone1(numbers);
+                    if (numbers.length === 3) {
+                      phone2Ref.current?.focus();
+                    }
+                  }}
+                  keyboardType="number-pad"
+                  backgroundColor="#f9f9f9"
+                  borderColor={phoneError ? '#ff4444' : '#eee'}
+                  color="#000"
+                  textAlign="center"
+                  maxLength={3}
+                />
+                <Text fontSize={16} color="#999">-</Text>
+                <Input
+                  ref={phone2Ref}
+                  width={84}
+                  height={44}
+                  placeholder="0000"
+                  value={phone2}
+                  onChangeText={(text: string) => {
+                    const numbers = text.replace(/[^0-9]/g, '').slice(0, 4);
+                    setPhone2(numbers);
+                    if (numbers.length === 4) {
+                      phone3Ref.current?.focus();
+                    }
+                  }}
+                  keyboardType="number-pad"
+                  backgroundColor="#f9f9f9"
+                  borderColor={phoneError ? '#ff4444' : '#eee'}
+                  color="#000"
+                  textAlign="center"
+                  maxLength={4}
+                />
+                <Text fontSize={16} color="#999">-</Text>
+                <Input
+                  ref={phone3Ref}
+                  width={84}
+                  height={44}
+                  placeholder="0000"
+                  value={phone3}
+                  onChangeText={(text: string) => {
+                    const numbers = text.replace(/[^0-9]/g, '').slice(0, 4);
+                    setPhone3(numbers);
+                  }}
+                  keyboardType="number-pad"
+                  backgroundColor="#f9f9f9"
+                  borderColor={phoneError ? '#ff4444' : '#eee'}
+                  color="#000"
+                  textAlign="center"
+                  maxLength={4}
+                />
+              </XStack>
+              {phoneError && <Text color="#ff4444" fontSize={14}>{phoneError}</Text>}
+              <Text fontSize={14} color="#888" marginTop="$1">
+                연락처는 안전하게 보관되며, 협업 관련 알림에만 사용됩니다.
+              </Text>
+            </YStack>
+
+            {/* 하단 여백 채우기 */}
+            <View flex={1} />
+
+            {/* 제출 버튼 */}
+            <Button
+              size="$5"
+              backgroundColor={brandColors.primary}
+              color="white"
+              fontWeight="700"
+              marginBottom="$4"
+              onPress={handleStep2Submit}
+              disabled={isSubmitting || isSavingPhone}
+              opacity={isSubmitting || isSavingPhone ? 0.7 : 1}
+              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+              pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
+            >
+              {isSavingPhone ? '저장 중...' : isSubmitting ? '등록 중...' : '협업 요청하기'}
+            </Button>
+          </YStack>
+        )}
+
+        {/* 스텝 1: 의뢰 정보 입력 */}
+        {currentStep === 1 && (
         <ScrollView ref={scrollViewRef}>
           <YStack padding="$4" gap="$4">
             {/* 방문/원격 선택 */}
@@ -960,16 +1174,17 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               fontWeight="700"
               marginTop="$2"
               marginBottom="$4"
-              onPress={handleFormSubmit}
+              onPress={handleStep1Submit}
               disabled={isSubmitting}
               opacity={isSubmitting ? 0.7 : 1}
               hoverStyle={{ backgroundColor: brandColors.primaryHover }}
               pressStyle={{ backgroundColor: brandColors.primaryPressed, scale: 0.98 }}
             >
-              {isSubmitting ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정 완료' : '협업 요청하기')}
+              {isSubmitting ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정 완료' : (hasPhone ? '협업 요청하기' : '다음'))}
             </Button>
           </YStack>
         </ScrollView>
+        )}
         {/* Toast 알림 */}
         <Toast
           message={toastMessage || ''}
