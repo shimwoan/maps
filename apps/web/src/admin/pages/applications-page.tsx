@@ -231,7 +231,7 @@ export function ApplicationsPage() {
                           : '-'}
                       </span>
                     </div>
-                    {application.completion_requested && (
+                    {application.completion_requested && application.status !== 'completed' && (
                       <div className="tw-flex tw-items-center tw-gap-1 tw-text-green-600 tw-font-medium">
                         <CheckCircle className="tw-h-4 tw-w-4" />
                         <span>완료요청됨</span>

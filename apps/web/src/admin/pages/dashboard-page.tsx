@@ -91,49 +91,22 @@ export function DashboardPage() {
               />
             </div>
 
-            <div className="tw-grid tw-gap-4 md:tw-grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>빠른 링크</CardTitle>
-                </CardHeader>
-                <CardContent className="tw-space-y-2">
-                  <a href="/admin/profiles" className="tw-block tw-text-sm tw-text-blue-600 hover:tw-underline">
-                    프로필 관리 →
-                  </a>
-                  <a href="/admin/requests" className="tw-block tw-text-sm tw-text-blue-600 hover:tw-underline">
-                    의뢰 관리 →
-                  </a>
-                  <a href="/admin/applications" className="tw-block tw-text-sm tw-text-blue-600 hover:tw-underline">
-                    지원 관리 →
-                  </a>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>요약</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="tw-space-y-2 tw-text-sm">
-                    <div className="tw-flex tw-justify-between">
-                      <span className="tw-text-muted-foreground">진행률</span>
-                      <span className="tw-font-medium">
-                        {stats.totalRequests > 0
-                          ? Math.round((stats.completedRequests / stats.totalRequests) * 100)
-                          : 0}%
-                      </span>
-                    </div>
-                    <div className="tw-flex tw-justify-between">
-                      <span className="tw-text-muted-foreground">평균 신청/의뢰</span>
-                      <span className="tw-font-medium">
-                        {stats.totalRequests > 0
-                          ? (stats.totalApplications / stats.totalRequests).toFixed(1)
-                          : 0}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>빠른 링크</CardTitle>
+              </CardHeader>
+              <CardContent className="tw-space-y-2">
+                <a href="/admin/profiles" className="tw-block tw-text-sm tw-text-blue-600 hover:tw-underline">
+                  프로필 관리 →
+                </a>
+                <a href="/admin/requests" className="tw-block tw-text-sm tw-text-blue-600 hover:tw-underline">
+                  의뢰 관리 →
+                </a>
+                <a href="/admin/applications" className="tw-block tw-text-sm tw-text-blue-600 hover:tw-underline">
+                  지원 관리 →
+                </a>
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
