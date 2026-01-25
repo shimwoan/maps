@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { HomeScreen, IntroScreen, AuthProvider, NotificationProvider, useAuth } from '@monorepo/shared';
+import { HomeScreen, IntroScreen, AuthProvider, NotificationProvider, useAuth, useProfile, isAdminNickname } from '@monorepo/shared';
 import { AdminAuthProvider, useAdminAuth } from './admin/contexts/AdminAuthContext';
 import {
   LoginPage as AdminLoginPage,
@@ -67,16 +67,44 @@ function AdminLoadingSpinner() {
   );
 }
 
+// Admin Access Denied 페이지
+function AdminAccessDenied() {
+  return (
+    <div className="tw-flex tw-h-screen tw-flex-col tw-items-center tw-justify-center tw-bg-gray-100">
+      <div className="tw-text-center tw-p-8 tw-bg-white tw-rounded-lg tw-shadow-lg tw-max-w-md">
+        <div className="tw-text-6xl tw-mb-4">🚫</div>
+        <h1 className="tw-text-2xl tw-font-bold tw-text-gray-800 tw-mb-2">접근 거부</h1>
+        <p className="tw-text-gray-600 tw-mb-6">
+          관리자 페이지에 접근할 권한이 없습니다.
+        </p>
+        <a
+          href="/"
+          className="tw-inline-block tw-px-6 tw-py-3 tw-bg-blue-600 tw-text-white tw-rounded-lg tw-font-medium hover:tw-bg-blue-700 tw-transition-colors tw-no-underline"
+        >
+          메인으로 돌아가기
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // Admin Protected Route
 function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAdminAuth();
+  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
 
-  if (isLoading) {
+  if (isLoading || profileLoading) {
     return <AdminLoadingSpinner />;
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
+  }
+
+  // 닉네임 검증 - Supabase 로그인된 유저의 프로필 닉네임 확인
+  if (!user || !isAdminNickname(profile?.nickname)) {
+    return <AdminAccessDenied />;
   }
 
   return <>{children}</>;

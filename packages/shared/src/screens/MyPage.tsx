@@ -19,6 +19,7 @@ import { ImagePreviewModal } from '../components/ImagePreviewModal';
 import { RequestFormModal } from '../components/RequestFormModal';
 import type { EditRequest } from '../components/RequestFormModal/types';
 import { formatCompletedDateTime } from '../utils/format';
+import { isAdminNickname } from '../constants/admin';
 
 type TabType = 'myRequests' | 'myApplications';
 type PageMode = 'requests' | 'profile';
@@ -818,6 +819,40 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   <path d="M9 18l6-6-6-6" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </XStack>
+
+              {/* 관리자 메뉴 - 특정 닉네임만 표시 */}
+              {isAdminNickname(profile?.nickname) && (
+                <XStack
+                  alignItems="center"
+                  justifyContent="space-between"
+                  paddingVertical="$3"
+                  cursor="pointer"
+                  onPress={() => window.location.href = '/admin'}
+                >
+                  <XStack alignItems="center" gap="$3">
+                    <View
+                      width={40}
+                      height={40}
+                      borderRadius={10}
+                      backgroundColor="#6366F1"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </View>
+                    <YStack>
+                      <Text fontSize={16} fontWeight="600" color="#000">관리자</Text>
+                      <Text fontSize={13} color="#888">관리자 페이지</Text>
+                    </YStack>
+                  </XStack>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </XStack>
+              )}
             </YStack>
           </YStack>
         )}
