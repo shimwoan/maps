@@ -143,16 +143,14 @@ export function ApplicationsPage() {
     <AdminLayout>
       <div className="tw-space-y-6">
         <div>
-          <h1 className="tw-text-3xl tw-font-bold tw-tracking-tight">지원 관리</h1>
-          <p className="tw-text-muted-foreground">등록된 지원(신청) 목록</p>
+          <h1 className="tw-text-3xl tw-font-bold tw-tracking-tight tw-m-0">지원 관리</h1>
+          <p className="tw-text-muted-foreground tw-m-0 tw-mt-1">등록된 지원(신청) 목록</p>
         </div>
 
         {/* 필터 */}
-        <div className="tw-space-y-4">
-          <div className="tw-flex tw-items-center tw-justify-between">
-            <p className="tw-text-sm tw-text-gray-600">{totalCount}개</p>
-          </div>
-          <div className="tw-flex tw-gap-2 tw-flex-wrap">
+        <div className="tw-space-y-2">
+          <p className="tw-text-sm tw-text-gray-600">{totalCount}개</p>
+          <div className="tw-flex tw-gap-2 tw-flex-wrap tw-relative tw-z-10">
             <Button
               variant={statusFilter === null ? 'default' : 'outline'}
               size="sm"
@@ -176,9 +174,31 @@ export function ApplicationsPage() {
         {/* 콘텐츠 */}
         <div>
           {isLoading ? (
-            <div className="tw-space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="tw-h-12 tw-bg-gray-100 tw-rounded tw-animate-pulse" />
+            <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="tw-p-4 tw-bg-white tw-rounded-lg tw-border tw-border-gray-200 tw-shadow-sm tw-animate-pulse">
+                  {/* Title + Badge */}
+                  <div className="tw-flex tw-justify-between tw-items-start tw-gap-2">
+                    <div className="tw-h-5 tw-w-32 tw-bg-gray-200 tw-rounded" />
+                    <div className="tw-h-5 tw-w-14 tw-bg-gray-200 tw-rounded-full" />
+                  </div>
+                  {/* Applicant Info */}
+                  <div className="tw-mt-2 tw-flex tw-items-center tw-gap-4">
+                    <div className="tw-h-4 tw-w-12 tw-bg-gray-200 tw-rounded" />
+                    <div className="tw-h-4 tw-w-24 tw-bg-gray-100 tw-rounded" />
+                  </div>
+                  {/* Details */}
+                  <div className="tw-mt-3 tw-flex tw-gap-4">
+                    <div className="tw-flex tw-items-center tw-gap-1">
+                      <div className="tw-h-3 tw-w-8 tw-bg-gray-100 tw-rounded" />
+                      <div className="tw-h-4 tw-w-16 tw-bg-gray-200 tw-rounded" />
+                    </div>
+                    <div className="tw-flex tw-items-center tw-gap-1">
+                      <div className="tw-h-3 tw-w-10 tw-bg-gray-100 tw-rounded" />
+                      <div className="tw-h-4 tw-w-20 tw-bg-gray-200 tw-rounded" />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           ) : applications.length === 0 ? (

@@ -34,7 +34,7 @@ export function DashboardPage() {
     <AdminLayout>
       <div className="tw-space-y-6">
         <div>
-          <h1 className="tw-text-3xl tw-font-bold tw-tracking-tight">대시보드</h1>
+          <h1 className="tw-text-3xl tw-font-bold tw-tracking-tight tw-m-0">대시보드</h1>
         </div>
 
         {isLoading ? (

@@ -103,15 +103,13 @@ export function ProfilesPage() {
     <AdminLayout>
       <div className="tw-space-y-6">
         <div>
-          <h1 className="tw-text-3xl tw-font-bold tw-tracking-tight">프로필 관리</h1>
-          <p className="tw-text-muted-foreground">등록된 사용자 프로필 목록</p>
+          <h1 className="tw-text-3xl tw-font-bold tw-tracking-tight tw-m-0">프로필 관리</h1>
+          <p className="tw-text-muted-foreground tw-m-0 tw-mt-1">등록된 사용자 프로필 목록</p>
         </div>
 
         {/* 검색 */}
-        <div className="tw-space-y-4">
-          <div className="tw-flex tw-items-center tw-justify-between">
-            <p className="tw-text-sm tw-text-gray-600">{totalCount}개</p>
-          </div>
+        <div className="tw-space-y-2">
+          <p className="tw-text-sm tw-text-gray-600 tw-m-0">{totalCount}개</p>
           <div className="tw-relative tw-w-full sm:tw-w-72">
             <Search className="tw-absolute tw-left-2.5 tw-top-3 tw-h-4 tw-w-4 tw-text-gray-400" />
             <Input
