@@ -29,6 +29,8 @@ interface RealtimeNotification {
   type: 'new' | 'matched' | 'completed';
   timestamp: number;
   isExiting?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 // 상대 시간 포맷 함수
@@ -396,13 +398,21 @@ export function HomeScreen() {
   }, []);
 
   // 실시간 알림 추가 함수
-  const addRealtimeNotification = useCallback((message: string, type: 'new' | 'matched' | 'completed') => {
+  const addRealtimeNotification = useCallback((
+    message: string,
+    type: 'new' | 'matched' | 'completed',
+    requestId?: string,
+    latitude?: number,
+    longitude?: number
+  ) => {
     const notification: RealtimeNotification = {
-      id: `${Date.now()}-${Math.random()}`,
+      id: requestId || `${Date.now()}-${Math.random()}`,
       message,
       type,
       timestamp: Date.now(),
       isExiting: false,
+      latitude,
+      longitude,
     };
     // 최대 1개만 유지 - 새 알림이 오면 교체
     setRealtimeNotifications([notification]);
@@ -440,7 +450,7 @@ export function HomeScreen() {
     const fetchLatestEvent = async () => {
       const { data } = await supabase
         .from('requests')
-        .select('id, title, address, as_type, status, created_at, updated_at')
+        .select('id, title, address, as_type, status, created_at, updated_at, latitude, longitude')
         .order('updated_at', { ascending: false })
         .limit(1)
         .single();
@@ -469,6 +479,8 @@ export function HomeScreen() {
           type,
           timestamp,
           isExiting: false,
+          latitude: data.latitude,
+          longitude: data.longitude,
         }]);
       }
     };
@@ -503,14 +515,19 @@ export function HomeScreen() {
           (payload) => {
             if (payload.eventType === 'INSERT') {
               // 새 의뢰 등록
-              const newRequest = payload.new as { address: string; as_type: string; title: string };
+              const newRequest = payload.new as { id: string; address: string; as_type: string; title: string; latitude?: number; longitude?: number };
               const district = extractDistrict(newRequest.address);
               addRealtimeNotification(
                 `${district} [${newRequest.title}] 새 협업 요청 등록`,
-                'new'
+                'new',
+                newRequest.id,
+                newRequest.latitude,
+                newRequest.longitude
               );
+              // 새 의뢰가 추가되면 목록 갱신
+              refetchRequests();
             } else if (payload.eventType === 'UPDATE') {
-              const newData = payload.new as { status: string; address: string; as_type: string; title: string };
+              const newData = payload.new as { id: string; status: string; address: string; as_type: string; title: string; latitude?: number; longitude?: number };
               const oldData = payload.old as { status: string };
               const district = extractDistrict(newData.address);
 
@@ -518,13 +535,19 @@ export function HomeScreen() {
                 // 매칭 완료
                 addRealtimeNotification(
                   `${district} [${newData.title}] 매칭 완료`,
-                  'matched'
+                  'matched',
+                  newData.id,
+                  newData.latitude,
+                  newData.longitude
                 );
               } else if (oldData.status !== 'completed' && newData.status === 'completed') {
                 // 의뢰 완료
                 addRealtimeNotification(
                   `${district} [${newData.title}] 작업 완료`,
-                  'completed'
+                  'completed',
+                  newData.id,
+                  newData.latitude,
+                  newData.longitude
                 );
               }
             }
@@ -568,7 +591,7 @@ export function HomeScreen() {
         realtimeChannelRef.current = null;
       }
     };
-  }, [addRealtimeNotification]);
+  }, [addRealtimeNotification, refetchRequests]);
 
   useEffect(() => {
     // 사이트 접속 시 위치 권한 요청
@@ -983,14 +1006,25 @@ export function HomeScreen() {
                   cursor: 'pointer',
                 }}
                 onClick={() => {
-                  // 해당 의뢰 찾기
-                  const request = requests.find(r => r.id === notification.id);
-                  if (request && request.latitude && request.longitude) {
+                  // notification에 위도/경도가 있으면 바로 사용, 없으면 requests에서 찾기
+                  const lat = notification.latitude;
+                  const lng = notification.longitude;
+
+                  if (lat && lng) {
                     // 지도 이동 및 마커 선택
-                    naverMapRef.current?.moveTo(request.latitude, request.longitude, 13);
-                    setSelectedRequestId(request.id);
+                    naverMapRef.current?.moveTo(lat, lng, 13);
+                    setSelectedRequestId(notification.id);
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);
+                  } else {
+                    // 위도/경도가 없으면 requests에서 찾기 (이전 버전 호환)
+                    const request = requests.find(r => r.id === notification.id);
+                    if (request && request.latitude && request.longitude) {
+                      naverMapRef.current?.moveTo(request.latitude, request.longitude, 13);
+                      setSelectedRequestId(request.id);
+                      setClusterRequestIds([]);
+                      setSelectedClusterKey(null);
+                    }
                   }
                 }}
               >
