@@ -77,8 +77,11 @@ export function RequestListPanel({
       filtered = filtered.filter(r => r.is_urgent);
     }
 
+    // 상태 정렬 우선순위: 대기중 → 진행중 → 완료
+    const statusOrder: Record<string, number> = { pending: 0, accepted: 1, completed: 2 };
+
     if (!currentLocation) {
-      return filtered;
+      return filtered.sort((a, b) => (statusOrder[a.status] ?? 1) - (statusOrder[b.status] ?? 1));
     }
 
     // 위치 정보가 있는 의뢰는 거리 계산, 없는 의뢰는 맨 뒤에 배치
@@ -98,7 +101,13 @@ export function RequestListPanel({
         // 위치 정보가 없는 경우 (원격 등)
         return { ...r, distance: Infinity };
       })
-      .sort((a, b) => a.distance - b.distance);
+      .sort((a, b) => {
+        // 먼저 상태로 정렬 (대기중 → 진행중 → 완료)
+        const statusDiff = (statusOrder[a.status] ?? 1) - (statusOrder[b.status] ?? 1);
+        if (statusDiff !== 0) return statusDiff;
+        // 같은 상태 내에서는 거리순
+        return a.distance - b.distance;
+      });
   }, [requests, currentLocation, selectedCollaborationType, isUrgentFilterOn]);
 
   // 표시할 의뢰 목록

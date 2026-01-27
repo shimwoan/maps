@@ -311,10 +311,13 @@ export function HomeScreen() {
     return requests.find(r => r.id === selectedRequestId) || null;
   }, [requests, selectedRequestId]);
 
-  // 클러스터에 포함된 의뢰 목록
+  // 클러스터에 포함된 의뢰 목록 (대기중 → 진행중 → 완료 순)
   const clusterRequests = useMemo(() => {
     if (clusterRequestIds.length === 0) return [];
-    return requests.filter(r => clusterRequestIds.includes(r.id));
+    const statusOrder: Record<string, number> = { pending: 0, accepted: 1, completed: 2 };
+    return requests
+      .filter(r => clusterRequestIds.includes(r.id))
+      .sort((a, b) => (statusOrder[a.status] ?? 1) - (statusOrder[b.status] ?? 1));
   }, [requests, clusterRequestIds]);
 
   // 주소 조회 (debounce 적용)
@@ -1311,7 +1314,7 @@ export function HomeScreen() {
             {/* 헤더 */}
             <View
               paddingHorizontal={16}
-              paddingVertical={12}
+              paddingBottom={6}
               borderBottomWidth={1}
               borderBottomColor="#f0f0f0"
               backgroundColor="white"

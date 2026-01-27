@@ -175,7 +175,7 @@ function MyRequestCard({
     >
       {/* 진행중인 경우 - 수락된 신청자 정보 표시 */}
       {request.status === 'accepted' && acceptedApp && (
-        <YStack gap="$2" marginTop="$1" paddingTop="$2" borderTopWidth={1} borderTopColor="#f0f0f0">
+        <YStack gap="$2" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           <XStack alignItems="center" gap="$2">
             {/* @ts-ignore - animation defined in index.css */}
             <View
@@ -244,16 +244,15 @@ function MyRequestCard({
 
       {/* 완료된 경우 - 수행자 정보 표시 */}
       {request.status === 'completed' && acceptedApp && (
-        <XStack alignItems="center" gap="$2" marginTop="$1" paddingTop="$2" borderTopWidth={1} borderTopColor="#f0f0f0">
-          <View
-            width={8}
-            height={8}
-            borderRadius={4}
-            backgroundColor="#9CA3AF"
-          />
-          <Text fontSize={14} color="#9CA3AF" fontWeight="600" flex={1}>
-            {formatCompletedDateTime(request.updated_at || request.created_at)} {acceptedApp.applicant_profile?.nickname || '수행자'}님과 수행완료
-          </Text>
+        <XStack alignItems="center" gap="$2" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
+          <YStack flex={1} gap="$1">
+            <Text fontSize={13} color="#9CA3AF">
+              {formatCompletedDateTime(request.updated_at || request.created_at)}
+            </Text>
+            <Text fontSize={14} color="#9CA3AF" fontWeight="600">
+              {acceptedApp.applicant_profile?.nickname || '수행자'}님과 수행완료
+            </Text>
+          </YStack>
           {acceptedApp.applicant_profile?.business_card_url && (
             <View
               width={72}
@@ -279,7 +278,7 @@ function MyRequestCard({
 
       {/* 신청자 목록 - pending 상태일 때만 */}
       {pendingApps.length > 0 && request.status !== 'accepted' && (
-        <YStack gap="$3" marginTop="$1" paddingTop="$2" borderTopWidth={1} borderTopColor="#f0f0f0">
+        <YStack gap="$3" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           {pendingApps.map((app) => (
             <XStack
               key={app.id}
@@ -392,7 +391,7 @@ function MyApplicationCard({
     >
       {/* 진행중인 경우 */}
       {application.status === 'accepted' && (
-        <YStack gap="$2" marginTop="$1" paddingTop="$2" borderTopWidth={1} borderTopColor="#f0f0f0">
+        <YStack gap="$2" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -471,7 +470,7 @@ function MyApplicationCard({
 
       {/* 대기중인 경우 - 신청 취소 버튼 */}
       {application.status === 'pending' && (
-        <XStack marginTop="$1" paddingTop="$2" borderTopWidth={1} borderTopColor="#f0f0f0" onClick={(e: any) => e.stopPropagation()}>
+        <XStack marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0" onClick={(e: any) => e.stopPropagation()}>
           <Button
             flex={1}
             size="$4"
@@ -499,16 +498,15 @@ function MyApplicationCard({
 
       {/* 완료된 경우 - 완료 정보 표시 */}
       {application.status === 'completed' && (
-        <XStack alignItems="center" gap="$2" marginTop="$1" paddingTop="$2" borderTopWidth={1} borderTopColor="#f0f0f0">
-          <View
-            width={8}
-            height={8}
-            borderRadius={4}
-            backgroundColor="#9CA3AF"
-          />
-          <Text fontSize={14} color="#9CA3AF" fontWeight="600" flex={1}>
-            {formatCompletedDateTime(application.updated_at)} {application.requester_profile?.nickname || '협업 요청자'}님과 수행완료
-          </Text>
+        <XStack alignItems="center" gap="$2" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
+          <YStack flex={1} gap="$1">
+            <Text fontSize={13} color="#9CA3AF">
+              {formatCompletedDateTime(application.updated_at)}
+            </Text>
+            <Text fontSize={14} color="#9CA3AF" fontWeight="600">
+              {application.requester_profile?.nickname || '협업 요청자'}님과 수행완료
+            </Text>
+          </YStack>
           {application.requester_profile?.business_card_url && (
             <View
               width={72}

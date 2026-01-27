@@ -104,8 +104,8 @@ export function RequestCard({
               {statusInfo.label}
             </Text>
           </View>
-          {/* 긴급 배지 */}
-          {isUrgent && (
+          {/* 긴급 배지 - 완료 상태에서는 숨김 */}
+          {isUrgent && !isCompleted && (
             <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
               <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
             </View>
