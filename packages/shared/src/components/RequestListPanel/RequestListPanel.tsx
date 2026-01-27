@@ -151,14 +151,13 @@ export function RequestListPanel({
     <Sheet
       isOpen={isOpen}
       onClose={onClose}
-      detent="full-height"
       style={{ zIndex: 250 }}
     >
       <Sheet.Container style={{
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxWidth: 768,
-        maxHeight: '90vh',
+        height: '90vh',
         margin: '0 auto',
       } as React.CSSProperties}>
         <Sheet.Header>
