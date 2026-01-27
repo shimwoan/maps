@@ -285,6 +285,7 @@ export function RequestListPanel({
                   collaborationType={request.collaboration_type}
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
+                  hidePendingBadge
                   distance={'distance' in request && currentLocation && (request as any).distance !== Infinity ? formatDistance((request as any).distance) : undefined}
                   onCardPress={() => onSelectRequest(request.id)}
                 />

@@ -1357,6 +1357,7 @@ export function HomeScreen() {
                   collaborationType={request.collaboration_type}
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
+                  hidePendingBadge
                   onCardPress={() => {
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);

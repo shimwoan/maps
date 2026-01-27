@@ -24,6 +24,7 @@ interface RequestCardProps {
   isCompleted?: boolean;
   isUrgent?: boolean;
   distance?: string;
+  hidePendingBadge?: boolean;
   onCardPress?: () => void;
   children?: React.ReactNode;
   rightAction?: React.ReactNode;
@@ -41,12 +42,14 @@ export function RequestCard({
   isCompleted = false,
   isUrgent = false,
   distance,
+  hidePendingBadge = false,
   onCardPress,
   children,
   rightAction,
 }: RequestCardProps) {
   const statusInfo = getStatusLabel(status);
   const hasChildren = React.Children.toArray(children).filter(child => React.isValidElement(child)).length > 0;
+  const showStatusBadge = !(hidePendingBadge && (status === 'pending' || status === 'applied'));
 
   return (
     <YStack
@@ -90,20 +93,22 @@ export function RequestCard({
             </View>
           )}
           {/* 상태 배지 */}
-          <View
-            height={24}
-            backgroundColor={statusInfo.bgColor}
-            paddingHorizontal={8}
-            borderRadius={6}
-            borderWidth={statusInfo.bgColor === '#fff' ? 1.5 : 0}
-            borderColor="#e5e7eb"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
-              {statusInfo.label}
-            </Text>
-          </View>
+          {showStatusBadge && (
+            <View
+              height={24}
+              backgroundColor={statusInfo.bgColor}
+              paddingHorizontal={8}
+              borderRadius={6}
+              borderWidth={statusInfo.bgColor === '#fff' ? 1.5 : 0}
+              borderColor="#e5e7eb"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
+                {statusInfo.label}
+              </Text>
+            </View>
+          )}
           {/* 긴급 배지 - 완료 상태에서는 숨김 */}
           {isUrgent && !isCompleted && (
             <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
