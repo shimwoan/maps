@@ -95,6 +95,9 @@ const injectOverscrollStyles = () => {
       width: 100%;
       height: 100%;
     }
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
   `;
   document.head.appendChild(style);
 };
@@ -661,7 +664,7 @@ export function HomeScreen() {
       backgroundColor="#fff"
       alignItems="center"
       // @ts-ignore
-      style={{ touchAction: 'none', overscrollBehavior: 'none' }}
+      style={{ touchAction: 'none', overscrollBehavior: 'none', WebkitTapHighlightColor: 'transparent' }}
     >
     <View position="relative" width="100%" height="100%" overflow="hidden" backgroundColor="#f5f5f5">
       {/* 상단 주소 표시 - 홈에서만 표시 */}
@@ -1012,7 +1015,7 @@ export function HomeScreen() {
                     <line x1="79.6" y1="49.2" x2="86.7" y2="52.6" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                   <View flex={1}>
-                    <XStack alignItems="flex-start" justifyContent="space-between">
+                    <XStack alignItems="flex-start" justifyContent="space-between" gap="$3">
                       <Text fontSize={12} color="#000" fontWeight="500">
                         실시간 접수 현황
                       </Text>
