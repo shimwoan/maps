@@ -65,8 +65,8 @@ export function RequestCard({
       onPress={onCardPress}
     >
       {/* AS 아이콘 + 협업 카테고리 배지 + 상태 배지 + rightAction */}
-      <XStack alignItems="center" justifyContent="space-between" gap="$2">
-        <XStack alignItems="center" gap="$2" flex={1} flexWrap="wrap">
+      <XStack alignItems="flex-start" justifyContent="space-between" gap="$2">
+        <XStack alignItems="center" gap="$2" flex={1} flexWrap="wrap" minWidth={0}>
           <AsTypeIcon type={asType} size={16} />
           {/* 협업 카테고리 배지 */}
           {collaborationType && (
@@ -124,7 +124,7 @@ export function RequestCard({
           )}
         </XStack>
         {rightAction && (
-          <View flexShrink={0}>
+          <View flexShrink={0} overflow="visible">
             {rightAction}
           </View>
         )}
