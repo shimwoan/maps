@@ -1,17 +1,9 @@
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
 /**
- * 가격을 한국어 형식으로 포맷팅 (예: 10000 → "1만", 15000 → "1만 5,000")
+ * 가격을 숫자 형식으로 포맷팅 (예: 500000 → "500,000")
  */
 export function formatPrice(price: number): string {
-  if (price >= 10000) {
-    const man = Math.floor(price / 10000);
-    const rest = price % 10000;
-    if (rest === 0) {
-      return `${man}만`;
-    }
-    return `${man}만 ${rest.toLocaleString()}`;
-  }
   return price.toLocaleString();
 }
 
@@ -46,7 +38,7 @@ export function formatCompletedDateTime(dateStr: string): string {
 export function getStatusLabel(status: string): { label: string; color: string; bgColor: string } {
   switch (status) {
     case 'pending':
-      return { label: '대기중', color: '#3B82F6', bgColor: '#fff' };
+      return { label: '대기중', color: '#3B82F6', bgColor: '#EFF6FF' };
     case 'applied':
       return { label: '신청있음', color: '#3B82F6', bgColor: '#EFF6FF' };
     case 'accepted':

@@ -54,7 +54,7 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M5 12h14M12 5v14"/>
         </svg>
-        <Text color="#fff" fontSize={13} fontWeight="500">
+        <Text color="#fff" fontWeight={600} fontSize={13}>
           요청하기
         </Text>
       </YStack>

@@ -16,12 +16,14 @@ interface RequestCardProps {
   title: string;
   asType: string;
   status: string;
-  scheduleDate: string;
-  scheduleTime: string;
+  scheduleDate?: string;
+  scheduleTime?: string;
   expectedFee: number;
   address?: string;
   collaborationType?: string;
   isCompleted?: boolean;
+  isUrgent?: boolean;
+  distance?: string;
   onCardPress?: () => void;
   children?: React.ReactNode;
   rightAction?: React.ReactNode;
@@ -37,6 +39,8 @@ export function RequestCard({
   address,
   collaborationType,
   isCompleted = false,
+  isUrgent = false,
+  distance,
   onCardPress,
   children,
   rightAction,
@@ -46,15 +50,17 @@ export function RequestCard({
 
   return (
     <YStack
-      backgroundColor={isCompleted ? '#f8f8f8' : 'white'}
+      backgroundColor="white"
       borderRadius={12}
-      paddingHorizontal="$3"
-      paddingTop="$2.5"
-      paddingBottom="$2"
-      gap="$1.5"
-      borderWidth={1}
-      borderColor={isCompleted ? '#e0e0e0' : '#eee'}
-      opacity={isCompleted ? 0.7 : 1}
+      paddingHorizontal="$4"
+      paddingVertical="$3.5"
+      shadowColor="#000"
+      shadowOffset={{ width: 0, height: 2 }}
+      shadowOpacity={0.12}
+      shadowRadius={8}
+      // @ts-ignore - web shadow
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
+      opacity={isCompleted ? 0.85 : 1}
       cursor={onCardPress ? "pointer" : "default"}
       onPress={onCardPress}
     >
@@ -98,27 +104,49 @@ export function RequestCard({
               {statusInfo.label}
             </Text>
           </View>
+          {/* 긴급 배지 */}
+          {isUrgent && (
+            <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
+              <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
+            </View>
+          )}
+          {/* 거리 표시 */}
+          {distance && (
+            <XStack alignItems="center" gap={4}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#666"/>
+                <circle cx="12" cy="9" r="2" fill="white"/>
+              </svg>
+              <Text fontSize={12} color="#666">
+                {distance}
+              </Text>
+            </XStack>
+          )}
         </XStack>
         {rightAction}
       </XStack>
 
       {/* 제목 */}
-      <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} numberOfLines={1}>
+      <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} numberOfLines={1} marginTop="$2">
         {title}
       </Text>
 
       {/* 주소 (있을 경우) */}
       {address && (
-        <Text fontSize={14} color={isCompleted ? '#999' : '#000'} numberOfLines={1}>
+        <Text fontSize={14} color={isCompleted ? '#999' : '#333'} numberOfLines={1} marginTop="$1.5">
           {address}
         </Text>
       )}
 
       {/* 날짜/시간 + 가격 */}
-      <XStack justifyContent="space-between" alignItems="center">
-        <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
-          {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
-        </Text>
+      <XStack justifyContent="space-between" alignItems="center" marginTop="$2">
+        {scheduleDate && scheduleTime ? (
+          <Text fontSize={14} color={isCompleted ? '#999' : '#444'}>
+            {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
+          </Text>
+        ) : (
+          <View />
+        )}
         <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
           {formatPrice(expectedFee)}원
         </Text>

@@ -48,9 +48,9 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
         </XStack>
 
         {/* 상단: 로고 + 슬로건 */}
-        <YStack alignItems="center" gap="$2">
+        <YStack alignItems="center" gap="$1">
           <img src="/glove.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 32,marginLeft:12 }} />
-          <Text fontSize={18} fontWeight="600" marginTop={12} marginLeft={4}>
+          <Text fontSize={18} fontWeight="600" marginTop={-8} marginLeft={4}>
             가장 빠른 현장 연결
           </Text>
         </YStack>

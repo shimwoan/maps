@@ -83,19 +83,21 @@ function MyRequestCard({
       isCompleted={isCompleted}
       onCardPress={onCardPress}
       rightAction={
-        <XStack alignItems="center" gap="$2">
+        <XStack alignItems="center" gap="$2" marginRight={-8}>
           {/* 신청자 수 표시 */}
           {pendingApps.length > 0 && request.status !== 'accepted' && request.status !== 'completed' && (
             <XStack alignItems="center" gap="$1.5">
               <View
-                width={14}
-                height={14}
-                borderRadius={7}
+                width={10}
+                height={10}
+                borderRadius={5}
                 backgroundColor="#EF4444"
                 shadowColor="#EF4444"
-                shadowOffset={{ width: 0, height: 2 }}
+                shadowOffset={{ width: 0, height: 1 }}
                 shadowOpacity={0.4}
-                shadowRadius={4}
+                shadowRadius={3}
+                // @ts-ignore
+                className="pulse-dot"
               />
               <Text fontSize={16} fontWeight="700" color="#EF4444">
                 {pendingApps.length}명
@@ -534,11 +536,8 @@ function MyApplicationCard({
   );
 }
 
-type StatusFilter = 'active' | 'completed';
-
 export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = 'requests' }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -773,7 +772,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
       left={0}
       right={0}
       bottom={0}
-      backgroundColor="#fafafa"
+      backgroundColor="#fff"
     >
       {/* iOS Safari 스와이프 백 방지 글로벌 CSS */}
       <style>{`
@@ -785,11 +784,23 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           overscroll-behavior-x: none;
           -webkit-overflow-scrolling: touch;
         }
+        @keyframes pulse-dot {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 0.8;
+          }
+        }
+        .pulse-dot {
+          animation: pulse-dot 2.5s ease-in-out infinite;
+        }
       `}</style>
       <View
         width="100%"
         height="100%"
-        backgroundColor="#fafafa"
         overflow="hidden"
         // @ts-ignore
         className="mypage-container"
@@ -810,7 +821,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           borderBottomWidth={1}
           borderBottomColor="#eee"
         >
-          <XStack alignItems="center" gap="$3">
+          <XStack alignItems="center" gap="$1.5">
             <View cursor="pointer" onPress={onBack}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M15 18l-6-6 6-6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -974,23 +985,24 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         {/* 탭 + 콘텐츠 래퍼 - requests 모드에서만 표시 */}
         {mode === 'requests' && (
           <View flex={1} marginTop={51} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {/* 탭 */}
-            <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
-              <XStack>
+            {/* 탭 - Fill 버튼 스타일 */}
+            <XStack backgroundColor="white" padding="$3" gap="$2">
               <View
                 flex={1}
-                paddingVertical="$3"
+                paddingVertical="$2.5"
                 alignItems="center"
-                borderBottomWidth={2}
-                borderBottomColor={activeTab === 'myRequests' ? brandColors.primary : 'transparent'}
+                backgroundColor={activeTab === 'myRequests' ? brandColors.primary : '#f3f4f6'}
+                borderRadius={10}
                 cursor="pointer"
                 onPress={() => setActiveTab('myRequests')}
+                hoverStyle={{ opacity: 0.9 }}
+                pressStyle={{ scale: 0.98 }}
               >
                 <XStack alignItems="center" justifyContent="center" gap="$2">
                   <Text
-                    fontSize={16}
+                    fontSize={15}
                     fontWeight="600"
-                    color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
+                    color={activeTab === 'myRequests' ? 'white' : '#666'}
                   >
                    협업 요청합니다
                   </Text>
@@ -999,12 +1011,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       minWidth={20}
                       height={20}
                       borderRadius={10}
-                      backgroundColor="#EF4444"
+                      backgroundColor={activeTab === 'myRequests' ? 'white' : '#EF4444'}
                       alignItems="center"
                       justifyContent="center"
                       paddingHorizontal={6}
                     >
-                      <Text fontSize={12} fontWeight="700" color="white">
+                      <Text fontSize={12} fontWeight="700" color={activeTab === 'myRequests' ? brandColors.primary : 'white'}>
                         {inProgressRequestsCount}
                       </Text>
                     </View>
@@ -1013,18 +1025,20 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               </View>
               <View
                 flex={1}
-                paddingVertical="$3"
+                paddingVertical="$2.5"
                 alignItems="center"
-                borderBottomWidth={2}
-                borderBottomColor={activeTab === 'myApplications' ? brandColors.primary : 'transparent'}
+                backgroundColor={activeTab === 'myApplications' ? brandColors.primary : '#f3f4f6'}
+                borderRadius={10}
                 cursor="pointer"
                 onPress={() => setActiveTab('myApplications')}
+                hoverStyle={{ opacity: 0.9 }}
+                pressStyle={{ scale: 0.98 }}
               >
                 <XStack alignItems="center" justifyContent="center" gap="$2">
                   <Text
-                    fontSize={16}
+                    fontSize={15}
                     fontWeight="600"
-                    color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
+                    color={activeTab === 'myApplications' ? 'white' : '#666'}
                   >
                    협업 가능합니다
                   </Text>
@@ -1033,12 +1047,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                       minWidth={20}
                       height={20}
                       borderRadius={10}
-                      backgroundColor="#EF4444"
+                      backgroundColor={activeTab === 'myApplications' ? 'white' : '#EF4444'}
                       alignItems="center"
                       justifyContent="center"
                       paddingHorizontal={6}
                     >
-                      <Text fontSize={12} fontWeight="700" color="white">
+                      <Text fontSize={12} fontWeight="700" color={activeTab === 'myApplications' ? brandColors.primary : 'white'}>
                         {inProgressApplicationsCount}
                       </Text>
                     </View>
@@ -1046,44 +1060,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 </XStack>
               </View>
             </XStack>
-            {/* 상태 필터 */}
-            <XStack padding="$3" gap="$2" width="100%">
-              <View
-                width="50%"
-                paddingVertical="$2"
-                alignItems="center"
-                backgroundColor={statusFilter === 'active' ? brandColors.primary : '#f5f5f5'}
-                borderRadius={8}
-                cursor="pointer"
-                onPress={() => setStatusFilter('active')}
-              >
-                <Text
-                  fontSize={14}
-                  fontWeight="600"
-                  color={statusFilter === 'active' ? 'white' : '#666'}
-                >
-                  대기중/진행중
-                </Text>
-              </View>
-              <View
-                width="50%"
-                paddingVertical="$2"
-                alignItems="center"
-                backgroundColor={statusFilter === 'completed' ? brandColors.primary : '#f5f5f5'}
-                borderRadius={8}
-                cursor="pointer"
-                onPress={() => setStatusFilter('completed')}
-              >
-                <Text
-                  fontSize={14}
-                  fontWeight="600"
-                  color={statusFilter === 'completed' ? 'white' : '#666'}
-                >
-                  완료
-                </Text>
-              </View>
-            </XStack>
-          </YStack>
 
             {/* 컨텐츠 */}
             <ScrollView
@@ -1100,17 +1076,19 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   <Spinner size="large" color={brandColors.primary} />
                 </View>
               ) : activeTab === 'myRequests' ? (
-                // 내 의뢰 탭
+                // 내 의뢰 탭 - 대기중/진행중 먼저, 완료는 나중에
                 (() => {
-                  const filteredRequests = myRequests.filter(req =>
-                    statusFilter === 'active'
-                      ? req.status === 'pending' || req.status === 'applied' || req.status === 'accepted'
-                      : req.status === 'completed'
-                  );
-                  return filteredRequests.length === 0 ? (
-                    <EmptyState message={statusFilter === 'active' ? "대기중/진행중인 협업 요청이 없습니다" : "완료된 협업 요청이 없습니다"} />
+                  const sortedRequests = [...myRequests].sort((a, b) => {
+                    const aIsActive = a.status === 'pending' || a.status === 'applied' || a.status === 'accepted';
+                    const bIsActive = b.status === 'pending' || b.status === 'applied' || b.status === 'accepted';
+                    if (aIsActive && !bIsActive) return -1;
+                    if (!aIsActive && bIsActive) return 1;
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                  });
+                  return sortedRequests.length === 0 ? (
+                    <EmptyState message="협업 요청이 없습니다" />
                   ) : (
-                    filteredRequests.map((req) => (
+                    sortedRequests.map((req) => (
                       <MyRequestCard
                         key={req.id}
                         request={req}
@@ -1132,17 +1110,19 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   );
                 })()
               ) : (
-                // 신청한 의뢰 탭
+                // 신청한 의뢰 탭 - 대기중/진행중 먼저, 완료는 나중에
                 (() => {
-                  const filteredApplications = myApplications.filter(app =>
-                    statusFilter === 'active'
-                      ? app.status === 'pending' || app.status === 'accepted'
-                      : app.status === 'completed'
-                  );
-                  return filteredApplications.length === 0 ? (
-                    <EmptyState message={statusFilter === 'active' ? "대기중/진행중인 신청이 없습니다" : "완료된 신청이 없습니다"} />
+                  const sortedApplications = [...myApplications].sort((a, b) => {
+                    const aIsActive = a.status === 'pending' || a.status === 'accepted';
+                    const bIsActive = b.status === 'pending' || b.status === 'accepted';
+                    if (aIsActive && !bIsActive) return -1;
+                    if (!aIsActive && bIsActive) return 1;
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                  });
+                  return sortedApplications.length === 0 ? (
+                    <EmptyState message="신청한 협업이 없습니다" />
                   ) : (
-                    filteredApplications.map((app) => (
+                    sortedApplications.map((app) => (
                       <MyApplicationCard
                         key={app.id}
                         application={app}

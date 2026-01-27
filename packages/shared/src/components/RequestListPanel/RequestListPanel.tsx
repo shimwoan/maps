@@ -1,20 +1,11 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { View, Text, XStack, YStack, Spinner } from 'tamagui';
+import { View, Text, XStack, Spinner } from 'tamagui';
 import { Sheet } from 'react-modal-sheet';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { Request } from '../../hooks/useRequests';
-import { formatPrice } from '../../utils/format';
-import { AsTypeIcon } from '../AsTypeIcon';
+import { RequestCard } from '../RequestCard';
 import { COLLABORATION_TYPES, type CollaborationType } from '../RequestFormModal/types';
 import '../BottomSheet/BottomSheet.css';
-
-// 협업 카테고리별 색상
-const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; border: string; text: string }> = {
-  '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
-  '설치이관': { bg: '#fff', border: '#3B82F6', text: '#2563EB' },
-  '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
-  '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
-};
 
 interface Location {
   latitude: number;
@@ -247,19 +238,87 @@ export function RequestListPanel({
           </XStack>
         </View>
 
-        {/* 협업 카테고리 필터 모달 */}
+        {/* 위치 정보 없음 안내 */}
+        {!currentLocation && (
+          <View padding={16} backgroundColor="#FEF3C7">
+            <Text fontSize={14} color="#D97706" textAlign="center">
+              위치 정보가 없어 등록순으로 표시됩니다
+            </Text>
+          </View>
+        )}
+
+        {/* 의뢰 목록 */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            height: '100%',
+          }}
+        >
+          <View padding={12} gap={10}>
+            {displayedRequests.length === 0 ? (
+              <View padding={40} alignItems="center">
+                <Text fontSize={16} color="#666">
+                  표시할 의뢰가 없습니다
+                </Text>
+              </View>
+            ) : (
+              displayedRequests.map((request) => (
+                <RequestCard
+                  key={request.id}
+                  title={request.title}
+                  asType={request.as_type}
+                  status={request.status}
+                  expectedFee={request.expected_fee}
+                  address={request.address}
+                  collaborationType={request.collaboration_type}
+                  isCompleted={request.status === 'completed'}
+                  isUrgent={request.is_urgent}
+                  distance={'distance' in request && currentLocation && (request as any).distance !== Infinity ? formatDistance((request as any).distance) : undefined}
+                  onCardPress={() => onSelectRequest(request.id)}
+                />
+              ))
+            )}
+
+            {/* 로딩 인디케이터 */}
+            {isLoadingMore && (
+              <View padding={20} alignItems="center">
+                <Spinner size="small" color={brandColors.primary} />
+              </View>
+            )}
+
+            {/* 더 이상 데이터 없음 */}
+            {!hasMore && displayedRequests.length > 0 && (
+              <View padding={16} alignItems="center">
+                <Text fontSize={14} color="#999">
+                  모든 의뢰를 불러왔습니다
+                </Text>
+              </View>
+            )}
+          </View>
+        </div>
+        </Sheet.Content>
+
+        {/* 협업 카테고리 필터 모달 - Sheet.Container 내부에서 Header/Content 위에 렌더링 */}
         {showCollaborationTypeModal && (
-          <View
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            backgroundColor="rgba(0,0,0,0.4)"
-            zIndex={500}
-            alignItems="center"
-            justifyContent="center"
-            onPress={() => setShowCollaborationTypeModal(false)}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}
+            onClick={() => setShowCollaborationTypeModal(false)}
           >
             <View
               width="90%"
@@ -268,6 +327,8 @@ export function RequestListPanel({
               borderRadius={16}
               overflow="hidden"
               onPress={(e: React.MouseEvent) => e.stopPropagation()}
+              // @ts-ignore
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               {/* 모달 헤더 */}
               <XStack
@@ -379,159 +440,8 @@ export function RequestListPanel({
                 </View>
               </View>
             </View>
-          </View>
+          </div>
         )}
-
-        {/* 위치 정보 없음 안내 */}
-        {!currentLocation && (
-          <View padding={16} backgroundColor="#FEF3C7">
-            <Text fontSize={14} color="#D97706" textAlign="center">
-              위치 정보가 없어 등록순으로 표시됩니다
-            </Text>
-          </View>
-        )}
-
-        {/* 의뢰 목록 */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            height: '100%',
-          }}
-        >
-          <View padding={12} gap={10}>
-            {displayedRequests.length === 0 ? (
-              <View padding={40} alignItems="center">
-                <Text fontSize={16} color="#666">
-                  표시할 의뢰가 없습니다
-                </Text>
-              </View>
-            ) : (
-              displayedRequests.map((request) => (
-                <View
-                  key={request.id}
-                  padding={14}
-                  backgroundColor="#f8f9fa"
-                  borderRadius={12}
-                  cursor="pointer"
-                  borderWidth={1}
-                  borderColor="#eee"
-                  hoverStyle={{ backgroundColor: '#f0f0f0', borderColor: brandColors.primary }}
-                  pressStyle={{ scale: 0.98 }}
-                  onPress={() => {
-                    onSelectRequest(request.id);
-                  }}
-                >
-                  <XStack justifyContent="space-between" alignItems="flex-start">
-                    <YStack flex={1} gap={6}>
-                      {/* AS 아이콘 + 카테고리 + 상태 + 긴급 뱃지 */}
-                      <XStack gap={6} alignItems="center" flexWrap="wrap">
-                        <AsTypeIcon type={request.as_type} size={16} />
-                        {/* 협업 카테고리 배지 */}
-                        {request.collaboration_type && (
-                          <View
-                            height={24}
-                            backgroundColor={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.bg || '#fff'}
-                            borderWidth={1.5}
-                            borderColor={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.border || '#999'}
-                            paddingHorizontal={8}
-                            borderRadius={6}
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              fontSize={12}
-                              fontWeight="600"
-                              color={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.text || '#666'}
-                            >
-                              {request.collaboration_type}
-                            </Text>
-                          </View>
-                        )}
-                        {/* 상태 배지 - 진행중, 완료만 표시 */}
-                        {(request.status === 'completed' || request.status === 'accepted') && (
-                          <View
-                            height={24}
-                            paddingHorizontal={8}
-                            backgroundColor={
-                              request.status === 'completed' ? '#E5E7EB' : '#FEF3C7'
-                            }
-                            borderRadius={6}
-                            borderWidth={1.5}
-                            borderColor={request.status === 'completed' ? '#D1D5DB' : '#FDE68A'}
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              fontSize={12}
-                              fontWeight="600"
-                              color={
-                                request.status === 'completed' ? '#6B7280' : '#D97706'
-                              }
-                            >
-                              {request.status === 'completed' ? '완료' : '진행중'}
-                            </Text>
-                          </View>
-                        )}
-                        {request.is_urgent && (
-                          <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
-                            <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
-                          </View>
-                        )}
-                        {/* 거리 표시 */}
-                        {'distance' in request && currentLocation && (request as any).distance !== Infinity && (
-                          <XStack alignItems="center" gap={4}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#666"/>
-                              <circle cx="12" cy="9" r="2" fill="white"/>
-                            </svg>
-                            <Text fontSize={12} color="#666">
-                              {formatDistance((request as any).distance)}
-                            </Text>
-                          </XStack>
-                        )}
-                      </XStack>
-
-                      {/* 제목 */}
-                      <Text fontSize={16} fontWeight="700" color="#000" numberOfLines={1}>
-                        {request.title}
-                      </Text>
-
-                      {/* 주소 */}
-                      <Text fontSize={13} color="#666" numberOfLines={1}>
-                        {request.address}
-                      </Text>
-                    </YStack>
-
-                    {/* 가격 */}
-                    <Text fontSize={18} fontWeight="600" color={brandColors.primary}>
-                      {formatPrice(request.expected_fee)}원
-                    </Text>
-                  </XStack>
-                </View>
-              ))
-            )}
-
-            {/* 로딩 인디케이터 */}
-            {isLoadingMore && (
-              <View padding={20} alignItems="center">
-                <Spinner size="small" color={brandColors.primary} />
-              </View>
-            )}
-
-            {/* 더 이상 데이터 없음 */}
-            {!hasMore && displayedRequests.length > 0 && (
-              <View padding={16} alignItems="center">
-                <Text fontSize={14} color="#999">
-                  모든 의뢰를 불러왔습니다
-                </Text>
-              </View>
-            )}
-          </View>
-        </div>
-        </Sheet.Content>
       </Sheet.Container>
       <Sheet.Backdrop onTap={onClose} />
     </Sheet>

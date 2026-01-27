@@ -12,7 +12,7 @@ import { NotificationModal } from '../components/NotificationModal';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { HeaderActions } from '../components/HeaderActions';
 import { RequestListPanel } from '../components/RequestListPanel';
-import { AsTypeIcon } from '../components/AsTypeIcon';
+import { RequestCard } from '../components/RequestCard';
 import { Sheet } from 'react-modal-sheet';
 import '../components/BottomSheet/BottomSheet.css';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,15 +23,6 @@ import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
 import { COLLABORATION_TYPES, type CollaborationType, type EditRequest } from '../components/RequestFormModal/types';
 import { supabase } from '../lib/supabase';
-import { formatPrice } from '../utils/format';
-
-// 협업 카테고리별 색상
-const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; border: string; text: string }> = {
-  '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
-  '설치이관': { bg: '#fff', border: '#3B82F6', text: '#2563EB' },
-  '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
-  '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
-};
 
 // 실시간 현황 알림 타입
 interface RealtimeNotification {
@@ -691,7 +682,7 @@ export function HomeScreen() {
           <XStack alignItems="center" gap="$3">
             <XStack
               alignItems="center"
-              gap={6}
+              gap={2}
               cursor="pointer"
               tag="a"
               href="/"
@@ -1347,93 +1338,22 @@ export function HomeScreen() {
             {/* 의뢰 목록 */}
             <View padding={12} gap={10}>
               {clusterRequests.map((request) => (
-                <View
+                <RequestCard
                   key={request.id}
-                  padding={14}
-                  backgroundColor="#f8f9fa"
-                  borderRadius={12}
-                  cursor="pointer"
-                  borderWidth={1}
-                  borderColor="#eee"
-                  hoverStyle={{ backgroundColor: '#f0f0f0', borderColor: brandColors.primary }}
-                  pressStyle={{ scale: 0.98 }}
-                  onPress={() => {
+                  title={request.title}
+                  asType={request.as_type}
+                  status={request.status}
+                  expectedFee={request.expected_fee}
+                  address={request.address}
+                  collaborationType={request.collaboration_type}
+                  isCompleted={request.status === 'completed'}
+                  isUrgent={request.is_urgent}
+                  onCardPress={() => {
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);
                     setSelectedRequestId(request.id);
                   }}
-                >
-                  <XStack justifyContent="space-between" alignItems="flex-start">
-                    <View flex={1} gap={6}>
-                      {/* AS 아이콘 + 카테고리 + 상태 + 긴급 뱃지 */}
-                      <XStack gap={6} alignItems="center" flexWrap="wrap">
-                        <AsTypeIcon type={request.as_type} size={16} />
-                        {/* 협업 카테고리 배지 */}
-                        {request.collaboration_type && (
-                          <View
-                            height={24}
-                            backgroundColor={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.bg || '#fff'}
-                            borderWidth={1.5}
-                            borderColor={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.border || '#999'}
-                            paddingHorizontal={8}
-                            borderRadius={6}
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              fontSize={12}
-                              fontWeight="600"
-                              color={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.text || '#666'}
-                            >
-                              {request.collaboration_type}
-                            </Text>
-                          </View>
-                        )}
-                        {/* 상태 배지 - 진행중, 완료만 표시 */}
-                        {(request.status === 'completed' || request.status === 'accepted') && (
-                          <View
-                            height={24}
-                            paddingHorizontal={8}
-                            backgroundColor={request.status === 'completed' ? '#E5E7EB' : '#FEF3C7'}
-                            borderRadius={6}
-                            borderWidth={1.5}
-                            borderColor={request.status === 'completed' ? '#D1D5DB' : '#FDE68A'}
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text
-                              fontSize={12}
-                              fontWeight="600"
-                              color={request.status === 'completed' ? '#6B7280' : '#D97706'}
-                            >
-                              {request.status === 'completed' ? '완료' : '진행중'}
-                            </Text>
-                          </View>
-                        )}
-                        {request.is_urgent && (
-                          <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
-                            <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
-                          </View>
-                        )}
-                      </XStack>
-
-                      {/* 제목 */}
-                      <Text fontSize={16} fontWeight="700" color="#000" numberOfLines={1}>
-                        {request.title}
-                      </Text>
-
-                      {/* 주소 */}
-                      <Text fontSize={13} color="#666" numberOfLines={1}>
-                        {request.address}
-                      </Text>
-                    </View>
-
-                    {/* 가격 */}
-                    <Text fontSize={18} fontWeight="600" color={brandColors.primary}>
-                      {formatPrice(request.expected_fee)}원
-                    </Text>
-                  </XStack>
-                </View>
+                />
               ))}
             </View>
           </Sheet.Content>
