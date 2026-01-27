@@ -174,6 +174,9 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
         display: flex;
         align-items: center;
         justify-content: center;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        user-select: none;
       ">
         <img src="/print.png" width="${size.iconSize}" height="${size.iconSize}" />
         ${badges}
@@ -305,6 +308,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [mapReady, setMapReady] = useState(false);
   const markersDataRef = useRef<RequestMarker[]>([]);
+  const prevZoomRef = useRef(zoom);
 
   useImperativeHandle(ref, () => ({
     moveTo: (lat: number, lng: number, z?: number) => {
@@ -378,7 +382,8 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         window.naver.maps.Event.addListener(map, 'idle', () => {
           const center = map.getCenter();
           const newZoom = map.getZoom();
-          setCurrentZoom(newZoom);
+          // 줌이 실제로 변경된 경우에만 상태 업데이트 (불필요한 마커 재생성 방지)
+          setCurrentZoom(prev => prev !== newZoom ? newZoom : prev);
           onCameraChangeRef.current?.(center.y, center.x, newZoom);
         });
 
@@ -496,13 +501,16 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         const anchorY = 0;
 
         if (existingMarker) {
-          // 기존 마커가 있으면 위치만 업데이트 (아이콘은 데이터가 변경된 경우에만)
+          // 기존 마커가 있으면 위치 업데이트
           existingMarker.setPosition(new window.naver.maps.LatLng(markerData.latitude, markerData.longitude));
-          // 마커 데이터가 변경되었을 수 있으므로 아이콘도 업데이트
-          existingMarker.setIcon({
-            content: createMarkerContent(markerData, isOwn, isApplied, currentZoom),
-            anchor: new window.naver.maps.Point(anchorX, anchorY),
-          });
+          // 줌이 변경되었거나 마커 데이터가 변경된 경우에만 아이콘 업데이트
+          const zoomChanged = prevZoomRef.current !== currentZoom;
+          if (zoomChanged) {
+            existingMarker.setIcon({
+              content: createMarkerContent(markerData, isOwn, isApplied, currentZoom),
+              anchor: new window.naver.maps.Point(anchorX, anchorY),
+            });
+          }
         } else {
           const newMarker = new window.naver.maps.Marker({
             position: new window.naver.maps.LatLng(markerData.latitude, markerData.longitude),
@@ -561,6 +569,9 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         }
       }
     });
+
+    // 이전 줌 레벨 저장
+    prevZoomRef.current = currentZoom;
   }, [markers, currentUserId, appliedRequestIds, currentZoom, mapReady]);
 
   // 선택 상태 변경 시 DOM 클래스만 토글 (깜빡거림 방지)
