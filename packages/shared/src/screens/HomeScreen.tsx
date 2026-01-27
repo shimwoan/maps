@@ -386,9 +386,12 @@ export function HomeScreen() {
     }
   }, [pendingShareRequestId, requests]);
 
-  // selectedRequestId 변경 시 URL 업데이트
+  // selectedRequestId 변경 시 URL 업데이트 (모바일 깜빡임 방지를 위해 지연)
   useEffect(() => {
-    setUrlParam('requestId', selectedRequestId);
+    const timer = setTimeout(() => {
+      setUrlParam('requestId', selectedRequestId);
+    }, 100);
+    return () => clearTimeout(timer);
   }, [selectedRequestId]);
 
   // CSS 스타일 삽입
