@@ -13,6 +13,15 @@ export interface NaverMapRef {
   zoomOut: () => void;
 }
 
+// 마커 스케일 (줌 레벨에 따라 조절)
+const getMarkerScale = (zoom: number): number => {
+  if (zoom >= 16) return 1;
+  if (zoom >= 14) return 0.9;
+  if (zoom >= 12) return 0.8;
+  if (zoom >= 10) return 0.7;
+  return 0.6;
+};
+
 // 클러스터 타입
 interface MarkerCluster {
   key: string;
@@ -21,13 +30,22 @@ interface MarkerCluster {
   markers: RequestMarker[];
 }
 
-// 같은 위치의 마커들을 그룹화하여 클러스터 생성
-const createClusters = (markers: RequestMarker[]): MarkerCluster[] => {
+// 줌 레벨에 따른 클러스터링 정밀도 (소수점 자릿수)
+const getClusterPrecision = (zoom: number): number => {
+  if (zoom >= 17) return 4;  // 약 10m
+  if (zoom >= 15) return 3;  // 약 100m
+  if (zoom >= 13) return 2;  // 약 1km
+  if (zoom >= 11) return 1;  // 약 10km
+  return 1;
+};
+
+// 같은 위치의 마커들을 그룹화하여 클러스터 생성 (줌 레벨에 따라 클러스터링 범위 조절)
+const createClusters = (markers: RequestMarker[], zoom: number): MarkerCluster[] => {
+  const precision = getClusterPrecision(zoom);
   const groupedByLocation = new Map<string, RequestMarker[]>();
 
   markers.forEach(marker => {
-    // 소수점 3자리까지 비교 (약 100m 정확도)
-    const key = `${marker.latitude.toFixed(3)},${marker.longitude.toFixed(3)}`;
+    const key = `${marker.latitude.toFixed(precision)},${marker.longitude.toFixed(precision)}`;
     if (!groupedByLocation.has(key)) {
       groupedByLocation.set(key, []);
     }
@@ -73,49 +91,93 @@ const createClusterContent = (count: number, clusterKey: string): string => {
   `;
 };
 
-
-// 마커 아이콘 SVG 생성 (파란색 복합기 아이콘)
-const getMarkerIconSvg = (): string => {
-  return `
-    <svg width="48" height="56" viewBox="0 0 48 56" fill="none">
-      <!-- 그림자 -->
-      <ellipse cx="24" cy="52" rx="12" ry="3" fill="rgba(0,0,0,0.25)"/>
-      <!-- 메인 바디 (물방울 모양) -->
-      <path d="M24 2C14 2 6 10 6 20C6 32 24 48 24 48C24 48 42 32 42 20C42 10 34 2 24 2Z" fill="#3B82F6"/>
-      <!-- 하이라이트 -->
-      <path d="M24 4C15 4 8 11 8 20C8 28 18 40 24 46C24 46 24 46 24 46" fill="url(#highlight)" opacity="0.3"/>
-      <!-- 복합기 아이콘 (흰색) -->
-      <g transform="translate(12, 8)">
-        <!-- 상단 급지대 -->
-        <path d="M6 2h12v4H6z" fill="rgba(255,255,255,0.4)" stroke="white" stroke-width="1"/>
-        <!-- 메인 본체 -->
-        <rect x="4" y="6" width="16" height="10" rx="1" fill="white"/>
-        <!-- 디스플레이 -->
-        <rect x="6" y="8" width="7" height="4" rx="0.5" fill="#3B82F6"/>
-        <!-- 버튼 -->
-        <circle cx="16" cy="10" r="1" fill="#3B82F6"/>
-        <!-- 하단 출력대 -->
-        <path d="M5 16h14v4H5z" fill="rgba(255,255,255,0.7)" stroke="white" stroke-width="1"/>
-      </g>
-      <defs>
-        <linearGradient id="highlight" x1="8" y1="4" x2="24" y2="46">
-          <stop offset="0%" stop-color="white"/>
-          <stop offset="100%" stop-color="white" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  `;
+// 마커 크기 계산 (줌 레벨에 따라)
+const getMarkerSize = (zoom: number) => {
+  const scale = getMarkerScale(zoom);
+  return {
+    scale,
+    iconSize: Math.round(32 * scale),
+    boxSize: Math.round(48 * scale),
+    badgeFontSize: Math.round(10 * scale),
+    badgePaddingV: Math.round(2 * scale),
+    badgePaddingH: Math.round(5 * scale),
+    borderRadius: Math.round(12 * scale),
+    borderWidth: Math.max(2, Math.round(3 * scale)),
+    arrowWidth: Math.round(16 * scale),
+    arrowHeight: Math.round(8 * scale),
+  };
 };
 
-// 마커 HTML 생성 (단순 아이콘 스타일)
-const createMarkerContent = (marker: RequestMarker, _isOwn: boolean, _isApplied: boolean, _zoom: number): string => {
-  return `
-    <div data-marker-id="${marker.id}" class="marker-box" style="
-      cursor: pointer;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-      transition: transform 0.15s ease;
+// 마커 HTML 생성
+const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: boolean, zoom: number): string => {
+  const isInProgress = marker.status === 'accepted';
+  const isCompleted = marker.status === 'completed';
+  const isUrgent = marker.isUrgent && !isCompleted;
+
+  // 완료: 회색, 진행중: 주황색, 신청중: 초록색, 긴급: 빨간색, 기본: 파란색
+  const primaryColor = isCompleted ? '#9CA3AF' : isInProgress ? '#F59E0B' : isApplied ? '#22C55E' : (isUrgent ? '#EF4444' : '#3B82F6');
+  const bgColor = primaryColor;
+  const size = getMarkerSize(zoom);
+
+  // 배지들 (상단에 한 줄로 표시)
+  const hasBadges = isUrgent || isOwn;
+  const badges = hasBadges ? `
+    <div style="
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
+      white-space: nowrap;
     ">
-      ${getMarkerIconSvg()}
+      ${isUrgent ? `<div style="
+        background: #DC2626;
+        color: white;
+        font-size: ${size.badgeFontSize}px;
+        font-weight: 700;
+        padding: ${size.badgePaddingV}px ${size.badgePaddingH}px;
+        border-radius: 4px;
+        border: 1px solid white;
+        line-height: 1;
+      ">긴급</div>` : ''}
+      ${isOwn ? `<div style="
+        background: #1D4ED8;
+        color: white;
+        font-size: ${size.badgeFontSize}px;
+        font-weight: 700;
+        padding: ${size.badgePaddingV}px ${size.badgePaddingH}px;
+        border-radius: 4px;
+        border: 1px solid white;
+        line-height: 1;
+      ">MY</div>` : ''}
+    </div>
+  ` : '';
+
+  return `
+    <div data-marker-id="${marker.id}" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+      transform: translate(-50%, -100%);
+    ">
+      <div class="marker-box" style="
+        --marker-border-color: ${primaryColor};
+        background: white;
+        width: ${size.boxSize}px;
+        height: ${size.boxSize}px;
+        border-radius: 50%;
+        border: ${size.borderWidth}px solid ${primaryColor};
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <img src="/print.png" width="${size.iconSize}" height="${size.iconSize}" />
+        ${badges}
+      </div>
     </div>
   `;
 };
@@ -185,14 +247,21 @@ const injectUrgentStyles = () => {
   const style = document.createElement('style');
   style.id = 'naver-map-urgent-styles';
   style.textContent = `
-    .marker-box {
-      transition: transform 0.15s ease-out;
+    @keyframes urgentPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.9;
+      }
     }
-    .marker-box:hover {
-      transform: scale(1.1);
+    .marker-box {
+      transition: box-shadow 0.15s ease-out;
     }
     .marker-box.selected {
-      transform: scale(1.2);
+      box-shadow: 0 0 0 3px var(--marker-border-color, #3B82F6)40 !important;
     }
     .cluster-marker {
       transition: box-shadow 0.15s ease-out;
@@ -384,7 +453,7 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
     markersDataRef.current = markers;
 
     // 클러스터 생성
-    const clusters = createClusters(markers);
+    const clusters = createClusters(markers, currentZoom);
 
     // 현재 필요한 마커/클러스터 ID 추적
     const neededSingleMarkerIds = new Set<string>();
@@ -422,9 +491,9 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         const isOwn = currentUserId ? markerData.userId === currentUserId : false;
         const isApplied = appliedRequestIds.includes(markerData.id);
         const existingMarker = requestMarkersRef.current.get(markerData.id);
-        // 마커 앵커는 물방울 끝에 위치
-        const anchorX = 24;
-        const anchorY = 48;
+        // 마커 앵커는 (0, 0)으로 설정하고 CSS transform으로 위치 조정
+        const anchorX = 0;
+        const anchorY = 0;
 
         if (existingMarker) {
           // 기존 마커가 있으면 위치만 업데이트 (아이콘은 데이터가 변경된 경우에만)

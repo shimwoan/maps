@@ -11,6 +11,7 @@ import { AddressSearch } from '../AddressSearch';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { RequestFormData, RequestFormModalProps, CollaborationType, AsType, EditRequest } from './types';
 import { AS_TYPES, COLLABORATION_TYPES } from './types';
+import { AsTypeIcon } from '../AsTypeIcon';
 import { ImagePreviewModal } from '../ImagePreviewModal';
 import { TimePicker } from '../TimePicker';
 
@@ -718,9 +719,11 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                             setToastMessage('서비스 준비중입니다.');
                           }
                         }}
-                        paddingHorizontal="$3"
+                        paddingHorizontal="$2"
                         hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
                         pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
+                        icon={<AsTypeIcon type={type} size={16} />}
+                        gap={0}
                       >
                         {type}
                       </Button>

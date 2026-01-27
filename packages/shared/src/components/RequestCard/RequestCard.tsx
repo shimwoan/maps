@@ -7,7 +7,7 @@ import { AsTypeIcon } from '../AsTypeIcon';
 // 협업 카테고리별 색상
 const COLLABORATION_TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
-  '설치이관': { bg: '#fff', border: '#3B82F6', text: '#2563EB' },
+  '설치이관': { bg: '#fff', border: '#10B981', text: '#059669' },
   '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
   '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
 };
