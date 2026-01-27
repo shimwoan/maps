@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { View, Text, XStack, YStack, Spinner, ScrollView } from 'tamagui';
+import { View, Text, XStack, YStack, Spinner } from 'tamagui';
+import { Sheet } from 'react-modal-sheet';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import type { Request } from '../../hooks/useRequests';
 import { formatPrice } from '../../utils/format';
 import { AsTypeIcon } from '../AsTypeIcon';
 import { COLLABORATION_TYPES, type CollaborationType } from '../RequestFormModal/types';
+import '../BottomSheet/BottomSheet.css';
 
 // 협업 카테고리별 색상
 const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; border: string; text: string }> = {
@@ -145,43 +147,36 @@ export function RequestListPanel({
     }
   }, [isLoadingMore, hasMore]);
 
-  if (!isOpen) return null;
-
   return (
-    <View
-      position="fixed"
-      top={0}
-      left={0}
-      right={0}
-      bottom={0}
-      zIndex={250}
+    <Sheet
+      isOpen={isOpen}
+      onClose={onClose}
+      detent="full-height"
+      style={{ zIndex: 250 }}
     >
-      {/* 배경 오버레이 */}
-      <View
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        backgroundColor="rgba(0,0,0,0.4)"
-        onPress={onClose}
-      />
-
-      {/* 패널 */}
-      <View
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        backgroundColor="white"
-        overflow="hidden"
-        // @ts-ignore
-        style={{
-          left: 'max(0px, calc(50vw - 384px))',
-          right: 'max(0px, calc(50vw - 384px))',
-        }}
-      >
+      <Sheet.Container style={{
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxWidth: 768,
+        maxHeight: '90vh',
+        margin: '0 auto',
+      } as React.CSSProperties}>
+        <Sheet.Header>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '12px 16px 8px',
+          }}>
+            <div style={{
+              width: 40,
+              height: 4,
+              backgroundColor: '#d1d5db',
+              borderRadius: 2,
+            }} />
+          </div>
+        </Sheet.Header>
+        <Sheet.Content style={{ overflowY: 'auto' }}>
         {/* 필터 헤더 */}
         <View
           paddingHorizontal={12}
@@ -537,7 +532,9 @@ export function RequestListPanel({
             )}
           </View>
         </div>
-      </View>
-    </View>
+        </Sheet.Content>
+      </Sheet.Container>
+      <Sheet.Backdrop onTap={onClose} />
+    </Sheet>
   );
 }
