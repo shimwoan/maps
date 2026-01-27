@@ -30,14 +30,16 @@ function CollaborationTypeBadge({ type }: { type: string }) {
 
   return (
     <View
+      height={24}
       backgroundColor={colors.bg}
       borderWidth={1.5}
       borderColor={colors.border}
-      paddingHorizontal={10}
-      paddingVertical={4}
+      paddingHorizontal={8}
       borderRadius={6}
+      alignItems="center"
+      justifyContent="center"
     >
-      <Text fontSize={14} fontWeight="600" color={colors.text}>
+      <Text fontSize={12} fontWeight="600" color={colors.text}>
         {type}
       </Text>
     </View>
@@ -339,15 +341,17 @@ export function RequestDetailCard({
               ) : (
                 request.status !== 'pending' && (
                   <View
+                    height={24}
                     backgroundColor={
                       request.status === 'completed' ? '#9CA3AF' : '#F59E0B'
                     }
-                    paddingHorizontal={10}
-                    paddingVertical={4}
+                    paddingHorizontal={8}
                     borderRadius={6}
+                    alignItems="center"
+                    justifyContent="center"
                   >
                     <Text
-                      fontSize={14}
+                      fontSize={12}
                       fontWeight="600"
                       color="#fff"
                     >
@@ -359,12 +363,14 @@ export function RequestDetailCard({
               {/* 긴급 태그 - 대기 상태에서만 표시 */}
               {request.is_urgent && request.status === 'pending' && (
                 <View
+                  height={24}
                   backgroundColor="#EF4444"
-                  paddingHorizontal={10}
-                  paddingVertical={4}
+                  paddingHorizontal={8}
                   borderRadius={6}
+                  alignItems="center"
+                  justifyContent="center"
                 >
-                  <Text fontSize={14} fontWeight="700" color="white">긴급</Text>
+                  <Text fontSize={12} fontWeight="700" color="white">긴급</Text>
                 </View>
               )}
             </XStack>
@@ -494,10 +500,12 @@ export function RequestDetailCard({
                   {formatPrice(request.expected_fee)}원
                 </Text>
                 <View
+                  height={24}
                   backgroundColor={request.needs_invoice ? "#FEE2E2" : "#F3F4F6"}
                   paddingHorizontal={8}
-                  paddingVertical={2}
                   borderRadius={4}
+                  alignItems="center"
+                  justifyContent="center"
                 >
                   <Text fontSize={12} fontWeight="600" color={request.needs_invoice ? "#DC2626" : "#6B7280"}>
                     {request.needs_invoice ? "세금계산서 O" : "세금계산서 X"}

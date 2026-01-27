@@ -432,17 +432,20 @@ export function RequestListPanel({
                 >
                   <XStack justifyContent="space-between" alignItems="flex-start">
                     <YStack flex={1} gap={6}>
-                      {/* 카테고리 + 상태 + 긴급 뱃지 */}
+                      {/* AS 아이콘 + 카테고리 + 상태 + 긴급 뱃지 */}
                       <XStack gap={6} alignItems="center" flexWrap="wrap">
+                        <AsTypeIcon type={request.as_type} size={16} />
                         {/* 협업 카테고리 배지 */}
                         {request.collaboration_type && (
                           <View
+                            height={24}
                             backgroundColor={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.bg || '#fff'}
                             borderWidth={1.5}
                             borderColor={COLLABORATION_TYPE_COLORS[request.collaboration_type as CollaborationType]?.border || '#999'}
                             paddingHorizontal={8}
-                            paddingVertical={3}
                             borderRadius={6}
+                            alignItems="center"
+                            justifyContent="center"
                           >
                             <Text
                               fontSize={12}
@@ -456,12 +459,16 @@ export function RequestListPanel({
                         {/* 상태 배지 - 진행중, 완료만 표시 */}
                         {(request.status === 'completed' || request.status === 'accepted') && (
                           <View
+                            height={24}
                             paddingHorizontal={8}
-                            paddingVertical={3}
                             backgroundColor={
                               request.status === 'completed' ? '#E5E7EB' : '#FEF3C7'
                             }
                             borderRadius={6}
+                            borderWidth={1.5}
+                            borderColor={request.status === 'completed' ? '#D1D5DB' : '#FDE68A'}
+                            alignItems="center"
+                            justifyContent="center"
                           >
                             <Text
                               fontSize={12}
@@ -475,7 +482,7 @@ export function RequestListPanel({
                           </View>
                         )}
                         {request.is_urgent && (
-                          <View paddingHorizontal={8} paddingVertical={3} backgroundColor="#FEE2E2" borderRadius={6}>
+                          <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
                             <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
                           </View>
                         )}
@@ -494,12 +501,9 @@ export function RequestListPanel({
                       </XStack>
 
                       {/* 제목 */}
-                      <XStack alignItems="center" gap={8}>
-                        <AsTypeIcon type={request.as_type} size={18} />
-                        <Text fontSize={16} fontWeight="600" color="#000" numberOfLines={1} flex={1}>
-                          {request.title}
-                        </Text>
-                      </XStack>
+                      <Text fontSize={16} fontWeight="700" color="#000" numberOfLines={1}>
+                        {request.title}
+                      </Text>
 
                       {/* 주소 */}
                       <Text fontSize={13} color="#666" numberOfLines={1}>

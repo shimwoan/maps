@@ -58,18 +58,21 @@ export function RequestCard({
       cursor={onCardPress ? "pointer" : "default"}
       onPress={onCardPress}
     >
-      {/* 협업 카테고리 배지 + 상태 배지 + 카테고리 + rightAction */}
+      {/* AS 아이콘 + 협업 카테고리 배지 + 상태 배지 + rightAction */}
       <XStack alignItems="center" justifyContent="space-between">
-        <XStack alignItems="center" gap="$1.5">
+        <XStack alignItems="center" gap="$2">
+          <AsTypeIcon type={asType} size={16} />
           {/* 협업 카테고리 배지 */}
           {collaborationType && (
             <View
+              height={24}
               backgroundColor={COLLABORATION_TYPE_COLORS[collaborationType]?.bg || '#fff'}
               borderWidth={1.5}
               borderColor={COLLABORATION_TYPE_COLORS[collaborationType]?.border || '#999'}
               paddingHorizontal={8}
-              paddingVertical={2}
               borderRadius={6}
+              alignItems="center"
+              justifyContent="center"
             >
               <Text
                 fontSize={12}
@@ -82,19 +85,19 @@ export function RequestCard({
           )}
           {/* 상태 배지 */}
           <View
+            height={24}
             backgroundColor={statusInfo.bgColor}
             paddingHorizontal={8}
-            paddingVertical={2}
             borderRadius={6}
             borderWidth={statusInfo.bgColor === '#fff' ? 1.5 : 0}
             borderColor="#e5e7eb"
+            alignItems="center"
+            justifyContent="center"
           >
             <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
               {statusInfo.label}
             </Text>
           </View>
-          <AsTypeIcon type={asType} size={14} />
-          <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>{asType}</Text>
         </XStack>
         {rightAction}
       </XStack>
