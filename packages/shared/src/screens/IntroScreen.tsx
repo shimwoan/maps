@@ -74,7 +74,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
           </YStack>
 
           {/* 설명 텍스트 */}
-          <YStack alignItems="center" gap="$2" marginTop="$4">
+          <YStack alignItems="center" gap="$2" marginTop="$6">
             <Text fontSize={18} textAlign="center" color="#333">
               주변 전문가에게
             </Text>
