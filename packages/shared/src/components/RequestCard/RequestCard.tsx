@@ -115,7 +115,7 @@ export function RequestCard({
       )}
 
       {/* 날짜/시간 + 가격 */}
-      <XStack gap="$3">
+      <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
           {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
         </Text>

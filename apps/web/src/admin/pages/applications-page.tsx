@@ -349,7 +349,6 @@ export function ApplicationsPage() {
             updated_at: selectedApplication.updated_at,
             applicant_profile: selectedApplication.profiles ? {
               nickname: selectedApplication.profiles.nickname,
-              phone: selectedApplication.profiles.phone,
               business_card_url: selectedApplication.profiles.business_card_url,
             } : undefined,
           }}
