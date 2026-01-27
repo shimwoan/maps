@@ -375,7 +375,7 @@ export function RequestDetailCard({
               )}
             </XStack>
             {/* 우측 버튼 영역 */}
-            <XStack gap="$2" alignItems="center">
+            <XStack alignItems="center">
               {/* 공유하기 버튼 */}
               <XStack
                 paddingHorizontal={12}
@@ -384,7 +384,7 @@ export function RequestDetailCard({
                 backgroundColor="#f5f5f5"
                 alignItems="center"
                 justifyContent="center"
-                gap={6}
+                gap={4}
                 cursor="pointer"
                 hoverStyle={{ backgroundColor: '#e5e5e5' }}
                 pressStyle={{ backgroundColor: '#d5d5d5', scale: 0.95 }}
