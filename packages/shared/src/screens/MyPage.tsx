@@ -438,6 +438,9 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
     myApplications,
     applicationsToMyRequests,
     isLoading,
+    hasActiveWork,
+    inProgressApplicationsCount,
+    inProgressRequestsCount,
     acceptApplication,
     rejectApplication,
     cancelApplication,
@@ -637,11 +640,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
     return acc;
   }, {} as Record<string, RequestApplication[]>);
 
-  // 진행중인 의뢰 개수 (요청합니다 탭)
-  const inProgressRequestsCount = myRequests.filter(req => req.status === 'accepted').length;
-
-  // 진행중인 신청 개수 (가능합니다 탭)
-  const inProgressApplicationsCount = myApplications.filter(app => app.status === 'accepted').length;
 
   // 로그인하지 않은 경우 홈으로 리다이렉트
   useEffect(() => {
@@ -1077,7 +1075,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           }}
           onLoginRequired={() => {}}
           isLoggedIn={!!user}
-          hasActiveWork={inProgressRequestsCount > 0 || inProgressApplicationsCount > 0}
+          hasActiveWork={hasActiveWork}
         />
 
       </View>

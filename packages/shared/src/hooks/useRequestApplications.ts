@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -200,21 +200,9 @@ export function useRequestApplications() {
             table: 'request_applications',
           },
           (payload) => {
-            // 내가 관련된 신청인 경우에만 리페치
-            const newData = payload.new as { applicant_id?: string; request_id?: string };
-            const oldData = payload.old as { applicant_id?: string; request_id?: string };
-
-            // 내가 신청자이거나, 내 의뢰에 대한 신청인 경우 리페치
-            if (
-              newData?.applicant_id === user.id ||
-              oldData?.applicant_id === user.id
-            ) {
-              // 내가 신청자인 경우
-              fetchAll();
-            } else {
-              // 내 의뢰에 대한 신청일 수 있으므로 리페치
-              fetchAll();
-            }
+            console.log('[Realtime] request_applications 변경 감지:', payload.eventType, payload.new);
+            // 모든 변경에 대해 리페치
+            fetchAll();
           }
         )
         .subscribe((status, err) => {
@@ -511,10 +499,30 @@ export function useRequestApplications() {
     await fetchAll();
   };
 
+  // 진행중인 협업이 있는지 (공통 로직)
+  const hasActiveWork = useMemo(() => {
+    const hasActiveApplication = myApplications.some(app => app.status === 'accepted');
+    const hasActiveRequest = applicationsToMyRequests.some(app => app.status === 'accepted');
+    return hasActiveApplication || hasActiveRequest;
+  }, [myApplications, applicationsToMyRequests]);
+
+  // 진행중인 신청 개수 (가능합니다 탭)
+  const inProgressApplicationsCount = useMemo(() =>
+    myApplications.filter(app => app.status === 'accepted').length
+  , [myApplications]);
+
+  // 진행중인 의뢰 개수 (요청합니다 탭)
+  const inProgressRequestsCount = useMemo(() =>
+    applicationsToMyRequests.filter(app => app.status === 'accepted').length
+  , [applicationsToMyRequests]);
+
   return {
     myApplications,
     applicationsToMyRequests,
     isLoading,
+    hasActiveWork,
+    inProgressApplicationsCount,
+    inProgressRequestsCount,
     applyToRequest,
     acceptApplication,
     rejectApplication,

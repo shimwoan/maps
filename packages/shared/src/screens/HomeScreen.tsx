@@ -274,22 +274,13 @@ export function HomeScreen() {
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
-  const { myApplications, applicationsToMyRequests, refetch: refetchApplications } = useRequestApplications();
+  const { myApplications, hasActiveWork, refetch: refetchApplications } = useRequestApplications();
   useNotifications(); // 알림 컨텍스트 초기화
 
   // 내가 신청한 의뢰 ID 목록
   const appliedRequestIds = useMemo(() => {
     return myApplications.map(app => app.request_id);
   }, [myApplications]);
-
-  // 진행중인 협업이 있는지 (요청합니다 또는 가능합니다에서)
-  const hasActiveWork = useMemo(() => {
-    // 내가 신청한 것 중 진행중인 것
-    const hasActiveApplication = myApplications.some(app => app.status === 'accepted');
-    // 내 의뢰에 진행중인 것
-    const hasActiveRequest = applicationsToMyRequests.some(app => app.status === 'accepted');
-    return hasActiveApplication || hasActiveRequest;
-  }, [myApplications, applicationsToMyRequests]);
 
   // 의뢰를 마커 형식으로 변환 (필터 적용)
   const markers: RequestMarker[] = useMemo(() => {
