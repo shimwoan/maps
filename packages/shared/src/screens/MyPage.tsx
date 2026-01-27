@@ -83,7 +83,7 @@ function MyRequestCard({
       isCompleted={isCompleted}
       onCardPress={onCardPress}
       rightAction={
-        <XStack alignItems="center" gap="$2">
+        <XStack alignItems="center" gap="$2" marginRight={-8} marginTop={-2}>
           {/* 신청자 수 표시 */}
           {pendingApps.length > 0 && request.status !== 'accepted' && request.status !== 'completed' && (
             <XStack alignItems="center" gap="$1.5">
@@ -104,8 +104,8 @@ function MyRequestCard({
               </Text>
             </XStack>
           )}
-          {/* 대기중 상태 - 메뉴 버튼 */}
-          {isPending && (
+          {/* 대기중/신청있음 상태 - 메뉴 버튼 */}
+          {(request.status === 'pending' || request.status === 'applied') && (
             <View position="relative">
               <View
                 padding={4}
