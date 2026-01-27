@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 export interface Request {
   id: string;
   user_id: string;
-  visit_type: string;
+  collaboration_type: string;
   as_type: string;
   title: string;
   address: string;
@@ -36,13 +36,11 @@ export function useRequests() {
   const fetchRequests = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 활성 상태 의뢰 조회
+      // 활성 상태 의뢰 조회 (위치 정보 없는 의뢰도 포함)
       const { data: activeData, error: activeError } = await supabase
         .from('requests')
         .select('*')
-        .in('status', ['pending', 'applied', 'accepted'])
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
+        .in('status', ['pending', 'applied', 'accepted']);
 
       if (activeError) throw activeError;
 
@@ -52,9 +50,7 @@ export function useRequests() {
         .from('requests')
         .select('*')
         .eq('status', 'completed')
-        .gte('updated_at', oneDayAgo)
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
+        .gte('updated_at', oneDayAgo);
 
       if (completedError) throw completedError;
 
@@ -120,12 +116,8 @@ export function useRequests() {
                   } : r);
                 }
 
-                // 새로운 요청이고 위치값이 있으면 추가
-                if (updatedRequest.latitude && updatedRequest.longitude) {
-                  return [...prev, updatedRequest];
-                }
-
-                return prev;
+                // 새로운 요청이면 추가 (위치 정보 유무와 관계없이)
+                return [...prev, updatedRequest];
               });
             } else if (payload.eventType === 'DELETE') {
               const deletedRequest = payload.old as Request;

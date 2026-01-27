@@ -5,7 +5,7 @@ export interface RequestMarker {
   longitude: number;
   title: string;
   price: number;
-  visitType: string;
+  collaborationType: string;
   asType: string;
   status: string;
   isUrgent: boolean;

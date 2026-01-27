@@ -30,8 +30,8 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       style={{
         bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
       }}
-      paddingHorizontal={20}
-      height={48}
+      paddingHorizontal={14}
+      height={44}
       borderRadius={24}
       backgroundColor={brandColors.primary}
       alignItems="center"

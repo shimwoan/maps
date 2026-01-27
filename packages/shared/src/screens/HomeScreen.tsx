@@ -11,16 +11,16 @@ import { MyPage } from './MyPage';
 import { NotificationModal } from '../components/NotificationModal';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { HeaderActions } from '../components/HeaderActions';
+import { RequestListPanel } from '../components/RequestListPanel';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequests } from '../hooks/useRequests';
 import { useRequestApplications } from '../hooks/useRequestApplications';
 import { useNotifications } from '../contexts/NotificationContext';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { DONG_LIST, SIGUNGU_LIST } from '../data/regions';
-import { AS_TYPES, type AsType, type EditRequest } from '../components/RequestFormModal/types';
+import { COLLABORATION_TYPES, type CollaborationType, type EditRequest } from '../components/RequestFormModal/types';
 import { supabase } from '../lib/supabase';
 import { formatPrice } from '../utils/format';
-import { AsTypeIcon } from '../components/AsTypeIcon';
 
 // 실시간 현황 알림 타입
 interface RealtimeNotification {
@@ -259,15 +259,15 @@ export function HomeScreen() {
   const [myPageInitialTab, setMyPageInitialTab] = useState<'myRequests' | 'myApplications'>('myRequests');
   const [myPageMode, setMyPageMode] = useState<'requests' | 'profile'>('requests');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [selectedAsTypeFilters, setSelectedAsTypeFilters] = useState<AsType[]>([]);
+  const [selectedCollaborationType, setSelectedCollaborationType] = useState<CollaborationType | null>(null);
   const [selectedStatusFilters, setSelectedStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
-  const [filterModalType, setFilterModalType] = useState<'status' | 'asType' | null>(null);
-  const [tempStatusFilters, setTempStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
-  const [tempAsTypeFilters, setTempAsTypeFilters] = useState<AsType[]>([]);
+  const [isUrgentFilterOn, setIsUrgentFilterOn] = useState(false);
+  const [showCollaborationTypeModal, setShowCollaborationTypeModal] = useState(false);
   const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
   const [clusterRequestIds, setClusterRequestIds] = useState<string[]>([]); // 클러스터 클릭 시 표시할 의뢰 ID 목록
   const [editingRequest, setEditingRequest] = useState<EditRequest | null>(null); // 수정할 의뢰
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
+  const [isListPanelOpen, setIsListPanelOpen] = useState(false); // 목록보기 패널
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -286,8 +286,9 @@ export function HomeScreen() {
   const markers: RequestMarker[] = useMemo(() => {
     return requests
       .filter(r => r.latitude && r.longitude)
-      .filter(r => selectedAsTypeFilters.length === 0 || selectedAsTypeFilters.includes(r.as_type as AsType))
+      .filter(r => !selectedCollaborationType || r.collaboration_type === selectedCollaborationType)
       .filter(r => selectedStatusFilters.length === 0 || selectedStatusFilters.includes(r.status as 'pending' | 'accepted' | 'completed'))
+      .filter(r => !isUrgentFilterOn || r.is_urgent)
       .map(r => ({
         id: r.id,
         userId: r.user_id,
@@ -295,12 +296,12 @@ export function HomeScreen() {
         longitude: r.longitude!,
         title: r.title,
         price: r.expected_fee,
-        visitType: r.visit_type,
+        collaborationType: r.collaboration_type,
         asType: r.as_type,
         status: r.status,
         isUrgent: r.is_urgent,
       }));
-  }, [requests, selectedAsTypeFilters, selectedStatusFilters]);
+  }, [requests, selectedCollaborationType, selectedStatusFilters, isUrgentFilterOn]);
 
   // 선택된 의뢰 정보
   const selectedRequest = useMemo(() => {
@@ -637,6 +638,13 @@ export function HomeScreen() {
     setIsRegionModalOpen(false);
   };
 
+  // 원격 카테고리 선택 시 목록보기 패널 자동 열기
+  useEffect(() => {
+    if (selectedCollaborationType === '원격') {
+      setIsListPanelOpen(true);
+    }
+  }, [selectedCollaborationType]);
+
   return (
     <View
       position="fixed"
@@ -740,78 +748,50 @@ export function HomeScreen() {
           contentContainerStyle={{ paddingHorizontal: 12, alignItems: 'center', height: 48 }}
         >
           <XStack gap="$2" alignItems="center">
-            {/* 상태 필터 버튼 */}
+            {/* 협업 카테고리 필터 버튼 */}
             <XStack
               paddingHorizontal={14}
               height={34}
               borderRadius={17}
-              backgroundColor={selectedStatusFilters.length > 0 ? brandColors.primaryLight : 'white'}
+              backgroundColor={selectedCollaborationType ? brandColors.primaryLight : 'white'}
               borderWidth={1}
-              borderColor={selectedStatusFilters.length > 0 ? brandColors.primary : '#ddd'}
+              borderColor={selectedCollaborationType ? brandColors.primary : '#ddd'}
               cursor="pointer"
               alignItems="center"
               justifyContent="center"
               gap={6}
-              onPress={() => {
-                setTempStatusFilters(selectedStatusFilters);
-                setFilterModalType('status');
-              }}
+              onPress={() => setShowCollaborationTypeModal(true)}
             >
-              <Text
-                fontSize={14}
-                fontWeight="500"
-                color={selectedStatusFilters.length > 0 ? brandColors.primary : '#333'}
-              >
-                {selectedStatusFilters.length === 0
-                  ? '상태 전체'
-                  : selectedStatusFilters.map(s => s === 'pending' ? '대기중' : s === 'accepted' ? '진행중' : '완료').join(',')}
+              <Text fontSize={14} fontWeight="500" color={selectedCollaborationType ? brandColors.primary : '#000'}>
+                {selectedCollaborationType || '카테고리 전체'}
               </Text>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke={selectedStatusFilters.length > 0 ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </XStack>
 
-            {/* AS 종류 필터 버튼 */}
+            {/* 긴급 필터 버튼 */}
             <XStack
               paddingHorizontal={14}
               height={34}
               borderRadius={17}
-              backgroundColor={selectedAsTypeFilters.length > 0 ? brandColors.primaryLight : 'white'}
+              backgroundColor={isUrgentFilterOn ? '#FEE2E2' : 'white'}
               borderWidth={1}
-              borderColor={selectedAsTypeFilters.length > 0 ? brandColors.primary : '#ddd'}
+              borderColor={isUrgentFilterOn ? '#EF4444' : '#ddd'}
               cursor="pointer"
               alignItems="center"
               justifyContent="center"
               gap={6}
-              onPress={() => {
-                setTempAsTypeFilters(selectedAsTypeFilters);
-                setFilterModalType('asType');
-              }}
+              onPress={() => setIsUrgentFilterOn(!isUrgentFilterOn)}
             >
-              {selectedAsTypeFilters.length === 0 ? (
-                <Text fontSize={14} fontWeight="500" color="#000">
-                  종류 전체
-                </Text>
-              ) : (
-                <XStack alignItems="center" gap={4}>
-                  {selectedAsTypeFilters.slice(0, 1).map((type) => (
-                    <XStack key={type} alignItems="center" gap={4}>
-                      <AsTypeIcon type={type} size={14} />
-                      <Text fontSize={14} fontWeight="500" color={brandColors.primary}>
-                        {type}
-                      </Text>
-                    </XStack>
-                  ))}
-                  {selectedAsTypeFilters.length > 1 && (
-                    <Text fontSize={14} fontWeight="500" color={brandColors.primary}>
-                      외 {selectedAsTypeFilters.length - 1}개
-                    </Text>
-                  )}
-                </XStack>
-              )}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke={selectedAsTypeFilters.length > 0 ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L2 22h20L12 2z" fill={isUrgentFilterOn ? '#EF4444' : '#999'}/>
+                <path d="M12 9v4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="12" cy="16" r="1" fill="white"/>
               </svg>
+              <Text fontSize={14} fontWeight="500" color={isUrgentFilterOn ? '#EF4444' : '#333'}>
+                긴급
+              </Text>
             </XStack>
 
           </XStack>
@@ -819,8 +799,8 @@ export function HomeScreen() {
       </View>
       )}
 
-      {/* 필터 모달 */}
-      {filterModalType && (
+      {/* 협업 카테고리 필터 모달 */}
+      {showCollaborationTypeModal && (
         <View
           position="absolute"
           top={0}
@@ -831,7 +811,7 @@ export function HomeScreen() {
           zIndex={500}
           alignItems="center"
           justifyContent="center"
-          onPress={() => setFilterModalType(null)}
+          onPress={() => setShowCollaborationTypeModal(false)}
         >
           <View
             width="90%"
@@ -849,12 +829,12 @@ export function HomeScreen() {
               justifyContent="space-between"
             >
               <Text fontSize={18} fontWeight="700" color="#000">
-                {filterModalType === 'status' ? '상태' : 'AS 종류'}
+                협업 카테고리
               </Text>
               <View
                 padding={4}
                 cursor="pointer"
-                onPress={() => setFilterModalType(null)}
+                onPress={() => setShowCollaborationTypeModal(false)}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6l12 12" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -862,115 +842,97 @@ export function HomeScreen() {
               </View>
             </XStack>
 
-            {/* 모달 내용 */}
-            <View padding={20}>
-              {filterModalType === 'status' ? (
-                <XStack gap={10}>
-                  {[
-                    { key: 'pending', label: '대기중' },
-                    { key: 'accepted', label: '진행중' },
-                    { key: 'completed', label: '완료' },
-                  ].map((item) => {
-                    const isSelected = tempStatusFilters.includes(item.key as 'pending' | 'accepted' | 'completed');
-                    return (
-                      <View
-                        key={item.key}
-                        flex={1}
-                        height={44}
-                        borderRadius={8}
-                        backgroundColor={isSelected ? brandColors.primary : '#f5f5f5'}
-                        alignItems="center"
-                        justifyContent="center"
-                        cursor="pointer"
-                        onPress={() => {
-                          if (isSelected) {
-                            setTempStatusFilters(tempStatusFilters.filter(s => s !== item.key));
-                          } else {
-                            setTempStatusFilters([...tempStatusFilters, item.key as 'pending' | 'accepted' | 'completed']);
-                          }
-                        }}
-                      >
-                        {isSelected && (
-                          <View position="absolute" left={8} top={0} bottom={0} justifyContent="center">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </View>
-                        )}
+            {/* 모달 내용 - 라디오 형태 */}
+            <View padding={20} paddingTop={0}>
+              {/* 전체 옵션 */}
+              <View
+                height={48}
+                borderRadius={8}
+                backgroundColor={!selectedCollaborationType ? brandColors.primary : '#f5f5f5'}
+                alignItems="center"
+                justifyContent="center"
+                cursor="pointer"
+                marginBottom={10}
+                onPress={() => {
+                  setSelectedCollaborationType(null);
+                  setShowCollaborationTypeModal(false);
+                }}
+              >
+                <XStack alignItems="center" gap={8}>
+                  <View
+                    width={20}
+                    height={20}
+                    borderRadius={10}
+                    borderWidth={2}
+                    borderColor={!selectedCollaborationType ? 'white' : '#ccc'}
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {!selectedCollaborationType && (
+                      <View width={10} height={10} borderRadius={5} backgroundColor="white" />
+                    )}
+                  </View>
+                  <Text
+                    fontSize={14}
+                    fontWeight="600"
+                    color={!selectedCollaborationType ? 'white' : '#333'}
+                  >
+                    전체
+                  </Text>
+                </XStack>
+              </View>
+
+              {/* 카테고리 옵션들 */}
+              <View
+                // @ts-ignore
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
+              >
+                {COLLABORATION_TYPES.map((type) => {
+                  const isSelected = selectedCollaborationType === type;
+                  return (
+                    <View
+                      key={type}
+                      height={48}
+                      borderRadius={8}
+                      backgroundColor={isSelected ? brandColors.primary : '#f5f5f5'}
+                      alignItems="center"
+                      justifyContent="center"
+                      cursor="pointer"
+                      onPress={() => {
+                        setSelectedCollaborationType(type);
+                        setShowCollaborationTypeModal(false);
+                        // 원격 카테고리 선택 시 목록 패널 열기
+                        if (type === '원격') {
+                          setIsListPanelOpen(true);
+                        }
+                      }}
+                    >
+                      <XStack alignItems="center" gap={8}>
+                        <View
+                          width={20}
+                          height={20}
+                          borderRadius={10}
+                          borderWidth={2}
+                          borderColor={isSelected ? 'white' : '#ccc'}
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          {isSelected && (
+                            <View width={10} height={10} borderRadius={5} backgroundColor="white" />
+                          )}
+                        </View>
                         <Text
-                          fontSize={16}
+                          fontSize={14}
                           fontWeight="600"
                           color={isSelected ? 'white' : '#333'}
                         >
-                          {item.label}
+                          {type}
                         </Text>
-                      </View>
-                    );
-                  })}
-                </XStack>
-              ) : (
-                <View
-                  // @ts-ignore
-                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}
-                >
-                  {AS_TYPES.map((type) => {
-                    const isSelected = tempAsTypeFilters.includes(type);
-                    return (
-                      <View
-                        key={type}
-                        height={48}
-                        borderRadius={8}
-                        backgroundColor={isSelected ? brandColors.primary : '#f5f5f5'}
-                        alignItems="center"
-                        justifyContent="center"
-                        cursor="pointer"
-                        onPress={() => {
-                          if (isSelected) {
-                            setTempAsTypeFilters(tempAsTypeFilters.filter(t => t !== type));
-                          } else {
-                            setTempAsTypeFilters([...tempAsTypeFilters, type]);
-                          }
-                        }}
-                      >
-                        <XStack alignItems="center" gap={4}>
-                          <AsTypeIcon type={type} size={16} />
-                          <Text
-                            fontSize={14}
-                            fontWeight="600"
-                            color={isSelected ? 'white' : '#333'}
-                          >
-                            {type}
-                          </Text>
-                        </XStack>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-
-            {/* 적용 버튼 */}
-            <View
-              margin={20}
-              marginTop={0}
-              height={48}
-              borderRadius={8}
-              backgroundColor={brandColors.primary}
-              alignItems="center"
-              justifyContent="center"
-              cursor="pointer"
-              onPress={() => {
-                if (filterModalType === 'status') {
-                  setSelectedStatusFilters(tempStatusFilters);
-                } else {
-                  setSelectedAsTypeFilters(tempAsTypeFilters);
-                }
-                setFilterModalType(null);
-              }}
-            >
-              <Text fontSize={16} fontWeight="600" color="white">
-                적용
-              </Text>
+                      </XStack>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           </View>
         </View>
@@ -1000,6 +962,7 @@ export function HomeScreen() {
                   // notification에 위도/경도가 있으면 바로 사용, 없으면 requests에서 찾기
                   const lat = notification.latitude;
                   const lng = notification.longitude;
+                  const request = requests.find(r => r.id === notification.id);
 
                   if (lat && lng) {
                     // 지도 이동 및 마커 선택
@@ -1007,15 +970,20 @@ export function HomeScreen() {
                     setSelectedRequestId(notification.id);
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);
-                  } else {
+                    setIsListPanelOpen(false);
+                  } else if (request && request.latitude && request.longitude) {
                     // 위도/경도가 없으면 requests에서 찾기 (이전 버전 호환)
-                    const request = requests.find(r => r.id === notification.id);
-                    if (request && request.latitude && request.longitude) {
-                      naverMapRef.current?.moveTo(request.latitude, request.longitude, 13);
-                      setSelectedRequestId(request.id);
-                      setClusterRequestIds([]);
-                      setSelectedClusterKey(null);
-                    }
+                    naverMapRef.current?.moveTo(request.latitude, request.longitude, 13);
+                    setSelectedRequestId(request.id);
+                    setClusterRequestIds([]);
+                    setSelectedClusterKey(null);
+                    setIsListPanelOpen(false);
+                  } else {
+                    // 위치 정보가 없는 경우 (원격 등) - 목록 모달 + 상세 모달 함께 열기
+                    setIsListPanelOpen(true);
+                    setSelectedRequestId(notification.id);
+                    setClusterRequestIds([]);
+                    setSelectedClusterKey(null);
                   }
                 }}
               >
@@ -1245,6 +1213,46 @@ export function HomeScreen() {
         }}
       />
 
+      {/* 목록보기 버튼 - 바텀 네비게이션 위 */}
+      {!isMyPageOpen && (
+        <View
+          position="fixed"
+          left="50%"
+          zIndex={199}
+          // @ts-ignore
+          style={{
+            bottom: 'calc(64px + env(safe-area-inset-bottom))',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <XStack
+            paddingHorizontal={12}
+            paddingVertical={7}
+            backgroundColor="white"
+            borderRadius={20}
+            alignItems="center"
+            gap={6}
+            cursor="pointer"
+            shadowColor="#000"
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={0.15}
+            shadowRadius={6}
+            borderWidth={1}
+            borderColor="#eee"
+            hoverStyle={{ backgroundColor: '#f8f8f8' }}
+            pressStyle={{ scale: 0.95 }}
+            onPress={() => setIsListPanelOpen(true)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <Text fontSize={13} fontWeight="600" color="#333">
+              목록보기
+            </Text>
+          </XStack>
+        </View>
+      )}
+
       {/* 하단 네비게이션 */}
       <BottomNavigation
         activeMode={!isMyPageOpen ? 'home' : myPageMode}
@@ -1395,6 +1403,25 @@ export function HomeScreen() {
           refetchRequests();
         }}
         editRequest={editingRequest}
+      />
+
+      {/* 목록보기 패널 */}
+      <RequestListPanel
+        isOpen={isListPanelOpen}
+        onClose={() => setIsListPanelOpen(false)}
+        requests={requests}
+        currentLocation={currentLocation}
+        onSelectRequest={(requestId) => {
+          const request = requests.find(r => r.id === requestId);
+          if (request && request.latitude && request.longitude) {
+            naverMapRef.current?.moveTo(request.latitude, request.longitude, 15);
+          }
+          setSelectedRequestId(requestId);
+          setClusterRequestIds([]);
+          setSelectedClusterKey(null);
+        }}
+        initialCollaborationType={selectedCollaborationType}
+        initialIsUrgentFilter={isUrgentFilterOn}
       />
     </View>
   );

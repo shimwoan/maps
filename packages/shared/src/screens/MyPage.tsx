@@ -39,17 +39,36 @@ function MyRequestCard({
   onReject,
   onImageClick,
   onCardPress,
+  onEdit,
+  onDelete,
+  onCancelWork,
+  onComplete,
 }: {
   request: Request;
   applications: RequestApplication[];
   onAccept: (appId: string, reqId: string) => void;
   onReject: (appId: string) => void;
   onImageClick: (url: string) => void;
-  onCardPress: () => void;
+  onCardPress?: () => void;
+  onEdit?: (request: Request) => void;
+  onDelete?: (requestId: string) => void;
+  onCancelWork?: (requestId: string) => void;
+  onComplete?: (requestId: string) => void;
 }) {
+  const [showMenu, setShowMenu] = useState(false);
   const pendingApps = applications.filter(a => a.status === 'pending');
   const acceptedApp = applications.find(a => a.status === 'accepted' || a.status === 'completed');
   const isCompleted = request.status === 'completed';
+  const isPending = request.status === 'pending' && pendingApps.length === 0;
+
+  // 외부 클릭 시 메뉴 닫기
+  useEffect(() => {
+    if (showMenu) {
+      const handleClick = () => setShowMenu(false);
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [showMenu]);
 
   return (
     <RequestCard
@@ -60,31 +79,101 @@ function MyRequestCard({
       scheduleTime={request.schedule_time}
       expectedFee={request.expected_fee}
       address={request.address}
+      collaborationType={request.collaboration_type}
       isCompleted={isCompleted}
       onCardPress={onCardPress}
       rightAction={
-        pendingApps.length > 0 && request.status !== 'accepted' && request.status !== 'completed' ? (
-          <XStack alignItems="center" gap="$1.5">
-            <View
-              width={14}
-              height={14}
-              borderRadius={7}
-              backgroundColor="#EF4444"
-              shadowColor="#EF4444"
-              shadowOffset={{ width: 0, height: 2 }}
-              shadowOpacity={0.4}
-              shadowRadius={4}
-            />
-            <Text fontSize={16} fontWeight="700" color="#EF4444">
-              {pendingApps.length}명
-            </Text>
-          </XStack>
-        ) : undefined
+        <XStack alignItems="center" gap="$2">
+          {/* 신청자 수 표시 */}
+          {pendingApps.length > 0 && request.status !== 'accepted' && request.status !== 'completed' && (
+            <XStack alignItems="center" gap="$1.5">
+              <View
+                width={14}
+                height={14}
+                borderRadius={7}
+                backgroundColor="#EF4444"
+                shadowColor="#EF4444"
+                shadowOffset={{ width: 0, height: 2 }}
+                shadowOpacity={0.4}
+                shadowRadius={4}
+              />
+              <Text fontSize={16} fontWeight="700" color="#EF4444">
+                {pendingApps.length}명
+              </Text>
+            </XStack>
+          )}
+          {/* 대기중 상태 - 메뉴 버튼 */}
+          {isPending && (
+            <View position="relative">
+              <View
+                padding={4}
+                cursor="pointer"
+                onPress={(e: any) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+                hoverStyle={{ backgroundColor: '#f5f5f5', borderRadius: 6 }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="5" r="1.5" fill="#666"/>
+                  <circle cx="12" cy="12" r="1.5" fill="#666"/>
+                  <circle cx="12" cy="19" r="1.5" fill="#666"/>
+                </svg>
+              </View>
+              {/* 드롭다운 메뉴 */}
+              {showMenu && (
+                <View
+                  position="absolute"
+                  top={28}
+                  right={0}
+                  backgroundColor="white"
+                  borderRadius={8}
+                  borderWidth={1}
+                  borderColor="#e5e5e5"
+                  shadowColor="#000"
+                  shadowOffset={{ width: 0, height: 2 }}
+                  shadowOpacity={0.1}
+                  shadowRadius={8}
+                  minWidth={120}
+                  zIndex={1000}
+                  overflow="hidden"
+                >
+                  <View
+                    paddingHorizontal={16}
+                    paddingVertical={12}
+                    cursor="pointer"
+                    hoverStyle={{ backgroundColor: '#f5f5f5' }}
+                    onPress={(e: any) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      onEdit?.(request);
+                    }}
+                  >
+                    <Text fontSize={14} fontWeight="600" color="#000">수정하기</Text>
+                  </View>
+                  <View
+                    paddingHorizontal={16}
+                    paddingVertical={12}
+                    cursor="pointer"
+                    hoverStyle={{ backgroundColor: '#fef2f2' }}
+                    onPress={(e: any) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      onDelete?.(request.id);
+                    }}
+                  >
+                    <Text fontSize={14} fontWeight="600" color="#dc2626">삭제</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+        </XStack>
       }
     >
       {/* 진행중인 경우 - 수락된 신청자 정보 표시 */}
       {request.status === 'accepted' && acceptedApp && (
-        <YStack gap="$2" marginTop="$2">
+        <YStack gap="$3" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           <XStack alignItems="center" gap="$2">
             {/* @ts-ignore - animation defined in index.css */}
             <View
@@ -102,10 +191,9 @@ function MyRequestCard({
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
             <View
-              width="100%"
-              maxWidth={280}
-              aspectRatio={9/5}
-              borderRadius={8}
+              width={120}
+              height={67}
+              borderRadius={6}
               overflow="hidden"
               cursor="pointer"
               onClick={(e: any) => {
@@ -120,12 +208,41 @@ function MyRequestCard({
               />
             </View>
           )}
+          {/* 액션 버튼 */}
+          <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
+            <Button
+              flex={1}
+              size="$4"
+              backgroundColor="#fee2e2"
+              color="#dc2626"
+              fontWeight="700"
+              onPress={() => onCancelWork?.(request.id)}
+              hoverStyle={{ backgroundColor: '#fecaca' }}
+              pressStyle={{ backgroundColor: '#fca5a5' }}
+            >
+              협업요청 취소
+            </Button>
+            {acceptedApp.completion_requested && (
+              <Button
+                flex={1}
+                size="$4"
+                backgroundColor="#22C55E"
+                color="white"
+                fontWeight="700"
+                onPress={() => onComplete?.(request.id)}
+                hoverStyle={{ backgroundColor: '#16A34A' }}
+                pressStyle={{ backgroundColor: '#15803D' }}
+              >
+                작업 완료
+              </Button>
+            )}
+          </XStack>
         </YStack>
       )}
 
       {/* 완료된 경우 - 수행자 정보 표시 */}
       {request.status === 'completed' && acceptedApp && (
-        <YStack gap="$2" marginTop="$2">
+        <YStack gap="$3" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -139,10 +256,9 @@ function MyRequestCard({
           </XStack>
           {acceptedApp.applicant_profile?.business_card_url && (
             <View
-              width="100%"
-              maxWidth={280}
-              aspectRatio={9/5}
-              borderRadius={8}
+              width={120}
+              height={67}
+              borderRadius={6}
               overflow="hidden"
               cursor="pointer"
               opacity={0.7}
@@ -163,7 +279,7 @@ function MyRequestCard({
 
       {/* 신청자 목록 - pending 상태일 때만 */}
       {pendingApps.length > 0 && request.status !== 'accepted' && (
-        <YStack gap="$2" marginTop="$2">
+        <YStack gap="$2" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           {pendingApps.map((app) => (
             <XStack
               key={app.id}
@@ -249,29 +365,18 @@ function MyApplicationCard({
   onCancel,
   onCardPress,
   onImageClick,
+  onRequestCompletion,
 }: {
   application: RequestApplication;
   onCancel: (appId: string, reqId: string) => Promise<void>;
-  onCardPress: () => void;
+  onCardPress?: () => void;
   onImageClick: (url: string) => void;
+  onRequestCompletion?: (appId: string, reqId: string) => Promise<void>;
 }) {
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const req = application.request;
 
   if (!req) return null;
-
-  const handleConfirmCancel = async () => {
-    setIsCanceling(true);
-    try {
-      await onCancel(application.id, application.request_id);
-      setShowCancelDialog(false);
-    } catch (err) {
-      console.error('Failed to cancel:', err);
-    } finally {
-      setIsCanceling(false);
-    }
-  };
 
 
   return (
@@ -284,31 +389,33 @@ function MyApplicationCard({
       scheduleTime={req.schedule_time}
       expectedFee={req.expected_fee}
       address={req.address}
+      collaborationType={req.collaboration_type}
       isCompleted={application.status === 'completed'}
       onCardPress={onCardPress}
     >
-      {/* 진행중인 경우 - 아직 완료 요청 전 */}
-      {application.status === 'accepted' && !application.completion_requested && (
-        <YStack gap="$2" marginTop="$2">
+      {/* 진행중인 경우 */}
+      {application.status === 'accepted' && (
+        <YStack gap="$3" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
               height={8}
               borderRadius={4}
-              backgroundColor="#22C55E"
+              backgroundColor={application.completion_requested ? '#F59E0B' : '#22C55E'}
               // @ts-ignore
               style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
             />
-            <Text fontSize={14} color="#22C55E" fontWeight="600">
-              {application.requester_profile?.nickname || '협업 요청자'}님과 진행중
+            <Text fontSize={14} color={application.completion_requested ? '#F59E0B' : '#22C55E'} fontWeight="600">
+              {application.completion_requested
+                ? `${application.requester_profile?.nickname || '협업 요청자'}님이 작업 완료 요청 대기중`
+                : `${application.requester_profile?.nickname || '협업 요청자'}님과 진행중`}
             </Text>
           </XStack>
           {application.requester_profile?.business_card_url && (
             <View
-              width="100%"
-              maxWidth={280}
-              aspectRatio={9/5}
-              borderRadius={8}
+              width={120}
+              height={67}
+              borderRadius={6}
               overflow="hidden"
               cursor="pointer"
               onClick={(e: any) => {
@@ -322,52 +429,80 @@ function MyApplicationCard({
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </View>
+          )}
+          {/* 액션 버튼 - 완료 요청 전에만 표시 */}
+          {!application.completion_requested && (
+            <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
+              <Button
+                flex={1}
+                size="$4"
+                backgroundColor={brandColors.primary}
+                color="white"
+                fontWeight="700"
+                onPress={() => onRequestCompletion?.(application.id, application.request_id)}
+                hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+                pressStyle={{ backgroundColor: brandColors.primaryPressed }}
+              >
+                작업 완료 요청
+              </Button>
+              <Button
+                flex={1}
+                size="$4"
+                backgroundColor="#fee2e2"
+                color="#dc2626"
+                fontWeight="700"
+                onPress={async () => {
+                  setIsCanceling(true);
+                  try {
+                    await onCancel(application.id, application.request_id);
+                  } catch (err) {
+                    console.error('Failed to cancel:', err);
+                  } finally {
+                    setIsCanceling(false);
+                  }
+                }}
+                disabled={isCanceling}
+                hoverStyle={{ backgroundColor: '#fecaca' }}
+                pressStyle={{ backgroundColor: '#fca5a5' }}
+              >
+                작업 취소
+              </Button>
+            </XStack>
           )}
         </YStack>
       )}
 
-      {/* 완료 요청 대기중인 경우 */}
-      {application.status === 'accepted' && application.completion_requested && (
-        <YStack gap="$2" marginTop="$2">
-          <XStack alignItems="center" gap="$2">
-            <View
-              width={8}
-              height={8}
-              borderRadius={4}
-              backgroundColor="#F59E0B"
-              // @ts-ignore
-              style={{ animation: 'pulse-green 1.5s ease-in-out infinite' }}
-            />
-            <Text fontSize={14} color="#F59E0B" fontWeight="600">
-              {application.requester_profile?.nickname || '협업 요청자'}님이 작업 완료 요청
-            </Text>
-          </XStack>
-          {application.requester_profile?.business_card_url && (
-            <View
-              width="100%"
-              maxWidth={280}
-              aspectRatio={9/5}
-              borderRadius={8}
-              overflow="hidden"
-              cursor="pointer"
-              onClick={(e: any) => {
-                e.stopPropagation();
-                onImageClick(application.requester_profile?.business_card_url || '');
-              }}
-            >
-              <img
-                src={application.requester_profile.business_card_url}
-                alt="명함"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </View>
-          )}
-        </YStack>
+      {/* 대기중인 경우 - 신청 취소 버튼 */}
+      {application.status === 'pending' && (
+        <XStack marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0" onClick={(e: any) => e.stopPropagation()}>
+          <Button
+            flex={1}
+            size="$4"
+            backgroundColor="#fee2e2"
+            color="#dc2626"
+            fontWeight="700"
+            onPress={async () => {
+              setIsCanceling(true);
+              try {
+                await onCancel(application.id, application.request_id);
+              } catch (err) {
+                console.error('Failed to cancel:', err);
+              } finally {
+                setIsCanceling(false);
+              }
+            }}
+            disabled={isCanceling}
+            hoverStyle={{ backgroundColor: '#fecaca' }}
+            pressStyle={{ backgroundColor: '#fca5a5' }}
+          >
+            신청 취소
+          </Button>
+        </XStack>
       )}
 
       {/* 완료된 경우 - 완료 정보 표시 */}
       {application.status === 'completed' && (
-        <YStack gap="$2" marginTop="$2">
+        <YStack gap="$3" marginTop="$3" paddingTop="$3" borderTopWidth={1} borderTopColor="#f0f0f0">
           <XStack alignItems="center" gap="$2">
             <View
               width={8}
@@ -381,10 +516,9 @@ function MyApplicationCard({
           </XStack>
           {application.requester_profile?.business_card_url && (
             <View
-              width="100%"
-              maxWidth={280}
-              aspectRatio={9/5}
-              borderRadius={8}
+              width={120}
+              height={67}
+              borderRadius={6}
               overflow="hidden"
               cursor="pointer"
               opacity={0.7}
@@ -403,19 +537,6 @@ function MyApplicationCard({
         </YStack>
       )}
     </RequestCard>
-
-      {/* 취소 확인 다이얼로그 - RequestCard 밖에서 렌더링 */}
-      <ConfirmationDialog
-        isOpen={showCancelDialog}
-        onClose={() => setShowCancelDialog(false)}
-        onConfirm={handleConfirmCancel}
-        title="신청 취소"
-        message="정말로 취소하시겠습니까?"
-        confirmText="예, 취소합니다"
-        cancelText="아니오"
-        isLoading={isCanceling}
-        variant="danger"
-      />
     </>
   );
 }
@@ -1006,6 +1127,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                         onCardPress={() => {
                           setSelectedDetailRequest(req);
                         }}
+                        onEdit={(request) => {
+                          setEditingRequest(request as EditRequest);
+                        }}
+                        onDelete={handleDeleteRequest}
+                        onCancelWork={handleCancelWork}
+                        onComplete={handleComplete}
                       />
                     ))
                   );
@@ -1033,6 +1160,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                           }
                         }}
                         onImageClick={(url) => setEnlargedImageUrl(url)}
+                        onRequestCompletion={requestCompletion}
                       />
                     ))
                   );

@@ -9,8 +9,8 @@ import type { Profile } from '../../hooks/useProfile';
 import { ProfileSetupModal } from '../ProfileSetupModal';
 import { AddressSearch } from '../AddressSearch';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
-import type { RequestFormData, RequestFormModalProps, VisitType, AsType, EditRequest } from './types';
-import { AS_TYPES } from './types';
+import type { RequestFormData, RequestFormModalProps, CollaborationType, AsType, EditRequest } from './types';
+import { AS_TYPES, COLLABORATION_TYPES } from './types';
 import { ImagePreviewModal } from '../ImagePreviewModal';
 import { TimePicker } from '../TimePicker';
 
@@ -102,7 +102,6 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
   );
 }
 
-const VISIT_TYPES: VisitType[] = ['방문', '원격'];
 const PERSONNEL_OPTIONS = [1, 2, 3, 4, 5];
 
 // 필수 라벨 컴포넌트
@@ -245,7 +244,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<RequestFormData>({
     defaultValues: {
-      visitType: '방문',
+      collaborationType: '방문AS',
       asType: '복합기/OA',
       title: '',
       address: defaultAddress,
@@ -270,7 +269,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
   useEffect(() => {
     if (isOpen && editRequest) {
       reset({
-        visitType: (editRequest.visit_type as VisitType) || '방문',
+        collaborationType: (editRequest.collaboration_type as CollaborationType) || '방문AS',
         asType: (editRequest.as_type as AsType) || '복합기/OA',
         title: editRequest.title || '',
         address: editRequest.address || '',
@@ -420,7 +419,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
     setIsSubmitting(true);
     try {
       const requestData = {
-        visit_type: data.visitType,
+        collaboration_type: data.collaborationType,
         as_type: data.asType,
         title: data.title,
         address: data.address,
@@ -466,7 +465,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       setLastCoords({ lat: data.latitude, lng: data.longitude, id: resultId });
       // 폼 초기화
       reset({
-        visitType: '방문',
+        collaborationType: '방문AS',
         asType: '복합기/OA',
         title: '',
         address: '',
@@ -697,34 +696,6 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         {currentStep === 1 && (
         <ScrollView ref={scrollViewRef}>
           <YStack padding="$4" gap="$4">
-            {/* 방문/원격 선택 */}
-            <YStack gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000">방문 유형</Text>
-              <Controller
-                control={control}
-                name="visitType"
-                render={({ field: { onChange, value } }) => (
-                  <XStack gap="$2">
-                    {VISIT_TYPES.map((type) => (
-                      <Button
-                        key={type}
-                        flex={1}
-                        size="$3"
-                        backgroundColor={value === type ? brandColors.primary : '#f5f5f5'}
-                        color={value === type ? 'white' : '#000'}
-                        borderWidth={0}
-                        onPress={() => onChange(type)}
-                        hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
-                        pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
-                      >
-                        {type}
-                      </Button>
-                    ))}
-                  </XStack>
-                )}
-              />
-            </YStack>
-
             {/* AS 종류 선택 */}
             <YStack gap="$2">
               <Text fontSize={16} fontWeight="600" color="#000">업종</Text>
@@ -747,6 +718,34 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                             setToastMessage('서비스 준비중입니다.');
                           }
                         }}
+                        paddingHorizontal="$3"
+                        hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
+                        pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
+                      >
+                        {type}
+                      </Button>
+                    ))}
+                  </XStack>
+                )}
+              />
+            </YStack>
+
+            {/* 협업 카테고리 */}
+            <YStack gap="$2">
+              <Text fontSize={16} fontWeight="600" color="#000">협업 카테고리</Text>
+              <Controller
+                control={control}
+                name="collaborationType"
+                render={({ field: { onChange, value } }) => (
+                  <XStack gap="$2" flexWrap="wrap">
+                    {COLLABORATION_TYPES.map((type) => (
+                      <Button
+                        key={type}
+                        size="$3"
+                        backgroundColor={value === type ? brandColors.primary : '#f5f5f5'}
+                        color={value === type ? 'white' : '#000'}
+                        borderWidth={0}
+                        onPress={() => onChange(type)}
                         paddingHorizontal="$3"
                         hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
                         pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
@@ -803,104 +802,108 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               </YStack>
             )}
 
-            {/* 증상 */}
-            <YStack gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000">증상</Text>
-              <Controller
-                control={control}
-                name="symptom"
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    size="$4"
-                    placeholder="예: 색 빠짐, 용지 걸림"
-                    value={value}
-                    onChangeText={onChange}
-                    backgroundColor="#f9f9f9"
-                    borderColor="#eee"
-                    color="#000"
-                    />
-                )}
-              />
-            </YStack>
-
-            {/* 증상 이미지 */}
-            <YStack gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000">증상 이미지</Text>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-              <XStack flexWrap="wrap" gap="$2">
-                {symptomImages.map((url, index) => (
-                  <View key={index} position="relative">
-                    <View
-                      width={80}
-                      height={80}
-                      borderRadius={8}
-                      overflow="hidden"
-                      borderWidth={1}
+            {/* 증상 - 방문AS일 때만 표시 */}
+            {watch('collaborationType') === '방문AS' && (
+              <YStack gap="$2">
+                <Text fontSize={16} fontWeight="600" color="#000">증상</Text>
+                <Controller
+                  control={control}
+                  name="symptom"
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      size="$4"
+                      placeholder="예: 색 빠짐, 용지 걸림"
+                      value={value}
+                      onChangeText={onChange}
+                      backgroundColor="#f9f9f9"
                       borderColor="#eee"
-                      cursor="pointer"
-                      onPress={() => setPreviewImage(url)}
-                    >
-                      <img
-                        src={url}
-                        alt={`증상 이미지 ${index + 1}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      color="#000"
                       />
-                    </View>
-                    <View
-                      position="absolute"
-                      top={-6}
-                      right={-6}
-                      width={20}
-                      height={20}
-                      borderRadius={10}
-                      backgroundColor="#ff4444"
-                      alignItems="center"
-                      justifyContent="center"
-                      cursor="pointer"
-                      onPress={(e: any) => { e.stopPropagation(); handleImageRemove(index); }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </View>
-                  </View>
-                ))}
-                <View
-                  width={80}
-                  height={80}
-                  borderRadius={8}
-                  borderWidth={2}
-                  borderColor="#ddd"
-                  borderStyle="dashed"
-                  alignItems="center"
-                  justifyContent="center"
-                  cursor="pointer"
-                  backgroundColor="#fafafa"
-                  opacity={isUploadingImage ? 0.5 : 1}
-                  onPress={() => !isUploadingImage && fileInputRef.current?.click()}
-                  hoverStyle={{ backgroundColor: '#f0f0f0' }}
-                >
-                  {isUploadingImage ? (
-                    <Text fontSize={14} color="#000">업로드중...</Text>
-                  ) : (
-                    <YStack alignItems="center" gap={4}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 5v14M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                      <Text fontSize={14} color="#000">추가</Text>
-                    </YStack>
                   )}
-                </View>
-              </XStack>
-              <Text fontSize={14} color="#000">증상을 확인할 수 있는 이미지를 등록해주세요</Text>
-            </YStack>
+                />
+              </YStack>
+            )}
+
+            {/* 증상 이미지 - 방문AS일 때만 표시 */}
+            {watch('collaborationType') === '방문AS' && (
+              <YStack gap="$2">
+                <Text fontSize={16} fontWeight="600" color="#000">증상 이미지</Text>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+                <XStack flexWrap="wrap" gap="$2">
+                  {symptomImages.map((url, index) => (
+                    <View key={index} position="relative">
+                      <View
+                        width={80}
+                        height={80}
+                        borderRadius={8}
+                        overflow="hidden"
+                        borderWidth={1}
+                        borderColor="#eee"
+                        cursor="pointer"
+                        onPress={() => setPreviewImage(url)}
+                      >
+                        <img
+                          src={url}
+                          alt={`증상 이미지 ${index + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </View>
+                      <View
+                        position="absolute"
+                        top={-6}
+                        right={-6}
+                        width={20}
+                        height={20}
+                        borderRadius={10}
+                        backgroundColor="#ff4444"
+                        alignItems="center"
+                        justifyContent="center"
+                        cursor="pointer"
+                        onPress={(e: any) => { e.stopPropagation(); handleImageRemove(index); }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </View>
+                    </View>
+                  ))}
+                  <View
+                    width={80}
+                    height={80}
+                    borderRadius={8}
+                    borderWidth={2}
+                    borderColor="#ddd"
+                    borderStyle="dashed"
+                    alignItems="center"
+                    justifyContent="center"
+                    cursor="pointer"
+                    backgroundColor="#fafafa"
+                    opacity={isUploadingImage ? 0.5 : 1}
+                    onPress={() => !isUploadingImage && fileInputRef.current?.click()}
+                    hoverStyle={{ backgroundColor: '#f0f0f0' }}
+                  >
+                    {isUploadingImage ? (
+                      <Text fontSize={14} color="#000">업로드중...</Text>
+                    ) : (
+                      <YStack alignItems="center" gap={4}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 5v14M5 12h14" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                        <Text fontSize={14} color="#000">추가</Text>
+                      </YStack>
+                    )}
+                  </View>
+                </XStack>
+                <Text fontSize={14} color="#000">증상을 확인할 수 있는 이미지를 등록해주세요</Text>
+              </YStack>
+            )}
 
             {/* 비용 */}
             <YStack gap="$2">
@@ -932,43 +935,45 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               {errors.expectedFee && <Text color="#ff4444" fontSize={14}>{errors.expectedFee.message}</Text>}
             </YStack>
 
-            {/* 주소 */}
-            <YStack gap="$2">
-              <RequiredLabel>주소</RequiredLabel>
-              <Controller
-                control={control}
-                name="address"
-                rules={{ required: '주소를 입력해주세요' }}
-                render={({ field: { onChange, value } }) => (
-                  <AddressSearch
-                    value={value}
-                    onChange={onChange}
-                    onCoordinatesChange={(lat, lng) => {
-                      setValue('latitude', lat, { shouldDirty: true });
-                      setValue('longitude', lng, { shouldDirty: true });
-                    }}
-                    placeholder="주소 검색 버튼을 눌러주세요"
-                    hasError={!!errors.address}
-                  />
-                )}
-              />
-              {errors.address && <Text color="#ff4444" fontSize={14}>{errors.address.message}</Text>}
-              <Controller
-                control={control}
-                name="addressDetail"
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    size="$4"
-                    placeholder="상세 주소 입력 (건물명, 층, 호수 등)"
-                    value={value}
-                    onChangeText={onChange}
-                    backgroundColor="#f9f9f9"
-                    borderColor="#eee"
-                    color="#000"
+            {/* 주소 - 원격 제외 */}
+            {watch('collaborationType') !== '원격' && (
+              <YStack gap="$2">
+                <RequiredLabel>주소</RequiredLabel>
+                <Controller
+                  control={control}
+                  name="address"
+                  rules={{ required: watch('collaborationType') !== '원격' ? '주소를 입력해주세요' : false }}
+                  render={({ field: { onChange, value } }) => (
+                    <AddressSearch
+                      value={value}
+                      onChange={onChange}
+                      onCoordinatesChange={(lat, lng) => {
+                        setValue('latitude', lat, { shouldDirty: true });
+                        setValue('longitude', lng, { shouldDirty: true });
+                      }}
+                      placeholder="주소 검색 버튼을 눌러주세요"
+                      hasError={!!errors.address}
                     />
-                )}
-              />
-            </YStack>
+                  )}
+                />
+                {errors.address && <Text color="#ff4444" fontSize={14}>{errors.address.message}</Text>}
+                <Controller
+                  control={control}
+                  name="addressDetail"
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      size="$4"
+                      placeholder="상세 주소 입력 (건물명, 층, 호수 등)"
+                      value={value}
+                      onChangeText={onChange}
+                      backgroundColor="#f9f9f9"
+                      borderColor="#eee"
+                      color="#000"
+                      />
+                  )}
+                />
+              </YStack>
+            )}
 
             {/* 세금계산서 발행 */}
             <Controller
@@ -1043,34 +1048,36 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               )}
             </YStack>
 
-            {/* 필요 인원 */}
-            <YStack gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000">필요 인원</Text>
-              <Controller
-                control={control}
-                name="requiredPersonnel"
-                render={({ field: { onChange, value } }) => (
-                  <XStack gap="$2">
-                    {PERSONNEL_OPTIONS.map((num) => (
-                      <Button
-                        key={num}
-                        minWidth={56}
-                        paddingHorizontal="$3"
-                        size="$3"
-                        backgroundColor={value === num ? brandColors.primary : '#f5f5f5'}
-                        color={value === num ? 'white' : '#000'}
-                        borderWidth={0}
-                        onPress={() => onChange(num)}
-                        hoverStyle={{ backgroundColor: value === num ? brandColors.primaryHover : '#e8e8e8' }}
-                        pressStyle={{ backgroundColor: value === num ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
-                      >
-                        {num} 명
-                      </Button>
-                    ))}
-                  </XStack>
-                )}
-              />
-            </YStack>
+            {/* 필요 인원 - 원격 제외 */}
+            {watch('collaborationType') !== '원격' && (
+              <YStack gap="$2">
+                <Text fontSize={16} fontWeight="600" color="#000">필요 인원</Text>
+                <Controller
+                  control={control}
+                  name="requiredPersonnel"
+                  render={({ field: { onChange, value } }) => (
+                    <XStack gap="$2">
+                      {PERSONNEL_OPTIONS.map((num) => (
+                        <Button
+                          key={num}
+                          minWidth={56}
+                          paddingHorizontal="$3"
+                          size="$3"
+                          backgroundColor={value === num ? brandColors.primary : '#f5f5f5'}
+                          color={value === num ? 'white' : '#000'}
+                          borderWidth={0}
+                          onPress={() => onChange(num)}
+                          hoverStyle={{ backgroundColor: value === num ? brandColors.primaryHover : '#e8e8e8' }}
+                          pressStyle={{ backgroundColor: value === num ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
+                        >
+                          {num} 명
+                        </Button>
+                      ))}
+                    </XStack>
+                  )}
+                />
+              </YStack>
+            )}
 
             {/* 상세 설명 */}
             <YStack gap="$2">

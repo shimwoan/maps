@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, XStack, YStack } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { formatPrice, formatDate, getStatusLabel } from '../../utils/format';
 import { AsTypeIcon } from '../AsTypeIcon';
+
+// 협업 카테고리별 색상
+const COLLABORATION_TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
+  '설치이관': { bg: '#fff', border: '#3B82F6', text: '#2563EB' },
+  '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
+  '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
+};
 
 interface RequestCardProps {
   title: string;
@@ -12,11 +20,11 @@ interface RequestCardProps {
   scheduleTime: string;
   expectedFee: number;
   address?: string;
+  collaborationType?: string;
   isCompleted?: boolean;
   onCardPress?: () => void;
   children?: React.ReactNode;
   rightAction?: React.ReactNode;
-  defaultExpanded?: boolean;
 }
 
 export function RequestCard({
@@ -27,14 +35,13 @@ export function RequestCard({
   scheduleTime,
   expectedFee,
   address,
+  collaborationType,
   isCompleted = false,
   onCardPress,
   children,
   rightAction,
-  defaultExpanded = false,
 }: RequestCardProps) {
   const statusInfo = getStatusLabel(status);
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const hasChildren = React.Children.toArray(children).filter(child => React.isValidElement(child)).length > 0;
 
   return (
@@ -48,36 +55,54 @@ export function RequestCard({
       borderWidth={1}
       borderColor={isCompleted ? '#e0e0e0' : '#eee'}
       opacity={isCompleted ? 0.7 : 1}
-      cursor="pointer"
+      cursor={onCardPress ? "pointer" : "default"}
       onPress={onCardPress}
     >
-      {/* 카테고리 + rightAction */}
+      {/* 협업 카테고리 배지 + 상태 배지 + 카테고리 + rightAction */}
       <XStack alignItems="center" justifyContent="space-between">
         <XStack alignItems="center" gap="$1.5">
+          {/* 협업 카테고리 배지 */}
+          {collaborationType && (
+            <View
+              backgroundColor={COLLABORATION_TYPE_COLORS[collaborationType]?.bg || '#fff'}
+              borderWidth={1.5}
+              borderColor={COLLABORATION_TYPE_COLORS[collaborationType]?.border || '#999'}
+              paddingHorizontal={8}
+              paddingVertical={2}
+              borderRadius={6}
+            >
+              <Text
+                fontSize={12}
+                fontWeight="600"
+                color={COLLABORATION_TYPE_COLORS[collaborationType]?.text || '#666'}
+              >
+                {collaborationType}
+              </Text>
+            </View>
+          )}
+          {/* 상태 배지 */}
+          <View
+            backgroundColor={statusInfo.bgColor}
+            paddingHorizontal={8}
+            paddingVertical={2}
+            borderRadius={6}
+            borderWidth={statusInfo.bgColor === '#fff' ? 1.5 : 0}
+            borderColor="#e5e7eb"
+          >
+            <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
+              {statusInfo.label}
+            </Text>
+          </View>
           <AsTypeIcon type={asType} size={14} />
           <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>{asType}</Text>
         </XStack>
         {rightAction}
       </XStack>
 
-      {/* 제목 + 상태 배지 */}
-      <XStack justifyContent="space-between" alignItems="center">
-        <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} flex={1} numberOfLines={1}>
-          {title}
-        </Text>
-        <View
-          backgroundColor={statusInfo.bgColor}
-          paddingHorizontal={10}
-          paddingVertical={4}
-          borderRadius={6}
-          borderWidth={statusInfo.bgColor === '#fff' ? 1 : 0}
-          borderColor="#e5e7eb"
-        >
-          <Text fontSize={14} fontWeight="600" color={statusInfo.color}>
-            {statusInfo.label}
-          </Text>
-        </View>
-      </XStack>
+      {/* 제목 */}
+      <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} numberOfLines={1}>
+        {title}
+      </Text>
 
       {/* 주소 (있을 경우) */}
       {address && (
@@ -86,54 +111,18 @@ export function RequestCard({
         </Text>
       )}
 
-      {/* 날짜/시간 + 가격 + 우측 액션 + 토글 화살표 */}
-      <XStack justifyContent="space-between" alignItems="center" minHeight={24}>
-        <XStack gap="$3">
-          <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
-            {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
-          </Text>
-          <Text fontSize={14} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
-            {formatPrice(expectedFee)}원
-          </Text>
-        </XStack>
-        <XStack alignItems="center" gap="$2">
-          {hasChildren && (
-            <View
-              cursor="pointer"
-              padding={6}
-              marginRight={-6}
-              marginVertical={-6}
-              onPress={(e: any) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-              // @ts-ignore - CSS transition
-              style={{
-                transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
-                transition: 'transform 0.2s ease',
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M18 15l-6-6-6 6" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </View>
-          )}
-        </XStack>
+      {/* 날짜/시간 + 가격 */}
+      <XStack gap="$3">
+        <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
+          {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
+        </Text>
+        <Text fontSize={14} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
+          {formatPrice(expectedFee)}원
+        </Text>
       </XStack>
 
-      {/* 추가 콘텐츠 (신청자 목록, 진행중 정보 등) - 접기/펼치기 */}
-      {hasChildren && (
-        <View
-          // @ts-ignore - CSS transition
-          style={{
-            maxHeight: isExpanded ? '1000px' : '0px',
-            overflow: 'hidden',
-            transition: 'max-height 0.3s ease',
-          }}
-        >
-          {children}
-        </View>
-      )}
+      {/* 추가 콘텐츠 (신청자 목록, 진행중 정보, 액션 버튼 등) */}
+      {hasChildren && children}
     </YStack>
   );
 }

@@ -22,6 +22,7 @@ export interface RequestApplication {
     status: string;
     user_id: string;
     as_type: string;
+    collaboration_type?: string;
     model?: string;
     symptom?: string;
     duration?: string;

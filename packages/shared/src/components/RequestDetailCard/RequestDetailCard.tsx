@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, XStack, YStack, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
@@ -14,6 +14,35 @@ import { BottomSheet } from '../BottomSheet';
 import { formatPrice, formatDate } from '../../utils/format';
 import { AsTypeIcon } from '../AsTypeIcon';
 import { ImagePreviewModal } from '../ImagePreviewModal';
+import type { CollaborationType } from '../RequestFormModal/types';
+
+// 협업 카테고리별 색상
+const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; border: string; text: string }> = {
+  '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
+  '설치이관': { bg: '#fff', border: '#3B82F6', text: '#2563EB' },
+  '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
+  '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
+};
+
+// 협업 카테고리 뱃지 컴포넌트
+function CollaborationTypeBadge({ type }: { type: string }) {
+  const colors = COLLABORATION_TYPE_COLORS[type as CollaborationType] || COLLABORATION_TYPE_COLORS['방문AS'];
+
+  return (
+    <View
+      backgroundColor={colors.bg}
+      borderWidth={1.5}
+      borderColor={colors.border}
+      paddingHorizontal={10}
+      paddingVertical={4}
+      borderRadius={6}
+    >
+      <Text fontSize={14} fontWeight="600" color={colors.text}>
+        {type}
+      </Text>
+    </View>
+  );
+}
 
 // 이미지 슬라이더 컴포넌트
 function ImageSlider({ images, onImageClick }: { images: string[]; onImageClick?: (url: string) => void }) {
@@ -170,9 +199,19 @@ export function RequestDetailCard({
   const [showCompletionRequestDialog, setShowCompletionRequestDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const { user } = useAuth();
   const { hasBusinessCard, refetch: refetchProfile } = useProfile();
   const { applyToRequest, myApplications, cancelApplication } = useRequestApplications();
+
+  // 외부 클릭 시 메뉴 닫기
+  useEffect(() => {
+    if (showMenu) {
+      const handleClick = () => setShowMenu(false);
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [showMenu]);
 
   if (!request) return null;
 
@@ -283,42 +322,40 @@ export function RequestDetailCard({
       <BottomSheet
         isOpen={true}
         onClose={onClose}
-        zIndex={200}
+        zIndex={300}
         accentColor={accentColor}
       >
         <YStack gap="$3" paddingBottom="$4">
-          {/* 상단: AS종류 + 상태 배지 + 긴급 태그 + 공유하기 */}
+          {/* 상단: AS종류 + 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
           <XStack gap="$2" alignItems="center" justifyContent="space-between">
             <XStack gap="$2" alignItems="center" flex={1}>
               <XStack alignItems="center" gap="$1.5">
                 <AsTypeIcon type={request.as_type} size={16} />
                 <Text fontSize={18} fontWeight="600" color="#000">{request.as_type}</Text>
               </XStack>
-              {/* 상태 배지 */}
-              <View
-                backgroundColor={
-                  request.status === 'completed' ? '#9CA3AF' :
-                  request.status === 'accepted' ? '#F59E0B' :
-                  '#fff'
-                }
-                paddingHorizontal={10}
-                paddingVertical={4}
-                borderRadius={6}
-                borderWidth={request.status !== 'completed' && request.status !== 'accepted' ? 1 : 0}
-                borderColor="#e5e7eb"
-              >
-                <Text
-                  fontSize={14}
-                  fontWeight="600"
-                  color={
-                    request.status === 'completed' || request.status === 'accepted' ? '#fff' : '#3B82F6'
-                  }
-                >
-                  {request.status === 'completed' ? '완료' :
-                   request.status === 'accepted' ? '진행' :
-                   '대기중'}
-                </Text>
-              </View>
+              {/* 협업 카테고리 배지 또는 상태 배지 */}
+              {request.collaboration_type ? (
+                <CollaborationTypeBadge type={request.collaboration_type} />
+              ) : (
+                request.status !== 'pending' && (
+                  <View
+                    backgroundColor={
+                      request.status === 'completed' ? '#9CA3AF' : '#F59E0B'
+                    }
+                    paddingHorizontal={10}
+                    paddingVertical={4}
+                    borderRadius={6}
+                  >
+                    <Text
+                      fontSize={14}
+                      fontWeight="600"
+                      color="#fff"
+                    >
+                      {request.status === 'completed' ? '완료' : '진행'}
+                    </Text>
+                  </View>
+                )
+              )}
               {/* 긴급 태그 - 대기 상태에서만 표시 */}
               {request.is_urgent && request.status === 'pending' && (
                 <View
@@ -331,54 +368,102 @@ export function RequestDetailCard({
                 </View>
               )}
             </XStack>
-            {/* 공유하기 버튼 */}
-            <XStack
-              paddingHorizontal={12}
-              paddingVertical={8}
-              borderRadius={20}
-              backgroundColor="#f5f5f5"
-              alignItems="center"
-              justifyContent="center"
-              gap={6}
-              cursor="pointer"
-              hoverStyle={{ backgroundColor: '#e5e5e5' }}
-              pressStyle={{ backgroundColor: '#d5d5d5', scale: 0.95 }}
-              onPress={handleShare}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <Text fontSize={14} fontWeight="500" color="#333">공유하기</Text>
+            {/* 우측 버튼 영역 */}
+            <XStack gap="$2" alignItems="center">
+              {/* 공유하기 버튼 */}
+              <XStack
+                paddingHorizontal={12}
+                paddingVertical={8}
+                borderRadius={20}
+                backgroundColor="#f5f5f5"
+                alignItems="center"
+                justifyContent="center"
+                gap={6}
+                cursor="pointer"
+                hoverStyle={{ backgroundColor: '#e5e5e5' }}
+                pressStyle={{ backgroundColor: '#d5d5d5', scale: 0.95 }}
+                onPress={handleShare}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <Text fontSize={14} fontWeight="500" color="#333">공유하기</Text>
+              </XStack>
+              {/* 메뉴 버튼 - 대기중 상태이고 본인이 작성한 의뢰일 때만 표시 */}
+              {!canAccept && !isInProgress && !isCompleted && (
+                <View position="relative">
+                  <View
+                    padding={8}
+                    cursor="pointer"
+                    onPress={(e: any) => {
+                      e.stopPropagation();
+                      setShowMenu(!showMenu);
+                    }}
+                    hoverStyle={{ backgroundColor: '#f5f5f5', borderRadius: 6 }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="5" r="1.5" fill="#666"/>
+                      <circle cx="12" cy="12" r="1.5" fill="#666"/>
+                      <circle cx="12" cy="19" r="1.5" fill="#666"/>
+                    </svg>
+                  </View>
+                  {/* 드롭다운 메뉴 */}
+                  {showMenu && (
+                    <View
+                      position="absolute"
+                      top={36}
+                      right={0}
+                      backgroundColor="white"
+                      borderRadius={8}
+                      borderWidth={1}
+                      borderColor="#e5e5e5"
+                      shadowColor="#000"
+                      shadowOffset={{ width: 0, height: 2 }}
+                      shadowOpacity={0.1}
+                      shadowRadius={8}
+                      minWidth={120}
+                      zIndex={1000}
+                      overflow="hidden"
+                    >
+                      <View
+                        paddingHorizontal={16}
+                        paddingVertical={12}
+                        cursor="pointer"
+                        hoverStyle={{ backgroundColor: '#f5f5f5' }}
+                        onPress={(e: any) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          if (onEditRequest && request) {
+                            onEditRequest(request);
+                          }
+                        }}
+                      >
+                        <Text fontSize={14} fontWeight="600" color="#000">수정하기</Text>
+                      </View>
+                      <View
+                        paddingHorizontal={16}
+                        paddingVertical={12}
+                        cursor="pointer"
+                        hoverStyle={{ backgroundColor: '#fef2f2' }}
+                        onPress={(e: any) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        <Text fontSize={14} fontWeight="600" color="#dc2626">삭제</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
             </XStack>
           </XStack>
 
-          {/* 제목 + 금액 */}
-          <YStack gap="$1">
-            <Text fontSize={20} fontWeight="700" color="#000">
-              {request.title}
-            </Text>
-            <XStack alignItems="center" gap="$3" marginTop="$1">
-              <Text fontSize={16} fontWeight="700" color={brandColors.primary}>
-                {formatPrice(request.expected_fee)}원
-              </Text>
-              <XStack alignItems="center" gap="$2">
-                <Text fontSize={16} color="#000">세금계산서 발행</Text>
-                {request.needs_invoice ? (
-                  <View
-                    width={18}
-                    height={18}
-                    borderRadius={10}
-                    borderWidth={2}
-                    borderColor="#EF4444"
-                  />
-                ) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                )}
-              </XStack>
-            </XStack>
-          </YStack>
+          {/* 제목 */}
+          <Text fontSize={20} fontWeight="700" color="#000">
+            {request.title}
+          </Text>
 
           {/* 상세 정보 */}
           <YStack gap="$3" backgroundColor="#f9f9f9" padding="$4" borderRadius={12}>
@@ -394,6 +479,31 @@ export function RequestDetailCard({
                 {request.address}
                 {request.address_detail ? ` ${request.address_detail}` : ''}
               </Text>
+            </XStack>
+            <XStack alignItems="center">
+              <XStack width={100} alignItems="center" gap="$1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="11" fill="#F6D365"/>
+                  <circle cx="12" cy="12" r="8" fill="#E8A838"/>
+                  <path d="M12 5v14M9.5 8.5c0-.83.67-1.5 1.5-1.5h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2c-1.1 0-2 .9-2 2s.9 2 2 2h2c.83 0 1.5-.67 1.5-1.5" stroke="#F6D365" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <Text fontSize={16} color="#000">비용</Text>
+              </XStack>
+              <XStack alignItems="center" gap="$3" flex={1}>
+                <Text fontSize={16} fontWeight="700" color={brandColors.primary}>
+                  {formatPrice(request.expected_fee)}원
+                </Text>
+                <View
+                  backgroundColor={request.needs_invoice ? "#FEE2E2" : "#F3F4F6"}
+                  paddingHorizontal={8}
+                  paddingVertical={2}
+                  borderRadius={4}
+                >
+                  <Text fontSize={12} fontWeight="600" color={request.needs_invoice ? "#DC2626" : "#6B7280"}>
+                    {request.needs_invoice ? "세금계산서 O" : "세금계산서 X"}
+                  </Text>
+                </View>
+              </XStack>
             </XStack>
             {request.model && (request.as_type === '복합기/OA' || request.as_type === '가전/설비') && (
               <XStack alignItems="center">
@@ -447,6 +557,18 @@ export function RequestDetailCard({
               </XStack>
               <Text fontSize={16} color="#000" flex={1}>{request.required_personnel}명</Text>
             </XStack>
+            {request.description && (
+              <XStack alignItems="flex-start">
+                <XStack width={100} alignItems="center" gap="$1.5" marginTop={2}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="#6B7280"/>
+                    <path d="M7 8h10M7 12h10M7 16h6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <Text fontSize={16} color="#000">상세 설명</Text>
+                </XStack>
+                <Text fontSize={16} color="#000" lineHeight={24} flex={1}>{request.description}</Text>
+              </XStack>
+            )}
           </YStack>
 
           {/* 증상 이미지 슬라이더 */}
@@ -472,51 +594,6 @@ export function RequestDetailCard({
             ) : null;
           })()}
 
-          {/* 상세정보 */}
-          {request.description && (
-            <XStack alignItems="baseline" gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000" flexShrink={0}>상세설명:</Text>
-              <Text fontSize={16} color="#000" lineHeight={24} flex={1}>
-                {request.description}
-              </Text>
-            </XStack>
-          )}
-
-          {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 (대기중) */}
-          {!canAccept && !isInProgress && !isCompleted && (
-            <XStack gap="$2.5" marginTop="$2">
-              <Button
-                flex={1}
-                size="$5"
-                backgroundColor="white"
-                color={brandColors.primary}
-                fontWeight="700"
-                borderWidth={2}
-                borderColor={brandColors.primary}
-                onPress={() => {
-                  if (onEditRequest && request) {
-                    onEditRequest(request);
-                  }
-                }}
-                hoverStyle={{ backgroundColor: '#f0f7ff' }}
-                pressStyle={{ backgroundColor: '#e0efff', scale: 0.98 }}
-              >
-                수정하기
-              </Button>
-              <Button
-                flex={1}
-                size="$5"
-                backgroundColor="#fee2e2"
-                color="#dc2626"
-                fontWeight="700"
-                onPress={() => setShowDeleteDialog(true)}
-                hoverStyle={{ backgroundColor: '#fecaca' }}
-                pressStyle={{ backgroundColor: '#fca5a5', scale: 0.98 }}
-              >
-                삭제
-              </Button>
-            </XStack>
-          )}
 
           {/* 의뢰 등록자용 버튼 - 본인이 작성한 의뢰일 때 (진행중) */}
           {!canAccept && isInProgress && !isCompleted && (
