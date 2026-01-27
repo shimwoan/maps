@@ -167,20 +167,20 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
   const isCompleted = marker.status === 'completed';
   const isUrgent = marker.isUrgent;
 
-  // 완료: 회색, 신청중: 초록색, 진행중: 주황색, 긴급: 빨간색, 기본: 파란색
-  const primaryColor = isCompleted ? '#9CA3AF' : isApplied ? '#22C55E' : isInProgress ? '#F59E0B' : (isUrgent ? '#EF4444' : '#3B82F6');
+  // 완료: 회색, 진행중: 주황색, 신청중: 초록색, 긴급: 빨간색, 기본: 파란색
+  const primaryColor = isCompleted ? '#9CA3AF' : isInProgress ? '#F59E0B' : isApplied ? '#22C55E' : (isUrgent ? '#EF4444' : '#3B82F6');
   const bgColor = primaryColor;
   const textColor = '#ffffff';
   const size = getMarkerSize(zoom);
 
-  // 상태 배지 (완료, 신청중, 진행중, 긴급)
+  // 상태 배지 (완료, 진행중, 신청중, 긴급)
   let statusBadge = '';
   if (isCompleted) {
     statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">완료</span>`;
-  } else if (isApplied) {
-    statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">신청중</span>`;
   } else if (isInProgress) {
     statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">진행중</span>`;
+  } else if (isApplied) {
+    statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">신청중</span>`;
   } else if (isUrgent) {
     statusBadge = `<span style="font-size: ${size.badgeFontSize}px; background: rgba(255,255,255,0.3); color: #fff; padding: ${size.badgePaddingV}px ${size.badgePaddingH}px; border-radius: 4px; margin-right: 6px; font-weight: 700;">긴급</span>`;
   }

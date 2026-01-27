@@ -103,7 +103,6 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 const VISIT_TYPES: VisitType[] = ['방문', '원격'];
-const DURATION_OPTIONS = ['30분', '1시간', '2시간', '3시간', '하루 이상'];
 const PERSONNEL_OPTIONS = [1, 2, 3, 4, 5];
 
 // 필수 라벨 컴포넌트
@@ -153,14 +152,17 @@ function Toast({ message, isVisible, onClose }: { message: string; isVisible: bo
 
   return (
     <View
-      position="absolute"
-      bottom={100}
+      // @ts-ignore
+      position="fixed"
+      bottom={20}
       left={16}
       right={16}
       zIndex={100001}
       // @ts-ignore
       style={{
         animation: 'slideUp 0.3s ease-out',
+        maxWidth: 480,
+        margin: '0 auto',
       }}
     >
       <XStack
@@ -725,7 +727,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
             {/* AS 종류 선택 */}
             <YStack gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000">AS 종류</Text>
+              <Text fontSize={16} fontWeight="600" color="#000">업종</Text>
               <Controller
                 control={control}
                 name="asType"
@@ -738,7 +740,13 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         backgroundColor={value === type ? brandColors.primary : '#f5f5f5'}
                         color={value === type ? 'white' : '#000'}
                         borderWidth={0}
-                        onPress={() => onChange(type)}
+                        onPress={() => {
+                          if (type === '복합기/OA') {
+                            onChange(type);
+                          } else {
+                            setToastMessage('서비스 준비중입니다.');
+                          }
+                        }}
                         paddingHorizontal="$3"
                         hoverStyle={{ backgroundColor: value === type ? brandColors.primaryHover : '#e8e8e8' }}
                         pressStyle={{ backgroundColor: value === type ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
@@ -753,7 +761,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
             {/* 의뢰 제목 */}
             <YStack gap="$2">
-              <RequiredLabel>요청 제목</RequiredLabel>
+              <RequiredLabel>제목</RequiredLabel>
               <Controller
                 control={control}
                 name="title"
@@ -771,44 +779,6 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                 )}
               />
               {errors.title && <Text color="#ff4444" fontSize={14}>{errors.title.message}</Text>}
-            </YStack>
-
-            {/* 주소 */}
-            <YStack gap="$2">
-              <RequiredLabel>주소</RequiredLabel>
-              <Controller
-                control={control}
-                name="address"
-                rules={{ required: '주소를 입력해주세요' }}
-                render={({ field: { onChange, value } }) => (
-                  <AddressSearch
-                    value={value}
-                    onChange={onChange}
-                    onCoordinatesChange={(lat, lng) => {
-                      setValue('latitude', lat, { shouldDirty: true });
-                      setValue('longitude', lng, { shouldDirty: true });
-                    }}
-                    placeholder="주소 검색 버튼을 눌러주세요"
-                    hasError={!!errors.address}
-                  />
-                )}
-              />
-              {errors.address && <Text color="#ff4444" fontSize={14}>{errors.address.message}</Text>}
-              <Controller
-                control={control}
-                name="addressDetail"
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    size="$4"
-                    placeholder="상세 주소 입력 (건물명, 층, 호수 등)"
-                    value={value}
-                    onChangeText={onChange}
-                    backgroundColor="#f9f9f9"
-                    borderColor="#eee"
-                    color="#000"
-                    />
-                )}
-              />
             </YStack>
 
             {/* 기종 - 복합기/OA, 가전/설비일 때만 표시 */}
@@ -932,13 +902,16 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               <Text fontSize={14} color="#000">증상을 확인할 수 있는 이미지를 등록해주세요</Text>
             </YStack>
 
-            {/* 예상 수익 */}
+            {/* 비용 */}
             <YStack gap="$2">
-              <RequiredLabel>예상 수익</RequiredLabel>
+              <XStack alignItems="center" gap="$2">
+                <RequiredLabel>비용</RequiredLabel>
+                <Text fontSize={14} color="#888">(부품비 별도)</Text>
+              </XStack>
               <Controller
                 control={control}
                 name="expectedFee"
-                rules={{ required: '예상 수익을 입력해주세요', min: { value: 10000, message: '최소 10,000원 이상' } }}
+                rules={{ required: '비용을 입력해주세요', min: { value: 10000, message: '최소 10,000원 이상' } }}
                 render={({ field: { onChange, value } }) => (
                   <XStack alignItems="center" gap="$2">
                     <Input
@@ -957,6 +930,44 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                 )}
               />
               {errors.expectedFee && <Text color="#ff4444" fontSize={14}>{errors.expectedFee.message}</Text>}
+            </YStack>
+
+            {/* 주소 */}
+            <YStack gap="$2">
+              <RequiredLabel>주소</RequiredLabel>
+              <Controller
+                control={control}
+                name="address"
+                rules={{ required: '주소를 입력해주세요' }}
+                render={({ field: { onChange, value } }) => (
+                  <AddressSearch
+                    value={value}
+                    onChange={onChange}
+                    onCoordinatesChange={(lat, lng) => {
+                      setValue('latitude', lat, { shouldDirty: true });
+                      setValue('longitude', lng, { shouldDirty: true });
+                    }}
+                    placeholder="주소 검색 버튼을 눌러주세요"
+                    hasError={!!errors.address}
+                  />
+                )}
+              />
+              {errors.address && <Text color="#ff4444" fontSize={14}>{errors.address.message}</Text>}
+              <Controller
+                control={control}
+                name="addressDetail"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    size="$4"
+                    placeholder="상세 주소 입력 (건물명, 층, 호수 등)"
+                    value={value}
+                    onChangeText={onChange}
+                    backgroundColor="#f9f9f9"
+                    borderColor="#eee"
+                    color="#000"
+                    />
+                )}
+              />
             </YStack>
 
             {/* 세금계산서 발행 */}
@@ -990,34 +1001,6 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                 </XStack>
               )}
             />
-
-            {/* 소요 시간 */}
-            <YStack gap="$2">
-              <Text fontSize={16} fontWeight="600" color="#000">예상 소요시간</Text>
-              <Controller
-                control={control}
-                name="duration"
-                render={({ field: { onChange, value } }) => (
-                  <XStack flexWrap="wrap" gap="$2">
-                    {DURATION_OPTIONS.map((option) => (
-                      <Button
-                        key={option}
-                        size="$3"
-                        backgroundColor={value === option ? brandColors.primary : '#f5f5f5'}
-                        color={value === option ? 'white' : '#000'}
-                        borderWidth={0}
-                        onPress={() => onChange(option)}
-                        paddingHorizontal="$3"
-                        hoverStyle={{ backgroundColor: value === option ? brandColors.primaryHover : '#e8e8e8' }}
-                        pressStyle={{ backgroundColor: value === option ? brandColors.primaryPressed : '#ddd', scale: 0.98 }}
-                      >
-                        {option}
-                      </Button>
-                    ))}
-                  </XStack>
-                )}
-              />
-            </YStack>
 
             {/* 처리 일정 */}
             <YStack gap="$2">

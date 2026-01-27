@@ -426,16 +426,6 @@ export function RequestDetailCard({
             <XStack alignItems="center">
               <XStack width={100} alignItems="center" gap="$1.5">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" fill="#10B981"/>
-                  <path d="M12 6v6l4 2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                <Text fontSize={16} color="#000">예상소요</Text>
-              </XStack>
-              <Text fontSize={16} color="#000" flex={1}>{request.duration}</Text>
-            </XStack>
-            <XStack alignItems="center">
-              <XStack width={100} alignItems="center" gap="$1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="4" width="18" height="18" rx="2" fill="#6366F1"/>
                   <path d="M3 9h18" stroke="white" strokeWidth="1.5"/>
                   <path d="M8 2v4M16 2v4" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>

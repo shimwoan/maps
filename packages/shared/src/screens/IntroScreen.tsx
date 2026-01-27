@@ -36,13 +36,20 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
         maxWidth={480}
         height="100%"
         paddingHorizontal="$4"
-        paddingTop="$6"
+        paddingTop="$3"
         paddingBottom="$4"
         justifyContent="space-between"
       >
+        {/* 최상단: 특징 */}
+        <XStack justifyContent="center" alignItems="center" gap="$4">
+          <FeatureItem icon="⚡" text="실시간 매칭" />
+          <FeatureItem icon="✓" text="검증된 전문가" />
+          <FeatureItem icon="📍" text="위치 기반" />
+        </XStack>
+
         {/* 상단: 로고 + 슬로건 */}
         <YStack alignItems="center" gap="$2">
-          <img src="/logo.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 40,marginLeft:12 }} />
+          <img src="/logo.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 32,marginLeft:12 }} />
           <Text fontSize={18} fontWeight="600" marginTop={12} marginLeft={4}>
             가장 빠른 현장 연결
           </Text>
@@ -80,9 +87,8 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
           </YStack>
         </YStack>
 
-        {/* 하단: 버튼 + 특징 */}
+        {/* 하단: 버튼 */}
         <YStack gap="$3">
-          {/* 시작 버튼 */}
           <Button
             size="$5"
             backgroundColor={brandColors.primary}
@@ -98,13 +104,6 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
           >
             시작하기
           </Button>
-
-          {/* 하단 특징 */}
-          <XStack justifyContent="space-around" alignItems="center" paddingTop="$2">
-            <FeatureItem icon="⚡" text="실시간 매칭" />
-            <FeatureItem icon="✓" text="검증된 전문가" />
-            <FeatureItem icon="📍" text="위치 기반" />
-          </XStack>
         </YStack>
       </View>
     </View>

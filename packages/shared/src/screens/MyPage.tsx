@@ -876,7 +876,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                     fontWeight="600"
                     color={activeTab === 'myRequests' ? brandColors.primary : '#333'}
                   >
-                    요청합니다
+                   협업 요청합니다
                   </Text>
                   <img src="/yellow-hans.png" alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                   {inProgressRequestsCount > 0 && (
@@ -911,7 +911,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                     fontWeight="600"
                     color={activeTab === 'myApplications' ? brandColors.primary : '#333'}
                   >
-                    가능합니다
+                   협업 가능합니다
                   </Text>
                   <img src="/green-hans.png" alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                   {inProgressApplicationsCount > 0 && (
