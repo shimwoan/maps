@@ -41,7 +41,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
           size="$5"
           backgroundColor="#FEE500"
           color="#000"
-          fontWeight="600"
+          fontWeight="500"
           borderRadius={12}
           onPress={handleKakaoLogin}
           disabled={loading}

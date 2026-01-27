@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text } from 'tamagui';
+import { View, Text, YStack } from 'tamagui';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 
 interface FloatingActionButtonProps {
@@ -28,21 +28,19 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       zIndex={200}
       // @ts-ignore - safe area for mobile browsers
       style={{
-        bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(68px + env(safe-area-inset-bottom, 0px))',
       }}
-      paddingHorizontal={14}
-      height={44}
-      borderRadius={24}
+      width={64}
+      height={64}
+      borderRadius={32}
       backgroundColor={brandColors.primary}
       alignItems="center"
       justifyContent="center"
-      flexDirection="row"
-      gap={8}
       cursor="pointer"
       onPress={onPress}
       shadowColor="#000"
       shadowOffset={{ width: 0, height: 4 }}
-      shadowOpacity={0.3}
+      shadowOpacity={0.25}
       shadowRadius={8}
       hoverStyle={{
         backgroundColor: brandColors.primaryHover,
@@ -52,9 +50,14 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
         scale: 0.95,
       }}
     >
-      <Text color="#fff" fontSize={16} fontWeight="600">
-        즉시요청하기
-      </Text>
+      <YStack alignItems="center" marginBottom={6}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M12 5v14"/>
+        </svg>
+        <Text color="#fff" fontSize={13} fontWeight="500">
+          요청하기
+        </Text>
+      </YStack>
     </View>
   );
 }

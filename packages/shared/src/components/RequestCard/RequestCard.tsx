@@ -119,7 +119,7 @@ export function RequestCard({
         <Text fontSize={14} color={isCompleted ? '#999' : '#333'}>
           {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
         </Text>
-        <Text fontSize={14} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
+        <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
           {formatPrice(expectedFee)}원
         </Text>
       </XStack>

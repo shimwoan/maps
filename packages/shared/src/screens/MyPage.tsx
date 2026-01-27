@@ -215,7 +215,7 @@ function MyRequestCard({
               size="$4"
               backgroundColor="#fee2e2"
               color="#dc2626"
-              fontWeight="700"
+              fontWeight="500"
               onPress={() => onCancelWork?.(request.id)}
               hoverStyle={{ backgroundColor: '#fecaca' }}
               pressStyle={{ backgroundColor: '#fca5a5' }}
@@ -228,7 +228,7 @@ function MyRequestCard({
                 size="$4"
                 backgroundColor="#22C55E"
                 color="white"
-                fontWeight="700"
+                fontWeight="500"
                 onPress={() => onComplete?.(request.id)}
                 hoverStyle={{ backgroundColor: '#16A34A' }}
                 pressStyle={{ backgroundColor: '#15803D' }}
@@ -328,7 +328,7 @@ function MyRequestCard({
                   size="$3"
                   backgroundColor="#f0f0f0"
                   color="#000"
-                  fontWeight="600"
+                  fontWeight="500"
                   onPress={() => onReject(app.id)}
                   hoverStyle={{ backgroundColor: '#e8e8e8' }}
                 >
@@ -338,7 +338,7 @@ function MyRequestCard({
                   size="$3"
                   backgroundColor={brandColors.primary}
                   color="white"
-                  fontWeight="600"
+                  fontWeight="500"
                   onPress={() => onAccept(app.id, app.request_id)}
                   hoverStyle={{ backgroundColor: brandColors.primaryHover }}
                 >
@@ -433,7 +433,7 @@ function MyApplicationCard({
                 size="$4"
                 backgroundColor={brandColors.primary}
                 color="white"
-                fontWeight="700"
+                fontWeight="500"
                 onPress={() => onRequestCompletion?.(application.id, application.request_id)}
                 hoverStyle={{ backgroundColor: brandColors.primaryHover }}
                 pressStyle={{ backgroundColor: brandColors.primaryPressed }}
@@ -445,7 +445,7 @@ function MyApplicationCard({
                 size="$4"
                 backgroundColor="#fee2e2"
                 color="#dc2626"
-                fontWeight="700"
+                fontWeight="500"
                 onPress={async () => {
                   setIsCanceling(true);
                   try {
@@ -475,7 +475,7 @@ function MyApplicationCard({
             size="$4"
             backgroundColor="#fee2e2"
             color="#dc2626"
-            fontWeight="700"
+            fontWeight="500"
             onPress={async () => {
               setIsCanceling(true);
               try {
@@ -790,8 +790,10 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         width="100%"
         height="100%"
         backgroundColor="#fafafa"
+        overflow="hidden"
         // @ts-ignore
         className="mypage-container"
+        style={{ display: 'flex', flexDirection: 'column' }}
       >
         {/* 헤더 - 상단 고정 */}
         <XStack
@@ -814,7 +816,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 <path d="M15 18l-6-6 6-6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </View>
-            <Text fontSize={18} fontWeight="700" color="#000">
+            <Text fontSize={18} fontWeight="600" color="#000">
               {mode === 'profile' ? 'MY' : '실시간 현황'}
             </Text>
           </XStack>
@@ -891,7 +893,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                 size="$4"
                 backgroundColor={brandColors.primary}
                 color="white"
-                fontWeight="600"
+                fontWeight="500"
                 borderRadius={10}
                 onPress={() => setShowProfileModal(true)}
                 hoverStyle={{ backgroundColor: brandColors.primaryHover }}
@@ -969,10 +971,12 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
           </YStack>
         )}
 
-        {/* 탭 - requests 모드에서만 표시 */}
+        {/* 탭 + 콘텐츠 래퍼 - requests 모드에서만 표시 */}
         {mode === 'requests' && (
-          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
-            <XStack>
+          <View flex={1} marginTop={51} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* 탭 */}
+            <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee">
+              <XStack>
               <View
                 flex={1}
                 paddingVertical="$3"
@@ -990,7 +994,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   >
                    협업 요청합니다
                   </Text>
-                  <img src="/yellow-hans.png" alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                   {inProgressRequestsCount > 0 && (
                     <View
                       minWidth={20}
@@ -1025,7 +1028,6 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                   >
                    협업 가능합니다
                   </Text>
-                  <img src="/green-hans.png" alt="" width={28} height={28} style={{ objectFit: 'contain' }} />
                   {inProgressApplicationsCount > 0 && (
                     <View
                       minWidth={20}
@@ -1082,15 +1084,14 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               </View>
             </XStack>
           </YStack>
-        )}
 
-        {/* 컨텐츠 - requests 모드에서만 표시 */}
-        {mode === 'requests' && (
-          <ScrollView
+            {/* 컨텐츠 */}
+            <ScrollView
             flex={1}
             showsVerticalScrollIndicator={false}
             // @ts-ignore
             className="mypage-scroll"
+            style={{ flex: 1, overflow: 'auto' }}
           >
             {/* @ts-ignore - safe area padding for mobile */}
             <YStack padding="$3" gap="$3" paddingBottom={90}>
@@ -1161,6 +1162,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               )}
             </YStack>
           </ScrollView>
+          </View>
         )}
 
         {/* 프로필 수정 모달 */}

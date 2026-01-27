@@ -20,9 +20,7 @@ export function Sidebar() {
   const NavContent = () => (
     <div className="tw-flex tw-flex-col tw-h-full">
       <div className="tw-flex tw-h-16 tw-shrink-0 tw-items-center tw-px-6">
-        <Link to="/admin" className="tw-text-xl tw-font-bold tw-text-white hover:tw-text-gray-200 tw-transition-colors tw-no-underline">
-          Admin
-        </Link>
+        
       </div>
       <nav className="tw-flex tw-flex-1 tw-flex-col tw-px-4 tw-py-4">
         <ul className="tw-flex tw-flex-col tw-gap-1">

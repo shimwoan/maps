@@ -157,7 +157,7 @@ export function RequestListPanel({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxWidth: 768,
-        height: '90vh',
+        maxHeight: '90vh',
         margin: '0 auto',
       } as React.CSSProperties}>
         <Sheet.Header>
@@ -506,7 +506,7 @@ export function RequestListPanel({
                     </YStack>
 
                     {/* 가격 */}
-                    <Text fontSize={16} fontWeight="700" color={brandColors.primary}>
+                    <Text fontSize={18} fontWeight="600" color={brandColors.primary}>
                       {formatPrice(request.expected_fee)}원
                     </Text>
                   </XStack>

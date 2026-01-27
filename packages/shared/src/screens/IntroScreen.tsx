@@ -49,7 +49,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
 
         {/* 상단: 로고 + 슬로건 */}
         <YStack alignItems="center" gap="$2">
-          <img src="/logo.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 32,marginLeft:12 }} />
+          <img src="/glove.png" alt="협업" width={180} height={180} style={{ objectFit: 'contain', marginTop: 32,marginLeft:12 }} />
           <Text fontSize={18} fontWeight="600" marginTop={12} marginLeft={4}>
             가장 빠른 현장 연결
           </Text>
@@ -93,7 +93,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             size="$5"
             backgroundColor={brandColors.primary}
             color="white"
-            fontWeight="700"
+            fontWeight="500"
             fontSize={17}
             width="100%"
             height={52}

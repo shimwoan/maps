@@ -75,7 +75,7 @@ export function BottomNavigation({
       borderTopWidth={1}
       borderTopColor="#f0f0f0"
       zIndex={200}
-      height={56}
+      height={58}
       justifyContent="center"
       // @ts-ignore
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
@@ -112,7 +112,7 @@ export function BottomNavigation({
             fontSize={14}
             fontWeight={activeMode === 'home' ? "600" : "400"}
             color={activeMode === 'home' ? activeColor : textColor}
-            marginTop={4}
+            marginTop={2}
           >
             홈
           </Text>
@@ -191,7 +191,7 @@ export function BottomNavigation({
             fontSize={14}
             fontWeight={activeMode === 'requests' ? "600" : "400"}
             color={activeMode === 'requests' ? activeColor : textColor}
-            marginTop={4}
+            marginTop={2}
           >
             진행중인 협업
           </Text>
@@ -236,7 +236,7 @@ export function BottomNavigation({
             fontSize={14}
             fontWeight={activeMode === 'profile' ? "600" : "400"}
             color={activeMode === 'profile' ? activeColor : textColor}
-            marginTop={4}
+            marginTop={2}
           >
             MY
           </Text>

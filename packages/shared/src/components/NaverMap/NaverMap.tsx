@@ -26,8 +26,8 @@ const createClusters = (markers: RequestMarker[]): MarkerCluster[] => {
   const groupedByLocation = new Map<string, RequestMarker[]>();
 
   markers.forEach(marker => {
-    // 소수점 5자리까지 비교 (약 1m 정확도)
-    const key = `${marker.latitude.toFixed(5)},${marker.longitude.toFixed(5)}`;
+    // 소수점 3자리까지 비교 (약 100m 정확도)
+    const key = `${marker.latitude.toFixed(3)},${marker.longitude.toFixed(3)}`;
     if (!groupedByLocation.has(key)) {
       groupedByLocation.set(key, []);
     }

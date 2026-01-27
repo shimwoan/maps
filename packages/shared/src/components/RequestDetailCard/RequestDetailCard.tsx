@@ -496,7 +496,7 @@ export function RequestDetailCard({
                 <Text fontSize={16} color="#000">비용</Text>
               </XStack>
               <XStack alignItems="center" gap="$3" flex={1}>
-                <Text fontSize={16} fontWeight="700" color={brandColors.primary}>
+                <Text fontSize={18} fontWeight="600" color={brandColors.primary}>
                   {formatPrice(request.expected_fee)}원
                 </Text>
                 <View
@@ -611,7 +611,7 @@ export function RequestDetailCard({
                 size="$5"
                 backgroundColor="#fee2e2"
                 color="#dc2626"
-                fontWeight="700"
+                fontWeight="500"
                 onPress={() => setShowCancelWorkDialog(true)}
                 disabled={isProcessing}
                 hoverStyle={{ backgroundColor: '#fecaca' }}
@@ -625,7 +625,7 @@ export function RequestDetailCard({
                   size="$5"
                   backgroundColor="#22C55E"
                   color="white"
-                  fontWeight="700"
+                  fontWeight="500"
                   onPress={() => setShowCompleteDialog(true)}
                   disabled={isProcessing}
                   hoverStyle={{ backgroundColor: '#16A34A' }}
@@ -656,7 +656,7 @@ export function RequestDetailCard({
                   size="$5"
                   backgroundColor="#fee2e2"
                   color="#dc2626"
-                  fontWeight="700"
+                  fontWeight="500"
                   marginTop="$2"
                   onPress={() => setShowCancelApplicationDialog(true)}
                   disabled={isProcessing}
@@ -670,7 +670,7 @@ export function RequestDetailCard({
                   size="$5"
                   backgroundColor={brandColors.primary}
                   color="white"
-                  fontWeight="700"
+                  fontWeight="500"
                   marginTop="$2"
                   onPress={handleAcceptClick}
                   disabled={isApplying}
@@ -716,7 +716,7 @@ export function RequestDetailCard({
                     size="$4"
                     backgroundColor={brandColors.primary}
                     color="white"
-                    fontWeight="700"
+                    fontWeight="500"
                     onPress={() => setShowCompletionRequestDialog(true)}
                     disabled={isProcessing}
                     hoverStyle={{ backgroundColor: brandColors.primaryHover }}
@@ -730,7 +730,7 @@ export function RequestDetailCard({
                     size="$4"
                     backgroundColor="#fee2e2"
                     color="#dc2626"
-                    fontWeight="700"
+                    fontWeight="500"
                     onPress={() => setShowCancelDialog(true)}
                     disabled={isProcessing}
                     hoverStyle={{ backgroundColor: '#fecaca' }}
@@ -749,7 +749,7 @@ export function RequestDetailCard({
               size="$5"
               backgroundColor="#fee2e2"
               color="#dc2626"
-              fontWeight="700"
+              fontWeight="500"
               marginTop="$2"
               onPress={() => setShowCancelDialog(true)}
               disabled={isProcessing}
