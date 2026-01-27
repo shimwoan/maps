@@ -214,6 +214,7 @@ function MyRequestCard({
           <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
             <Button
               flex={1}
+              flexBasis={0}
               size="$4"
               backgroundColor="#fee2e2"
               color="#dc2626"
@@ -227,6 +228,7 @@ function MyRequestCard({
             {acceptedApp.completion_requested && (
               <Button
                 flex={1}
+                flexBasis={0}
                 size="$4"
                 backgroundColor="#22C55E"
                 color="white"
@@ -431,6 +433,7 @@ function MyApplicationCard({
             <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
               <Button
                 flex={1}
+                flexBasis={0}
                 size="$4"
                 backgroundColor={brandColors.primary}
                 color="white"
@@ -443,6 +446,7 @@ function MyApplicationCard({
               </Button>
               <Button
                 flex={1}
+                flexBasis={0}
                 size="$4"
                 backgroundColor="#fee2e2"
                 color="#dc2626"

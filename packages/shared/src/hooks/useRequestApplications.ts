@@ -500,22 +500,27 @@ export function useRequestApplications() {
     await fetchAll();
   };
 
-  // 진행중인 협업이 있는지 (공통 로직)
+  // 피드백이 필요한 작업이 있는지 (종 아이콘 표시 조건)
   const hasActiveWork = useMemo(() => {
-    const hasActiveApplication = myApplications.some(app => app.status === 'accepted');
-    const hasActiveRequest = applicationsToMyRequests.some(app => app.status === 'accepted');
-    return hasActiveApplication || hasActiveRequest;
+    // 협업 요청합니다: 대기중인 신청자 또는 작업 완료 요청이 온 경우
+    const hasPendingApplicants = applicationsToMyRequests.some(app => app.status === 'pending');
+    const hasCompletionRequestsOnMyRequests = applicationsToMyRequests.some(app => app.status === 'accepted' && app.completion_requested);
+    // 협업 가능합니다: 작업 완료 요청이 와서 확인해야 하는 경우
+    const hasCompletionRequestsOnMyApplications = myApplications.some(app => app.status === 'accepted' && app.completion_requested);
+    return hasPendingApplicants || hasCompletionRequestsOnMyRequests || hasCompletionRequestsOnMyApplications;
   }, [myApplications, applicationsToMyRequests]);
 
-  // 진행중인 신청 개수 (가능합니다 탭)
+  // 협업 가능합니다 탭: 작업 완료 요청 개수 (확인해야 할 작업)
   const inProgressApplicationsCount = useMemo(() =>
-    myApplications.filter(app => app.status === 'accepted').length
+    myApplications.filter(app => app.status === 'accepted' && app.completion_requested).length
   , [myApplications]);
 
-  // 진행중인 의뢰 개수 (요청합니다 탭)
-  const inProgressRequestsCount = useMemo(() =>
-    applicationsToMyRequests.filter(app => app.status === 'accepted').length
-  , [applicationsToMyRequests]);
+  // 협업 요청합니다 탭: 대기중인 신청자 + 작업 완료 요청 개수 (피드백 해야 할 작업)
+  const inProgressRequestsCount = useMemo(() => {
+    const pendingCount = applicationsToMyRequests.filter(app => app.status === 'pending').length;
+    const completionRequestCount = applicationsToMyRequests.filter(app => app.status === 'accepted' && app.completion_requested).length;
+    return pendingCount + completionRequestCount;
+  }, [applicationsToMyRequests]);
 
   return {
     myApplications,
