@@ -341,8 +341,8 @@ export function RequestDetailCard({
               {request.collaboration_type && (
                 <CollaborationTypeBadge type={request.collaboration_type} />
               )}
-              {/* 상태 배지 (진행/완료) */}
-              {request.status !== 'pending' && (
+              {/* 상태 배지 (진행중/완료) - accepted 또는 completed 상태일 때만 표시 */}
+              {(request.status === 'accepted' || request.status === 'completed') && (
                 <View
                   height={24}
                   backgroundColor={

@@ -1383,6 +1383,33 @@ export function HomeScreen() {
             setSelectedRequestId(null);
             refetchRequests();
           }}
+          onCancelWork={async (reqId) => {
+            // 진행중인 협업 취소: accepted 상태의 application 삭제 및 의뢰 상태 변경
+            // 1. 해당 의뢰의 accepted application 삭제
+            await supabase
+              .from('request_applications')
+              .delete()
+              .eq('request_id', reqId)
+              .eq('status', 'accepted');
+
+            // 2. 다른 pending 신청자가 있는지 확인
+            const { data: otherApps } = await supabase
+              .from('request_applications')
+              .select('id')
+              .eq('request_id', reqId)
+              .eq('status', 'pending');
+
+            // 3. 의뢰 상태를 pending 또는 applied로 변경
+            const newStatus = otherApps && otherApps.length > 0 ? 'applied' : 'pending';
+            await supabase
+              .from('requests')
+              .update({ status: newStatus })
+              .eq('id', reqId);
+
+            setSelectedRequestId(null);
+            refetchRequests();
+            refetchApplications();
+          }}
         />
       )}
 
