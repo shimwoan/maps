@@ -967,23 +967,18 @@ export function HomeScreen() {
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                   cursor: 'pointer',
                 }}
-                onClick={() => {
-                  // notification에 위도/경도가 있으면 바로 사용, 없으면 requests에서 찾기
+                onClick={async () => {
+                  // 먼저 requests 목록 새로고침 (새로 등록된 request가 없을 수 있음)
+                  await refetchRequests();
+
+                  // notification에 위도/경도가 있으면 바로 사용
                   const lat = notification.latitude;
                   const lng = notification.longitude;
-                  const request = requests.find(r => r.id === notification.id);
 
-                  if (lat && lng) {
+                  if (lat !== undefined && lat !== null && lng !== undefined && lng !== null) {
                     // 지도 이동 및 마커 선택
-                    naverMapRef.current?.moveTo(lat, lng, 13);
+                    naverMapRef.current?.moveTo(lat, lng, 15);
                     setSelectedRequestId(notification.id);
-                    setClusterRequestIds([]);
-                    setSelectedClusterKey(null);
-                    setIsListPanelOpen(false);
-                  } else if (request && request.latitude && request.longitude) {
-                    // 위도/경도가 없으면 requests에서 찾기 (이전 버전 호환)
-                    naverMapRef.current?.moveTo(request.latitude, request.longitude, 13);
-                    setSelectedRequestId(request.id);
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);
                     setIsListPanelOpen(false);
@@ -1420,7 +1415,7 @@ export function HomeScreen() {
           setClusterRequestIds([]);
           setSelectedClusterKey(null);
         }}
-        initialCollaborationType={selectedCollaborationType}
+        initialCollaborationType={null}
       />
     </View>
   );
