@@ -39,9 +39,9 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 // 거리 포맷
 function formatDistance(km: number): string {
   if (km < 1) {
-    return `내 위치로부터 ${Math.round(km * 1000)}m`;
+    return `${Math.round(km * 1000)}m`;
   }
-  return `내 위치로부터 ${km.toFixed(1)}km`;
+  return `${km.toFixed(1)}km`;
 }
 
 const ITEMS_PER_PAGE = 10;
