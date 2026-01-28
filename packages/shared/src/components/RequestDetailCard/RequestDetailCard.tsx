@@ -358,7 +358,7 @@ export function RequestDetailCard({
                     fontWeight="600"
                     color="#fff"
                   >
-                    {request.status === 'completed' ? '완료' : '진행'}
+                    {request.status === 'completed' ? '완료' : '진행중'}
                   </Text>
                 </View>
               )}
