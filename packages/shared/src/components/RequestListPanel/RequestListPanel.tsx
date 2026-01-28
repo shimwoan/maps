@@ -303,7 +303,7 @@ export function RequestListPanel({
 
             {/* 더 이상 데이터 없음 */}
             {!hasMore && displayedRequests.length > 0 && (
-              <View padding={16} alignItems="center">
+              <View padding={16} paddingBottom={60} alignItems="center">
                 <Text fontSize={14} color="#999">
                   모든 의뢰를 불러왔습니다
                 </Text>
