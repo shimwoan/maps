@@ -326,13 +326,9 @@ export function RequestDetailCard({
         accentColor={accentColor}
       >
         <YStack gap="$3" paddingBottom="$4">
-          {/* 상단: AS종류 + 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
+          {/* 상단: 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
           <XStack gap="$2" alignItems="center" justifyContent="space-between">
             <XStack gap="$2" alignItems="center" flex={1}>
-              <XStack alignItems="center" gap="$1.5">
-                <AsTypeIcon type={request.as_type} size={16} />
-                <Text fontSize={18} fontWeight="600" color="#000">{request.as_type}</Text>
-              </XStack>
               {/* 협업 카테고리 배지 */}
               {request.collaboration_type && (
                 <CollaborationTypeBadge type={request.collaboration_type} />
@@ -464,18 +460,27 @@ export function RequestDetailCard({
             </XStack>
           </XStack>
 
-          {/* 제목 */}
-          <Text fontSize={20} fontWeight="700" color="#000">
-            {request.title}
-          </Text>
+          {/* 제목 + 프린터 아이콘 */}
+          <XStack alignItems="center" gap="$2" marginTop={-4}>
+            <img src="/print.png" width={24} height={24} style={{ flexShrink: 0 }} />
+            <Text fontSize={20} fontWeight="700" color="#000">
+              {request.title}
+            </Text>
+          </XStack>
 
           {/* 상세 정보 */}
           <YStack>
             <XStack alignItems="flex-start" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
               <XStack alignItems="center" gap="$1.5" flexShrink={0}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EF4444"/>
-                  <circle cx="12" cy="9" r="2.5" fill="white"/>
+                <svg width="18" height="20" viewBox="0 0 24 28" fill="none">
+                  {/* 받침 타원 */}
+                  <ellipse cx="12" cy="26" rx="6" ry="2" fill="#EF4444" opacity="0.6"/>
+                  {/* 막대 */}
+                  <rect x="10.5" y="10" width="3" height="14" fill="#D1D5DB"/>
+                  {/* 빨간 원형 머리 */}
+                  <circle cx="12" cy="7" r="6" fill="#EF4444"/>
+                  {/* 하이라이트 */}
+                  <path d="M9 5c0.5-1 1.5-2 3-2" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
                 </svg>
                 <Text fontSize={16} color="#444" fontWeight="600">주소</Text>
               </XStack>
