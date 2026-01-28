@@ -503,14 +503,11 @@ export const NaverMap = forwardRef<NaverMapRef, NaverMapProps>(function NaverMap
         if (existingMarker) {
           // 기존 마커가 있으면 위치 업데이트
           existingMarker.setPosition(new window.naver.maps.LatLng(markerData.latitude, markerData.longitude));
-          // 줌이 변경되었거나 마커 데이터가 변경된 경우에만 아이콘 업데이트
-          const zoomChanged = prevZoomRef.current !== currentZoom;
-          if (zoomChanged) {
-            existingMarker.setIcon({
-              content: createMarkerContent(markerData, isOwn, isApplied, currentZoom),
-              anchor: new window.naver.maps.Point(anchorX, anchorY),
-            });
-          }
+          // 줌이 변경되거나 마커 상태가 변경된 경우 아이콘 업데이트 (실시간 상태 반영)
+          existingMarker.setIcon({
+            content: createMarkerContent(markerData, isOwn, isApplied, currentZoom),
+            anchor: new window.naver.maps.Point(anchorX, anchorY),
+          });
         } else {
           const newMarker = new window.naver.maps.Marker({
             position: new window.naver.maps.LatLng(markerData.latitude, markerData.longitude),
