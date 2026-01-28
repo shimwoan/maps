@@ -81,6 +81,7 @@ function MyRequestCard({
       address={request.address}
       collaborationType={request.collaboration_type}
       isCompleted={isCompleted}
+      isUrgent={request.is_urgent}
       onCardPress={onCardPress}
       rightAction={
         <XStack alignItems="center" gap="$2" marginRight={-8} marginTop={-2}>
@@ -390,6 +391,7 @@ function MyApplicationCard({
       address={req.address}
       collaborationType={req.collaboration_type}
       isCompleted={application.status === 'completed'}
+      isUrgent={req.is_urgent}
       onCardPress={onCardPress}
     >
       {/* 진행중인 경우 */}

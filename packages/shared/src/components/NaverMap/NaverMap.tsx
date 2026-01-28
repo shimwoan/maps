@@ -147,11 +147,11 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
     ">${marker.collaborationType}</div>
   ` : '';
 
-  // 긴급 배지 (상단)
+  // 긴급 배지 (상단) - RequestCard 스타일과 동일
   const urgentBadge = isUrgent ? `
     <div style="
-      background: #DC2626;
-      color: white;
+      background: #FEE2E2;
+      color: #DC2626;
       font-size: ${badgeFontSize}px;
       font-weight: 700;
       padding: ${badgePaddingV}px ${badgePaddingH}px;

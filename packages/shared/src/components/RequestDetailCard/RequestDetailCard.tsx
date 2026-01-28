@@ -379,17 +379,17 @@ export function RequestDetailCard({
                   </Text>
                 </View>
               )}
-              {/* 긴급 태그 - 대기 상태에서만 표시 */}
-              {request.is_urgent && request.status === 'pending' && (
+              {/* 긴급 태그 - 완료 상태가 아닌 경우 표시 */}
+              {request.is_urgent && request.status !== 'completed' && (
                 <View
                   height={24}
-                  backgroundColor="#EF4444"
+                  backgroundColor="#FEE2E2"
                   paddingHorizontal={8}
                   borderRadius={6}
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Text fontSize={12} fontWeight="700" color="white">긴급</Text>
+                  <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
                 </View>
               )}
             </XStack>
