@@ -330,11 +330,14 @@ export function RequestDetailCard({
           {/* 상단: 아이콘+제목 + 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
           <XStack gap="$2" alignItems="center" justifyContent="space-between">
             <XStack gap="$2" alignItems="center" flex={1}>
-              {/* 프린터 아이콘 + 제목 */}
+              {/* 프린터 아이콘 + 업종 + 제목 */}
               <XStack alignItems="center" gap="$1.5" flexShrink={1} minWidth={0}>
                 <img src="/print.png" width={20} height={20} style={{ flexShrink: 0 }} />
+                <Text fontSize={16} color="#222" fontWeight={600} flexShrink={0}>
+                  {request.as_type} ·
+                </Text>
                 <Text fontSize={16} fontWeight="700" color="#000" numberOfLines={1}>
-                  {request.title}
+                   {request.title}
                 </Text>
               </XStack>
               {/* 협업 카테고리 배지 */}
