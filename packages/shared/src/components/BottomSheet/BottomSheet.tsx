@@ -8,6 +8,7 @@ interface BottomSheetProps {
   zIndex?: number;
   title?: string;
   accentColor?: string;
+  showMyBadge?: boolean;
 }
 
 export function BottomSheet({
@@ -17,6 +18,7 @@ export function BottomSheet({
   zIndex = 100000,
   title,
   accentColor,
+  showMyBadge = false,
 }: BottomSheetProps) {
   return (
     <Sheet
@@ -28,11 +30,32 @@ export function BottomSheet({
       <Sheet.Container style={{
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
+        overflow: 'hidden',
         // @ts-ignore - CSS 변수 설정
         '--sheet-shadow': accentColor
           ? `0 0 0 2px ${accentColor}, 0 -4px 15px ${accentColor}30`
           : '0 -4px 20px rgba(0, 0, 0, 0.15)',
       } as React.CSSProperties}>
+        {/* MY 띠 - 우측 상단 */}
+        {showMyBadge && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: -24,
+              width: 80,
+              height: 22,
+              backgroundColor: '#1D4ED8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 100,
+              transform: 'rotate(45deg)',
+            }}
+          >
+            <span style={{ fontSize: 9, fontWeight: 700, color: 'white' }}>MY</span>
+          </div>
+        )}
         <Sheet.Header>
           <div
             style={{

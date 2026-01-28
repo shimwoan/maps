@@ -324,26 +324,9 @@ export function RequestDetailCard({
         onClose={onClose}
         zIndex={300}
         accentColor={accentColor}
+        showMyBadge={!canAccept}
       >
-        <YStack gap="$3" paddingBottom="$4" position="relative" overflow="hidden">
-          {/* MY 리본 - 우측 상단 */}
-          {!canAccept && (
-            <View
-              position="absolute"
-              top={-2}
-              right={-30}
-              width={80}
-              height={24}
-              backgroundColor="#1D4ED8"
-              alignItems="center"
-              justifyContent="center"
-              zIndex={10}
-              // @ts-ignore
-              style={{ transform: 'rotate(45deg)' }}
-            >
-              <Text fontSize={10} fontWeight="700" color="white">MY</Text>
-            </View>
-          )}
+        <YStack gap="$3" paddingBottom="$4">
           {/* 상단: 아이콘+제목 + 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
           <XStack gap="$2" alignItems="center" justifyContent="space-between">
             <XStack gap="$2" alignItems="center" flex={1}>
