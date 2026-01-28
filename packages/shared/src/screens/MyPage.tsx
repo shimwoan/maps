@@ -212,7 +212,7 @@ function MyRequestCard({
           </XStack>
           {/* 액션 버튼 */}
           <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
-            <Button
+            {!acceptedApp.completion_requested &&   <Button
               flex={1}
               flexBasis={0}
               size="$4"
@@ -224,7 +224,8 @@ function MyRequestCard({
               pressStyle={{ backgroundColor: '#fca5a5' }}
             >
               협업요청 취소
-            </Button>
+            </Button> }
+         
             {acceptedApp.completion_requested && (
               <Button
                 flex={1}
