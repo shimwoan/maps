@@ -166,34 +166,50 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
     </div>
   ` : '';
 
+  const markerWidth = Math.round(52 * size.scale);
+  const markerHeight = Math.round(68 * size.scale);
+  const iconSize = Math.round(28 * size.scale);
+  const shadowWidth = Math.round(28 * size.scale);
+  const shadowHeight = Math.round(8 * size.scale);
+
   return `
     <div data-marker-id="${marker.id}" style="
       display: flex;
       flex-direction: column;
       align-items: center;
-      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
       transform: translate(-50%, -100%);
     ">
       <div class="marker-box" style="
         --marker-border-color: ${primaryColor};
-        background: white;
-        width: ${size.boxSize}px;
-        height: ${size.boxSize}px;
-        border-radius: 50%;
-        border: ${size.borderWidth}px solid ${primaryColor};
-        cursor: pointer;
         position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        cursor: pointer;
         -webkit-tap-highlight-color: transparent;
         -webkit-touch-callout: none;
         user-select: none;
       ">
-        <img src="/print.png" width="${size.iconSize}" height="${size.iconSize}" />
+        <svg width="${markerWidth}" height="${markerHeight}" viewBox="0 0 52 68" fill="none">
+          <!-- 마커 핀 형태 -->
+          <path d="M26 65 C26 65 50 40 50 24 C50 11 39 0 26 0 C13 0 2 11 2 24 C2 40 26 65 26 65Z" fill="${primaryColor}" />
+          <!-- 흰색 원형 배경 -->
+          <circle cx="26" cy="24" r="20" fill="white" />
+        </svg>
+        <img src="/print.png" width="${iconSize}" height="${iconSize}" style="
+          position: absolute;
+          top: ${Math.round(12 * size.scale)}px;
+          left: 50%;
+          transform: translateX(-50%);
+        " />
         ${urgentBadge}
         ${myBadge}
       </div>
+      <!-- 그림자 -->
+      <div style="
+        width: ${shadowWidth}px;
+        height: ${shadowHeight}px;
+        background: radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 70%);
+        border-radius: 50%;
+        margin-top: ${Math.round(2 * size.scale)}px;
+      "></div>
     </div>
   `;
 };

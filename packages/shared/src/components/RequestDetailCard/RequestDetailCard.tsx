@@ -21,7 +21,7 @@ const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; text: s
   '방문AS': { bg: '#F97316', text: '#fff' },
   '설치이관': { bg: '#10B981', text: '#fff' },
   '인력지원': { bg: '#8B5CF6', text: '#fff' },
-  '원격': { bg: '#10B981', text: '#fff' },
+  '원격': { bg: '#EC4899', text: '#fff' },
 };
 
 // 협업 카테고리 뱃지 컴포넌트

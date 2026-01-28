@@ -9,7 +9,7 @@ const COLLABORATION_TYPE_COLORS: Record<string, { bg: string; border: string; te
   '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
   '설치이관': { bg: '#fff', border: '#10B981', text: '#059669' },
   '인력지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
-  '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
+  '원격': { bg: '#fff', border: '#EC4899', text: '#DB2777' },
 };
 
 interface RequestCardProps {
@@ -122,50 +122,48 @@ export function RequestCard({
         )}
       </XStack>
 
-      {/* 제목 + 프린터 아이콘 */}
-      <XStack alignItems="center" gap="$2" marginTop="$2">
-        <img src="/print.png" width={20} height={20} style={{ flexShrink: 0 }} />
-        <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} numberOfLines={1} flex={1}>
-          {title}
-        </Text>
-      </XStack>
-
-      {/* 주소 + 거리 + 금액 */}
-      <XStack alignItems="center" gap="$1.5" marginTop="$1.5" justifyContent="space-between">
-        {address ? (
-          <XStack alignItems="center" gap="$1.5" flex={1} minWidth={0}>
-            <svg width="16" height="16" viewBox="0 0 24 28" fill="none" style={{ flexShrink: 0 }}>
-              {/* 받침 타원 */}
-              <ellipse cx="12" cy="26" rx="6" ry="2" fill="#EF4444" opacity="0.6"/>
-              {/* 막대 */}
-              <rect x="10.5" y="10" width="3" height="14" fill="#D1D5DB"/>
-              {/* 빨간 원형 머리 */}
-              <circle cx="12" cy="7" r="6" fill="#EF4444"/>
-              {/* 하이라이트 */}
-              <path d="M9 5c0.5-1 1.5-2 3-2" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-            </svg>
-            <Text fontSize={14} color={isCompleted ? '#999' : '#333'} numberOfLines={1}>
-              {address}
-            </Text>
-            {distance && (
-              <XStack alignItems="center" gap={4} marginLeft="$2">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#000"/>
-                  <circle cx="12" cy="9" r="2" fill="white"/>
-                </svg>
-                <Text fontSize={12} color="#666">
-                  {distance}
-                </Text>
-              </XStack>
-            )}
-          </XStack>
-        ) : (
-          <View flex={1} />
-        )}
+      {/* 제목 + 프린터 아이콘 + 금액 */}
+      <XStack alignItems="center" gap="$2" marginTop="$2" justifyContent="space-between">
+        <XStack alignItems="center" gap="$2" flex={1} minWidth={0}>
+          <img src="/print.png" width={20} height={20} style={{ flexShrink: 0 }} />
+          <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} numberOfLines={1} flex={1}>
+            {title}
+          </Text>
+        </XStack>
         <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="700" flexShrink={0}>
           {formatPrice(expectedFee)}원
         </Text>
       </XStack>
+
+      {/* 주소 + 거리 */}
+      {address && (
+        <XStack alignItems="center" gap="$1.5" marginTop="$1.5">
+          <svg width="16" height="16" viewBox="0 0 24 28" fill="none" style={{ flexShrink: 0 }}>
+            {/* 받침 타원 */}
+            <ellipse cx="12" cy="26" rx="6" ry="2" fill="#EF4444" opacity="0.6"/>
+            {/* 막대 */}
+            <rect x="10.5" y="10" width="3" height="14" fill="#D1D5DB"/>
+            {/* 빨간 원형 머리 */}
+            <circle cx="12" cy="7" r="6" fill="#EF4444"/>
+            {/* 하이라이트 */}
+            <path d="M9 5c0.5-1 1.5-2 3-2" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+          </svg>
+          <Text fontSize={14} color={isCompleted ? '#999' : '#333'} numberOfLines={1}>
+            {address}
+          </Text>
+          {distance && (
+            <XStack alignItems="center" gap={4} marginLeft="$2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#000"/>
+                <circle cx="12" cy="9" r="2" fill="white"/>
+              </svg>
+              <Text fontSize={12} color="#666">
+                {distance}
+              </Text>
+            </XStack>
+          )}
+        </XStack>
+      )}
 
       {/* 날짜/시간 */}
       {scheduleDate && scheduleTime && (
