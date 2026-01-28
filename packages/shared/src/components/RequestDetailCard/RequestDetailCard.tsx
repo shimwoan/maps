@@ -17,11 +17,11 @@ import { ImagePreviewModal } from '../ImagePreviewModal';
 import type { CollaborationType } from '../RequestFormModal/types';
 
 // 협업 카테고리별 색상
-const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; border: string; text: string }> = {
-  '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
-  '설치이관': { bg: '#fff', border: '#10B981', text: '#059669' },
-  '인력지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
-  '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
+const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; text: string }> = {
+  '방문AS': { bg: '#F97316', text: '#fff' },
+  '설치이관': { bg: '#10B981', text: '#fff' },
+  '인력지원': { bg: '#8B5CF6', text: '#fff' },
+  '원격': { bg: '#10B981', text: '#fff' },
 };
 
 // 협업 카테고리 뱃지 컴포넌트
@@ -32,8 +32,6 @@ function CollaborationTypeBadge({ type }: { type: string }) {
     <View
       height={24}
       backgroundColor={colors.bg}
-      borderWidth={1.5}
-      borderColor={colors.border}
       paddingHorizontal={8}
       borderRadius={6}
       alignItems="center"
@@ -335,30 +333,30 @@ export function RequestDetailCard({
                 <AsTypeIcon type={request.as_type} size={16} />
                 <Text fontSize={18} fontWeight="600" color="#000">{request.as_type}</Text>
               </XStack>
-              {/* 협업 카테고리 배지 또는 상태 배지 */}
-              {request.collaboration_type ? (
+              {/* 협업 카테고리 배지 */}
+              {request.collaboration_type && (
                 <CollaborationTypeBadge type={request.collaboration_type} />
-              ) : (
-                request.status !== 'pending' && (
-                  <View
-                    height={24}
-                    backgroundColor={
-                      request.status === 'completed' ? '#9CA3AF' : '#F59E0B'
-                    }
-                    paddingHorizontal={8}
-                    borderRadius={6}
-                    alignItems="center"
-                    justifyContent="center"
+              )}
+              {/* 상태 배지 (진행/완료) */}
+              {request.status !== 'pending' && (
+                <View
+                  height={24}
+                  backgroundColor={
+                    request.status === 'completed' ? '#9CA3AF' : '#F59E0B'
+                  }
+                  paddingHorizontal={8}
+                  borderRadius={6}
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Text
+                    fontSize={12}
+                    fontWeight="600"
+                    color="#fff"
                   >
-                    <Text
-                      fontSize={12}
-                      fontWeight="600"
-                      color="#fff"
-                    >
-                      {request.status === 'completed' ? '완료' : '진행'}
-                    </Text>
-                  </View>
-                )
+                    {request.status === 'completed' ? '완료' : '진행'}
+                  </Text>
+                </View>
               )}
               {/* 긴급 태그 - 대기 상태에서만 표시 */}
               {request.is_urgent && request.status === 'pending' && (

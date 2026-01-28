@@ -914,10 +914,6 @@ export function HomeScreen() {
                       onPress={() => {
                         setSelectedCollaborationType(type);
                         setShowCollaborationTypeModal(false);
-                        // 원격 카테고리 선택 시 목록 패널 열기
-                        if (type === '원격') {
-                          setIsListPanelOpen(true);
-                        }
                       }}
                     >
                       <XStack alignItems="center" gap={8}>

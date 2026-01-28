@@ -114,43 +114,55 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
   const isCompleted = marker.status === 'completed';
   const isUrgent = marker.isUrgent && !isCompleted;
 
-  // 완료: 회색, 진행중: 주황색, 신청중: 초록색, 긴급: 빨간색, 기본: 파란색
-  const primaryColor = isCompleted ? '#9CA3AF' : isInProgress ? '#F59E0B' : isApplied ? '#22C55E' : (isUrgent ? '#EF4444' : '#3B82F6');
+  // 완료: 회색, 진행중: 주황색, 신청중: 초록색, 긴급: 빨간색, 대기: 초록색
+  const primaryColor = isCompleted ? '#9CA3AF' : isInProgress ? '#F59E0B' : isApplied ? '#22C55E' : (isUrgent ? '#EF4444' : '#22C55E');
   const bgColor = primaryColor;
   const size = getMarkerSize(zoom);
 
-  // 배지들 (상단에 한 줄로 표시)
-  const hasBadges = isUrgent || isOwn;
-  const badges = hasBadges ? `
+  // 긴급 배지 (상단 중앙)
+  const urgentFontSize = Math.max(9, Math.round(11 * size.scale));
+  const urgentPaddingV = Math.max(2, Math.round(3 * size.scale));
+  const urgentPaddingH = Math.max(5, Math.round(6 * size.scale));
+  const urgentBadge = isUrgent ? `
     <div style="
       position: absolute;
-      top: -10px;
+      top: -12px;
       left: 50%;
       transform: translateX(-50%);
-      display: flex;
-      gap: 2px;
       white-space: nowrap;
     ">
-      ${isUrgent ? `<div style="
+      <div style="
         background: #DC2626;
         color: white;
-        font-size: ${size.badgeFontSize}px;
+        font-size: ${urgentFontSize}px;
         font-weight: 700;
-        padding: ${size.badgePaddingV}px ${size.badgePaddingH}px;
+        padding: ${urgentPaddingV}px ${urgentPaddingH}px;
         border-radius: 4px;
         border: 1px solid white;
         line-height: 1;
-      ">긴급</div>` : ''}
-      ${isOwn ? `<div style="
+        white-space: nowrap;
+      ">긴급</div>
+    </div>
+  ` : '';
+
+  // MY 배지 (하단 우측에 작게)
+  const badgeSize = Math.max(6, Math.round(8 * size.scale));
+  const myBadge = isOwn ? `
+    <div style="
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+    ">
+      <div style="
         background: #1D4ED8;
         color: white;
-        font-size: ${size.badgeFontSize}px;
+        font-size: ${badgeSize}px;
         font-weight: 700;
-        padding: ${size.badgePaddingV}px ${size.badgePaddingH}px;
-        border-radius: 4px;
+        padding: 2px 3px;
+        border-radius: 3px;
         border: 1px solid white;
         line-height: 1;
-      ">MY</div>` : ''}
+      ">MY</div>
     </div>
   ` : '';
 
@@ -179,7 +191,8 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
         user-select: none;
       ">
         <img src="/print.png" width="${size.iconSize}" height="${size.iconSize}" />
-        ${badges}
+        ${urgentBadge}
+        ${myBadge}
       </div>
     </div>
   `;
