@@ -72,8 +72,8 @@ export function RequestListPanel({
       filtered = filtered.filter(r => r.collaboration_type === selectedCollaborationType);
     }
 
-    // 상태 정렬 우선순위: 대기중 → 진행중 → 완료
-    const statusOrder: Record<string, number> = { pending: 0, accepted: 1, completed: 2 };
+    // 상태 정렬 우선순위: 대기중/신청함 → 진행중 → 완료
+    const statusOrder: Record<string, number> = { pending: 0, applied: 0, accepted: 1, completed: 2 };
 
     if (!currentLocation) {
       return filtered.sort((a, b) => (statusOrder[a.status] ?? 1) - (statusOrder[b.status] ?? 1));
