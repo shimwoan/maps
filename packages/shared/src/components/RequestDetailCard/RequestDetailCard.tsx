@@ -18,7 +18,7 @@ import type { CollaborationType } from '../RequestFormModal/types';
 
 // 협업 카테고리별 색상
 const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; text: string }> = {
-  '방문AS': { bg: '#F97316', text: '#fff' },
+  '방문AS': { bg: '#3B82F6', text: '#fff' },
   '설치이관': { bg: '#10B981', text: '#fff' },
   '인력지원': { bg: '#8B5CF6', text: '#fff' },
   '원격': { bg: '#EC4899', text: '#fff' },
@@ -325,10 +325,35 @@ export function RequestDetailCard({
         zIndex={300}
         accentColor={accentColor}
       >
-        <YStack gap="$3" paddingBottom="$4">
-          {/* 상단: 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
+        <YStack gap="$3" paddingBottom="$4" position="relative" overflow="hidden">
+          {/* MY 리본 - 우측 상단 */}
+          {!canAccept && (
+            <View
+              position="absolute"
+              top={-2}
+              right={-30}
+              width={80}
+              height={24}
+              backgroundColor="#1D4ED8"
+              alignItems="center"
+              justifyContent="center"
+              zIndex={10}
+              // @ts-ignore
+              style={{ transform: 'rotate(45deg)' }}
+            >
+              <Text fontSize={10} fontWeight="700" color="white">MY</Text>
+            </View>
+          )}
+          {/* 상단: 아이콘+제목 + 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
           <XStack gap="$2" alignItems="center" justifyContent="space-between">
             <XStack gap="$2" alignItems="center" flex={1}>
+              {/* 프린터 아이콘 + 제목 */}
+              <XStack alignItems="center" gap="$1.5" flexShrink={1} minWidth={0}>
+                <img src="/print.png" width={20} height={20} style={{ flexShrink: 0 }} />
+                <Text fontSize={16} fontWeight="700" color="#000" numberOfLines={1}>
+                  {request.title}
+                </Text>
+              </XStack>
               {/* 협업 카테고리 배지 */}
               {request.collaboration_type && (
                 <CollaborationTypeBadge type={request.collaboration_type} />
@@ -458,14 +483,6 @@ export function RequestDetailCard({
                 </View>
               )}
             </XStack>
-          </XStack>
-
-          {/* 제목 + 프린터 아이콘 */}
-          <XStack alignItems="center" gap="$2" marginTop={-4}>
-            <img src="/print.png" width={24} height={24} style={{ flexShrink: 0 }} />
-            <Text fontSize={20} fontWeight="700" color="#000">
-              {request.title}
-            </Text>
           </XStack>
 
           {/* 상세 정보 */}

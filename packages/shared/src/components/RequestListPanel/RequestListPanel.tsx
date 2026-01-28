@@ -19,6 +19,7 @@ interface RequestListPanelProps {
   currentLocation: Location | null;
   onSelectRequest: (requestId: string) => void;
   initialCollaborationType?: CollaborationType | null;
+  currentUserId?: string | null;
 }
 
 // 두 좌표 간 거리 계산 (Haversine formula, km 단위)
@@ -53,11 +54,13 @@ export function RequestListPanel({
   currentLocation,
   onSelectRequest,
   initialCollaborationType = null,
+  currentUserId = null,
 }: RequestListPanelProps) {
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedCollaborationType, setSelectedCollaborationType] = useState<CollaborationType | null>(initialCollaborationType);
   const [showCollaborationTypeModal, setShowCollaborationTypeModal] = useState(false);
+  const [showRemoteToast, setShowRemoteToast] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 필터링 및 거리순으로 정렬된 의뢰 목록
@@ -199,6 +202,37 @@ export function RequestListPanel({
                 </svg>
               </XStack>
 
+              {/* 원격 필터 버튼 (별도 분리) */}
+              <XStack
+                paddingHorizontal={14}
+                height={34}
+                borderRadius={17}
+                backgroundColor={selectedCollaborationType === '원격' ? brandColors.primaryLight : 'white'}
+                borderWidth={1}
+                borderColor={selectedCollaborationType === '원격' ? brandColors.primary : '#ddd'}
+                cursor="pointer"
+                alignItems="center"
+                justifyContent="center"
+                gap={6}
+                onPress={() => {
+                  if (selectedCollaborationType === '원격') {
+                    setSelectedCollaborationType(null);
+                  } else {
+                    setSelectedCollaborationType('원격');
+                    setShowRemoteToast(true);
+                    setTimeout(() => setShowRemoteToast(false), 5000);
+                  }
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="4" width="20" height="14" rx="2" stroke={selectedCollaborationType === '원격' ? brandColors.primary : '#999'} strokeWidth="2" fill="none"/>
+                  <path d="M8 21h8M12 18v3" stroke={selectedCollaborationType === '원격' ? brandColors.primary : '#999'} strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <Text fontSize={14} fontWeight="500" color={selectedCollaborationType === '원격' ? brandColors.primary : '#333'}>
+                  원격
+                </Text>
+              </XStack>
+
               </XStack>
 
             {/* 닫기 버튼 */}
@@ -252,6 +286,7 @@ export function RequestListPanel({
                   collaborationType={request.collaboration_type}
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
+                  isOwn={currentUserId === request.user_id}
                   hidePendingBadge
                   distance={'distance' in request && currentLocation && (request as any).distance !== Infinity ? formatDistance((request as any).distance) : undefined}
                   onCardPress={() => onSelectRequest(request.id)}
@@ -373,7 +408,7 @@ export function RequestListPanel({
                   // @ts-ignore
                   style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
                 >
-                  {COLLABORATION_TYPES.filter(t => t !== '원격').map((type) => {
+                  {COLLABORATION_TYPES.filter(type => type !== '원격').map((type) => {
                     const isSelected = selectedCollaborationType === type;
                     return (
                       <View
@@ -421,6 +456,30 @@ export function RequestListPanel({
         )}
       </Sheet.Container>
       <Sheet.Backdrop onTap={onClose} />
+
+      {/* 원격 필터 선택 토스트 */}
+      {showRemoteToast && (
+        <View
+          position="fixed"
+          bottom={100}
+          left={0}
+          right={0}
+          alignItems="center"
+          zIndex={9999}
+          pointerEvents="none"
+        >
+          <View
+            backgroundColor="rgba(0,0,0,0.8)"
+            paddingHorizontal={20}
+            paddingVertical={12}
+            borderRadius={8}
+          >
+            <Text fontSize={14} color="white" fontWeight="500">
+              원격은 지도에 표기되지 않고 탭에서만 확인 가능합니다.
+            </Text>
+          </View>
+        </View>
+      )}
     </Sheet>
   );
 }

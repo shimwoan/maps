@@ -272,6 +272,7 @@ export function HomeScreen() {
   const [editingRequest, setEditingRequest] = useState<EditRequest | null>(null); // 수정할 의뢰
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const [isListPanelOpen, setIsListPanelOpen] = useState(false); // 목록보기 패널
+  const [listPanelInitialFilter, setListPanelInitialFilter] = useState<CollaborationType | null>(null); // 목록보기 패널 초기 필터
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -649,13 +650,6 @@ export function HomeScreen() {
     setIsRegionModalOpen(false);
   };
 
-  // 원격 카테고리 선택 시 목록보기 패널 자동 열기
-  useEffect(() => {
-    if (selectedCollaborationType === '원격') {
-      setIsListPanelOpen(true);
-    }
-  }, [selectedCollaborationType]);
-
   return (
     <View
       position="fixed"
@@ -794,7 +788,7 @@ export function HomeScreen() {
               justifyContent="center"
               gap={6}
               onPress={() => {
-                setSelectedCollaborationType('원격');
+                setListPanelInitialFilter('원격');
                 setIsListPanelOpen(true);
               }}
             >
@@ -1245,7 +1239,10 @@ export function HomeScreen() {
             borderColor="#eee"
             hoverStyle={{ backgroundColor: '#f8f8f8' }}
             pressStyle={{ scale: 0.95 }}
-            onPress={() => setIsListPanelOpen(true)}
+            onPress={() => {
+              setListPanelInitialFilter(null);
+              setIsListPanelOpen(true);
+            }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1350,6 +1347,7 @@ export function HomeScreen() {
                   collaborationType={request.collaboration_type}
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
+                  isOwn={user?.id === request.user_id}
                   hidePendingBadge
                   onCardPress={() => {
                     setClusterRequestIds([]);
@@ -1406,6 +1404,7 @@ export function HomeScreen() {
         onClose={() => setIsListPanelOpen(false)}
         requests={requests}
         currentLocation={currentLocation}
+        currentUserId={user?.id || null}
         onSelectRequest={(requestId) => {
           const request = requests.find(r => r.id === requestId);
           if (request && request.latitude && request.longitude) {
@@ -1415,7 +1414,7 @@ export function HomeScreen() {
           setClusterRequestIds([]);
           setSelectedClusterKey(null);
         }}
-        initialCollaborationType={null}
+        initialCollaborationType={listPanelInitialFilter}
       />
     </View>
   );

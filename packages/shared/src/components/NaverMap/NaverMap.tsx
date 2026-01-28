@@ -119,29 +119,62 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
   const bgColor = primaryColor;
   const size = getMarkerSize(zoom);
 
-  // 긴급 배지 (상단 중앙)
-  const urgentFontSize = Math.max(9, Math.round(11 * size.scale));
-  const urgentPaddingV = Math.max(2, Math.round(3 * size.scale));
-  const urgentPaddingH = Math.max(5, Math.round(6 * size.scale));
+  // 협업 카테고리 색상
+  const collaborationTypeColors: Record<string, string> = {
+    '방문AS': '#3B82F6',
+    '설치이관': '#10B981',
+    '인력지원': '#8B5CF6',
+    '원격': '#EC4899',
+  };
+
+  // 배지 스타일
+  const badgeFontSize = Math.max(9, Math.round(11 * size.scale));
+  const badgePaddingV = Math.max(2, Math.round(3 * size.scale));
+  const badgePaddingH = Math.max(5, Math.round(6 * size.scale));
+
+  // 협업 카테고리 배지 (상단)
+  const collaborationBadge = marker.collaborationType ? `
+    <div style="
+      background: ${collaborationTypeColors[marker.collaborationType] || '#3B82F6'};
+      color: white;
+      font-size: ${badgeFontSize}px;
+      font-weight: 700;
+      padding: ${badgePaddingV}px ${badgePaddingH}px;
+      border-radius: 4px;
+      border: 1px solid white;
+      line-height: 1;
+      white-space: nowrap;
+    ">${marker.collaborationType}</div>
+  ` : '';
+
+  // 긴급 배지 (상단)
   const urgentBadge = isUrgent ? `
+    <div style="
+      background: #DC2626;
+      color: white;
+      font-size: ${badgeFontSize}px;
+      font-weight: 700;
+      padding: ${badgePaddingV}px ${badgePaddingH}px;
+      border-radius: 4px;
+      border: 1px solid white;
+      line-height: 1;
+      white-space: nowrap;
+    ">긴급</div>
+  ` : '';
+
+  // 상단 배지들 (협업 카테고리 + 긴급)
+  const topBadges = (collaborationBadge || urgentBadge) ? `
     <div style="
       position: absolute;
       top: -12px;
       left: 50%;
       transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
       white-space: nowrap;
     ">
-      <div style="
-        background: #DC2626;
-        color: white;
-        font-size: ${urgentFontSize}px;
-        font-weight: 700;
-        padding: ${urgentPaddingV}px ${urgentPaddingH}px;
-        border-radius: 4px;
-        border: 1px solid white;
-        line-height: 1;
-        white-space: nowrap;
-      ">긴급</div>
+      ${collaborationBadge}
+      ${urgentBadge}
     </div>
   ` : '';
 
@@ -199,7 +232,7 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
           left: 50%;
           transform: translateX(-50%);
         " />
-        ${urgentBadge}
+        ${topBadges}
         ${myBadge}
       </div>
       <!-- 그림자 -->
