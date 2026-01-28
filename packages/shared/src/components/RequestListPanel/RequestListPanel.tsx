@@ -19,7 +19,6 @@ interface RequestListPanelProps {
   currentLocation: Location | null;
   onSelectRequest: (requestId: string) => void;
   initialCollaborationType?: CollaborationType | null;
-  initialIsUrgentFilter?: boolean;
 }
 
 // 두 좌표 간 거리 계산 (Haversine formula, km 단위)
@@ -54,12 +53,10 @@ export function RequestListPanel({
   currentLocation,
   onSelectRequest,
   initialCollaborationType = null,
-  initialIsUrgentFilter = false,
 }: RequestListPanelProps) {
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedCollaborationType, setSelectedCollaborationType] = useState<CollaborationType | null>(initialCollaborationType);
-  const [isUrgentFilterOn, setIsUrgentFilterOn] = useState(initialIsUrgentFilter);
   const [showCollaborationTypeModal, setShowCollaborationTypeModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -70,11 +67,6 @@ export function RequestListPanel({
     // 카테고리 필터
     if (selectedCollaborationType) {
       filtered = filtered.filter(r => r.collaboration_type === selectedCollaborationType);
-    }
-
-    // 긴급 필터
-    if (isUrgentFilterOn) {
-      filtered = filtered.filter(r => r.is_urgent);
     }
 
     // 상태 정렬 우선순위: 대기중 → 진행중 → 완료
@@ -108,7 +100,7 @@ export function RequestListPanel({
         // 같은 상태 내에서는 거리순
         return a.distance - b.distance;
       });
-  }, [requests, currentLocation, selectedCollaborationType, isUrgentFilterOn]);
+  }, [requests, currentLocation, selectedCollaborationType]);
 
   // 표시할 의뢰 목록
   const displayedRequests = useMemo(() => {
@@ -123,12 +115,11 @@ export function RequestListPanel({
     if (isOpen) {
       setDisplayCount(ITEMS_PER_PAGE);
       setSelectedCollaborationType(initialCollaborationType);
-      setIsUrgentFilterOn(initialIsUrgentFilter);
       if (scrollRef.current) {
         scrollRef.current.scrollTop = 0;
       }
     }
-  }, [isOpen, initialCollaborationType, initialIsUrgentFilter]);
+  }, [isOpen, initialCollaborationType]);
 
   // 스크롤 이벤트 핸들러
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -191,45 +182,21 @@ export function RequestListPanel({
                 paddingHorizontal={14}
                 height={34}
                 borderRadius={17}
-                backgroundColor={selectedCollaborationType ? brandColors.primaryLight : 'white'}
+                backgroundColor={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primaryLight : 'white'}
                 borderWidth={1}
-                borderColor={selectedCollaborationType ? brandColors.primary : '#ddd'}
+                borderColor={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#ddd'}
                 cursor="pointer"
                 alignItems="center"
                 justifyContent="center"
                 gap={6}
                 onPress={() => setShowCollaborationTypeModal(true)}
               >
-                <Text fontSize={14} fontWeight="500" color={selectedCollaborationType ? brandColors.primary : '#000'}>
-                  {selectedCollaborationType || '카테고리 전체'}
+                <Text fontSize={14} fontWeight="500" color={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#000'}>
+                  {selectedCollaborationType && selectedCollaborationType !== '원격' ? selectedCollaborationType : '카테고리 전체'}
                 </Text>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              </XStack>
-
-              {/* 긴급 필터 버튼 */}
-              <XStack
-                paddingHorizontal={14}
-                height={34}
-                borderRadius={17}
-                backgroundColor={isUrgentFilterOn ? '#FEE2E2' : 'white'}
-                borderWidth={1}
-                borderColor={isUrgentFilterOn ? '#EF4444' : '#ddd'}
-                cursor="pointer"
-                alignItems="center"
-                justifyContent="center"
-                gap={6}
-                onPress={() => setIsUrgentFilterOn(!isUrgentFilterOn)}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 22h20L12 2z" fill={isUrgentFilterOn ? '#EF4444' : '#999'}/>
-                  <path d="M12 9v4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                  <circle cx="12" cy="16" r="1" fill="white"/>
-                </svg>
-                <Text fontSize={14} fontWeight="500" color={isUrgentFilterOn ? '#EF4444' : '#333'}>
-                  긴급
-                </Text>
               </XStack>
 
               </XStack>
@@ -406,7 +373,7 @@ export function RequestListPanel({
                   // @ts-ignore
                   style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
                 >
-                  {COLLABORATION_TYPES.map((type) => {
+                  {COLLABORATION_TYPES.filter(t => t !== '원격').map((type) => {
                     const isSelected = selectedCollaborationType === type;
                     return (
                       <View

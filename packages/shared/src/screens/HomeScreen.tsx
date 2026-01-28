@@ -266,7 +266,6 @@ export function HomeScreen() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedCollaborationType, setSelectedCollaborationType] = useState<CollaborationType | null>(null);
   const [selectedStatusFilters, setSelectedStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
-  const [isUrgentFilterOn, setIsUrgentFilterOn] = useState(false);
   const [showCollaborationTypeModal, setShowCollaborationTypeModal] = useState(false);
   const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
   const [clusterRequestIds, setClusterRequestIds] = useState<string[]>([]); // 클러스터 클릭 시 표시할 의뢰 ID 목록
@@ -293,7 +292,6 @@ export function HomeScreen() {
       .filter(r => r.latitude && r.longitude)
       .filter(r => !selectedCollaborationType || r.collaboration_type === selectedCollaborationType)
       .filter(r => selectedStatusFilters.length === 0 || selectedStatusFilters.includes(r.status as 'pending' | 'accepted' | 'completed'))
-      .filter(r => !isUrgentFilterOn || r.is_urgent)
       .map(r => ({
         id: r.id,
         userId: r.user_id,
@@ -306,7 +304,7 @@ export function HomeScreen() {
         status: r.status,
         isUrgent: r.is_urgent,
       }));
-  }, [requests, selectedCollaborationType, selectedStatusFilters, isUrgentFilterOn]);
+  }, [requests, selectedCollaborationType, selectedStatusFilters]);
 
   // 선택된 의뢰 정보
   const selectedRequest = useMemo(() => {
@@ -766,44 +764,46 @@ export function HomeScreen() {
               paddingHorizontal={14}
               height={34}
               borderRadius={17}
-              backgroundColor={selectedCollaborationType ? brandColors.primaryLight : 'white'}
+              backgroundColor={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primaryLight : 'white'}
               borderWidth={1}
-              borderColor={selectedCollaborationType ? brandColors.primary : '#ddd'}
+              borderColor={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#ddd'}
               cursor="pointer"
               alignItems="center"
               justifyContent="center"
               gap={6}
               onPress={() => setShowCollaborationTypeModal(true)}
             >
-              <Text fontSize={14} fontWeight="500" color={selectedCollaborationType ? brandColors.primary : '#000'}>
-                {selectedCollaborationType || '카테고리 전체'}
+              <Text fontSize={14} fontWeight="500" color={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#000'}>
+                {selectedCollaborationType && selectedCollaborationType !== '원격' ? selectedCollaborationType : '카테고리 전체'}
               </Text>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </XStack>
 
-            {/* 긴급 필터 버튼 */}
+            {/* 원격 필터 버튼 */}
             <XStack
               paddingHorizontal={14}
               height={34}
               borderRadius={17}
-              backgroundColor={isUrgentFilterOn ? '#FEE2E2' : 'white'}
+              backgroundColor="white"
               borderWidth={1}
-              borderColor={isUrgentFilterOn ? '#EF4444' : '#ddd'}
+              borderColor="#ddd"
               cursor="pointer"
               alignItems="center"
               justifyContent="center"
               gap={6}
-              onPress={() => setIsUrgentFilterOn(!isUrgentFilterOn)}
+              onPress={() => {
+                setSelectedCollaborationType('원격');
+                setIsListPanelOpen(true);
+              }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 22h20L12 2z" fill={isUrgentFilterOn ? '#EF4444' : '#999'}/>
-                <path d="M12 9v4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                <circle cx="12" cy="16" r="1" fill="white"/>
+                <rect x="2" y="4" width="20" height="14" rx="2" stroke="#999" strokeWidth="2" fill="none"/>
+                <path d="M8 21h8M12 18v3" stroke="#999" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              <Text fontSize={14} fontWeight="500" color={isUrgentFilterOn ? '#EF4444' : '#333'}>
-                긴급
+              <Text fontSize={14} fontWeight="500" color="#333">
+                원격
               </Text>
             </XStack>
 
@@ -895,12 +895,12 @@ export function HomeScreen() {
                 </XStack>
               </View>
 
-              {/* 카테고리 옵션들 */}
+              {/* 카테고리 옵션들 (원격 제외 - 별도 버튼으로 분리) */}
               <View
                 // @ts-ignore
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
               >
-                {COLLABORATION_TYPES.map((type) => {
+                {COLLABORATION_TYPES.filter(type => type !== '원격').map((type) => {
                   const isSelected = selectedCollaborationType === type;
                   return (
                     <View
@@ -1425,7 +1425,6 @@ export function HomeScreen() {
           setSelectedClusterKey(null);
         }}
         initialCollaborationType={selectedCollaborationType}
-        initialIsUrgentFilter={isUrgentFilterOn}
       />
     </View>
   );

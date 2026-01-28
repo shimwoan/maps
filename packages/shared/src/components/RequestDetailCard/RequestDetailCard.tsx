@@ -20,7 +20,7 @@ import type { CollaborationType } from '../RequestFormModal/types';
 const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; border: string; text: string }> = {
   '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
   '설치이관': { bg: '#fff', border: '#10B981', text: '#059669' },
-  '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
+  '인력지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
   '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
 };
 
@@ -472,31 +472,37 @@ export function RequestDetailCard({
           </Text>
 
           {/* 상세 정보 */}
-          <YStack gap="$3" backgroundColor="#f9f9f9" padding="$4" borderRadius={12}>
-            <XStack alignItems="flex-start">
-              <XStack width={100} alignItems="center" gap="$1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3B82F6"/>
+          <YStack>
+            <XStack alignItems="flex-start" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+              <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EF4444"/>
                   <circle cx="12" cy="9" r="2.5" fill="white"/>
                 </svg>
-                <Text fontSize={16} color="#000">주소</Text>
+                <Text fontSize={16} color="#444" fontWeight="600">주소</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>
+              <Text fontSize={16} color="#000" flex={1} textAlign="right" fontWeight="600">
                 {request.address}
                 {request.address_detail ? ` ${request.address_detail}` : ''}
               </Text>
             </XStack>
-            <XStack alignItems="center">
-              <XStack width={100} alignItems="center" gap="$1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="11" fill="#F6D365"/>
-                  <circle cx="12" cy="12" r="8" fill="#E8A838"/>
-                  <path d="M12 5v14M9.5 8.5c0-.83.67-1.5 1.5-1.5h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2c-1.1 0-2 .9-2 2s.9 2 2 2h2c.83 0 1.5-.67 1.5-1.5" stroke="#F6D365" strokeWidth="2" strokeLinecap="round"/>
+            <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+              <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  {/* 돈주머니 몸통 */}
+                  <ellipse cx="12" cy="14" rx="9" ry="9" fill="#F5C542"/>
+                  {/* 주머니 윗부분 */}
+                  <ellipse cx="12" cy="5" rx="3.5" ry="2.5" fill="#F5C542"/>
+                  {/* 끈 부분 */}
+                  <rect x="8" y="6" width="8" height="3" rx="1" fill="#D4A017"/>
+                  {/* 달러 표시 $ */}
+                  <path d="M12 9v10" stroke="#8B6914" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M9 12c0-1.5 1.3-2 3-2s3 .5 3 2c0 1.5-1.3 2-3 2s-3 .5-3 2c0 1.5 1.3 2 3 2s3-.5 3-2" stroke="#8B6914" strokeWidth="2" strokeLinecap="round" fill="none"/>
                 </svg>
-                <Text fontSize={16} color="#000">비용</Text>
+                <Text fontSize={16} color="#444" fontWeight="600">예상수익</Text>
               </XStack>
-              <XStack alignItems="center" gap="$3" flex={1}>
-                <Text fontSize={18} fontWeight="600" color={brandColors.primary}>
+              <XStack alignItems="center" gap="$2">
+                <Text fontSize={18} fontWeight="700" color="#22C55E">
                   {formatPrice(request.expected_fee)}원
                 </Text>
                 <View
@@ -514,67 +520,78 @@ export function RequestDetailCard({
               </XStack>
             </XStack>
             {request.model && (request.as_type === '복합기/OA' || request.as_type === '가전/설비') && (
-              <XStack alignItems="center">
-                <XStack width={100} alignItems="center" gap="$1.5">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+                <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <rect x="4" y="4" width="16" height="16" rx="2" fill="#8B5CF6"/>
                     <rect x="7" y="8" width="10" height="3" rx="1" fill="white"/>
                     <circle cx="9" cy="15" r="1" fill="white"/>
                     <circle cx="12" cy="15" r="1" fill="white"/>
                     <circle cx="15" cy="15" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={16} color="#000">기종</Text>
+                  <Text fontSize={16} color="#444" fontWeight="600">기종</Text>
                 </XStack>
-                <Text fontSize={16} color="#000" flex={1}>{request.model}</Text>
+                <Text fontSize={16} color="#000" textAlign="right" fontWeight="600">{request.model}</Text>
               </XStack>
             )}
             {request.symptom && (
-              <XStack alignItems="flex-start">
-                <XStack width={100} alignItems="center" gap="$1.5">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <XStack alignItems="flex-start" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+                <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M12 2L2 22h20L12 2z" fill="#F59E0B"/>
                     <path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                     <circle cx="12" cy="17" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={16} color="#000">증상</Text>
+                  <Text fontSize={16} color="#444" fontWeight="600">증상</Text>
                 </XStack>
-                <Text fontSize={16} color="#000" flex={1}>{request.symptom}</Text>
+                <Text fontSize={16} color="#000" textAlign="right" flex={1} fontWeight="600">{request.symptom}</Text>
               </XStack>
             )}
-            <XStack alignItems="center">
-              <XStack width={100} alignItems="center" gap="$1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="4" width="18" height="18" rx="2" fill="#6366F1"/>
-                  <path d="M3 9h18" stroke="white" strokeWidth="1.5"/>
-                  <path d="M8 2v4M16 2v4" stroke="#6366F1" strokeWidth="2" strokeLinecap="round"/>
-                  <circle cx="12" cy="15" r="2" fill="white"/>
+            <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+              <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  {/* 달력 몸통 */}
+                  <rect x="3" y="6" width="18" height="16" rx="2" fill="#F5F5F5" stroke="#E0E0E0" strokeWidth="1"/>
+                  {/* 달력 상단 (빨간색) */}
+                  <rect x="3" y="6" width="18" height="5" rx="2" fill="#EF4444"/>
+                  {/* 달력 고리 */}
+                  <rect x="7" y="3" width="2" height="5" rx="1" fill="#9CA3AF"/>
+                  <rect x="15" y="3" width="2" height="5" rx="1" fill="#9CA3AF"/>
+                  {/* 날짜 표시 */}
+                  <rect x="6" y="13" width="4" height="3" rx="0.5" fill="#EF4444"/>
+                  <rect x="12" y="13" width="4" height="3" rx="0.5" fill="#E5E5E5"/>
+                  <rect x="6" y="18" width="4" height="3" rx="0.5" fill="#E5E5E5"/>
                 </svg>
-                <Text fontSize={16} color="#000">처리요청</Text>
+                <Text fontSize={16} color="#444" fontWeight="600">처리일정</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>
+              <Text fontSize={18} fontWeight="700" color="#F59E0B">
                 {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
               </Text>
             </XStack>
-            <XStack alignItems="center">
-              <XStack width={100} alignItems="center" gap="$1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="7" r="4" fill="#EC4899"/>
-                  <path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2" fill="#EC4899"/>
+            <XStack alignItems="center" paddingVertical={8} borderBottomWidth={request.description ? 1 : 0} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+              <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  {/* 뒷사람 */}
+                  <circle cx="16" cy="7" r="3" fill="#9CA3AF"/>
+                  <path d="M12 21v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2" fill="#9CA3AF"/>
+                  {/* 앞사람 */}
+                  <circle cx="9" cy="7" r="4" fill="#6B7280"/>
+                  <path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2" fill="#6B7280"/>
                 </svg>
-                <Text fontSize={16} color="#000">필요인원</Text>
+                <Text fontSize={16} color="#444" fontWeight="600">필요인원</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1}>{request.required_personnel}명</Text>
+              <Text fontSize={18} fontWeight="700" color="#F59E0B">{request.required_personnel}명</Text>
             </XStack>
             {request.description && (
-              <XStack alignItems="flex-start">
-                <XStack width={100} alignItems="center" gap="$1.5" marginTop={2}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <XStack alignItems="flex-start" paddingVertical={8} justifyContent="space-between" gap={12}>
+                <XStack alignItems="center" gap="$1.5" flexShrink={0}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="3" width="18" height="18" rx="2" fill="#6B7280"/>
                     <path d="M7 8h10M7 12h10M7 16h6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <Text fontSize={16} color="#000">상세 설명</Text>
+                  <Text fontSize={16} color="#444" fontWeight="600">상세설명</Text>
                 </XStack>
-                <Text fontSize={16} color="#000" lineHeight={24} flex={1}>{request.description}</Text>
+                <Text fontSize={16} color="#000" lineHeight={24} flex={1} textAlign="right" fontWeight="600">{request.description}</Text>
               </XStack>
             )}
           </YStack>

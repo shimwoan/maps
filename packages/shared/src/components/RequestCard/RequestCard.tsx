@@ -8,7 +8,7 @@ import { AsTypeIcon } from '../AsTypeIcon';
 const COLLABORATION_TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
   '방문AS': { bg: '#fff', border: '#F97316', text: '#EA580C' },
   '설치이관': { bg: '#fff', border: '#10B981', text: '#059669' },
-  '회수지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
+  '인력지원': { bg: '#fff', border: '#8B5CF6', text: '#7C3AED' },
   '원격': { bg: '#fff', border: '#10B981', text: '#059669' },
 };
 
@@ -156,7 +156,7 @@ export function RequestCard({
         ) : (
           <View />
         )}
-        <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="600">
+        <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="700">
           {formatPrice(expectedFee)}원
         </Text>
       </XStack>

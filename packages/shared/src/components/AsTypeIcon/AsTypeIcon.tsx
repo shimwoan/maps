@@ -9,11 +9,7 @@ export function AsTypeIcon({ type, size = 14 }: AsTypeIconProps) {
   switch (type) {
     case '복합기/OA':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-          <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-          <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-          <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
-        </svg>
+        <img src="/print.png" alt="복합기/OA" width={size} height={size} style={{ objectFit: 'contain' }} />
       );
     case '전기/통신':
       return (
@@ -56,11 +52,7 @@ export function AsTypeIcon({ type, size = 14 }: AsTypeIconProps) {
       );
     default:
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-          <path d="M7 3h10v5H7z" fill="#E5E7EB" stroke="#6B7280" strokeWidth="1"/>
-          <rect x="4" y="8" width="16" height="8" rx="1" fill="#6B7280"/>
-          <path d="M7 16h10v5H7z" fill="white" stroke="#9CA3AF" strokeWidth="1"/>
-        </svg>
+        <img src="/print.png" alt="기타" width={size} height={size} style={{ objectFit: 'contain' }} />
       );
   }
 }

@@ -917,7 +917,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               <Controller
                 control={control}
                 name="expectedFee"
-                rules={{ required: '비용을 입력해주세요', min: { value: 10000, message: '최소 10,000원 이상' } }}
+                rules={{ required: '비용을 입력해주세요' }}
                 render={({ field: { onChange, value } }) => (
                   <XStack alignItems="center" gap="$2">
                     <Input
@@ -937,6 +937,38 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               />
               {errors.expectedFee && <Text color="#ff4444" fontSize={14}>{errors.expectedFee.message}</Text>}
             </YStack>
+
+            {/* 세금계산서 발행 */}
+            <Controller
+              control={control}
+              name="needsInvoice"
+              render={({ field: { onChange, value } }) => (
+                <XStack
+                  alignItems="center"
+                  cursor="pointer"
+                  gap="$3"
+                  onPress={() => onChange(!value)}
+                >
+                  <Text fontSize={16} fontWeight="600" color="#EF4444">세금계산서 발행</Text>
+                  <View
+                    width={22}
+                    height={22}
+                    borderRadius={4}
+                    borderWidth={2}
+                    borderColor={value ? brandColors.primary : '#ccc'}
+                    backgroundColor={value ? brandColors.primary : 'white'}
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {value && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </View>
+                </XStack>
+              )}
+            />
 
             {/* 주소 - 원격 제외 */}
             {watch('collaborationType') !== '원격' && (
@@ -977,38 +1009,6 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                 />
               </YStack>
             )}
-
-            {/* 세금계산서 발행 */}
-            <Controller
-              control={control}
-              name="needsInvoice"
-              render={({ field: { onChange, value } }) => (
-                <XStack
-                  alignItems="center"
-                  cursor="pointer"
-                  gap="$3"
-                  onPress={() => onChange(!value)}
-                >
-                  <Text fontSize={16} fontWeight="600" color="#EF4444">세금계산서 발행</Text>
-                  <View
-                    width={22}
-                    height={22}
-                    borderRadius={4}
-                    borderWidth={2}
-                    borderColor={value ? brandColors.primary : '#ccc'}
-                    backgroundColor={value ? brandColors.primary : 'white'}
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    {value && (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </View>
-                </XStack>
-              )}
-            />
 
             {/* 처리 일정 */}
             <YStack gap="$2">
