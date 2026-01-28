@@ -1006,7 +1006,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                     fontWeight="600"
                     color={activeTab === 'myRequests' ? 'white' : '#666'}
                   >
-                   협업 요청합니다
+                   내가 요청한 협업
                   </Text>
                   {inProgressRequestsCount > 0 && (
                     <View
@@ -1042,7 +1042,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
                     fontWeight="600"
                     color={activeTab === 'myApplications' ? 'white' : '#666'}
                   >
-                   협업 가능합니다
+                   작업중인 협업
                   </Text>
                   {inProgressApplicationsCount > 0 && (
                     <View

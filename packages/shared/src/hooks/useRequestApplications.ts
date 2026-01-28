@@ -510,9 +510,9 @@ export function useRequestApplications() {
     return hasPendingApplicants || hasCompletionRequestsOnMyRequests || hasCompletionRequestsOnMyApplications;
   }, [myApplications, applicationsToMyRequests]);
 
-  // 협업 가능합니다 탭: 작업 완료 요청 개수 (확인해야 할 작업)
+  // 협업 가능합니다 탭: 진행중인 협업 개수 (작업 완료 요청 해야 할 것)
   const inProgressApplicationsCount = useMemo(() =>
-    myApplications.filter(app => app.status === 'accepted' && app.completion_requested).length
+    myApplications.filter(app => app.status === 'accepted' && !app.completion_requested).length
   , [myApplications]);
 
   // 협업 요청합니다 탭: 대기중인 신청자 + 작업 완료 요청 개수 (피드백 해야 할 작업)

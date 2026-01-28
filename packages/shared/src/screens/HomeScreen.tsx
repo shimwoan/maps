@@ -553,7 +553,8 @@ export function HomeScreen() {
                   newData.longitude
                 );
               }
-            
+              // 상태가 변경되면 목록 갱신 (마커 색상 실시간 반영)
+              refetchRequests();
             }
           }
         )
