@@ -469,7 +469,7 @@ export function RequestDetailCard({
           </XStack>
 
           {/* 제목 */}
-          <Text fontSize={18} fontWeight="700" color="#000">
+          <Text fontSize={18} fontWeight="700" color="#000" marginTop={-8}>
             {request.title}
           </Text>
 

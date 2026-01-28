@@ -851,49 +851,48 @@ export function HomeScreen() {
 
             {/* 모달 내용 - 라디오 형태 */}
             <View padding={20} paddingTop={0}>
-              {/* 전체 옵션 */}
-              <View
-                height={48}
-                borderRadius={8}
-                backgroundColor={!selectedCollaborationType ? brandColors.primary : '#f5f5f5'}
-                alignItems="center"
-                justifyContent="center"
-                cursor="pointer"
-                marginBottom={10}
-                onPress={() => {
-                  setSelectedCollaborationType(null);
-                  setShowCollaborationTypeModal(false);
-                }}
-              >
-                <XStack alignItems="center" gap={8}>
-                  <View
-                    width={20}
-                    height={20}
-                    borderRadius={10}
-                    borderWidth={2}
-                    borderColor={!selectedCollaborationType ? 'white' : '#ccc'}
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    {!selectedCollaborationType && (
-                      <View width={10} height={10} borderRadius={5} backgroundColor="white" />
-                    )}
-                  </View>
-                  <Text
-                    fontSize={14}
-                    fontWeight="600"
-                    color={!selectedCollaborationType ? 'white' : '#333'}
-                  >
-                    전체
-                  </Text>
-                </XStack>
-              </View>
-
-              {/* 카테고리 옵션들 (원격 제외 - 별도 버튼으로 분리) */}
+              {/* 카테고리 옵션들 (전체 포함, 원격 제외 - 별도 버튼으로 분리) */}
               <View
                 // @ts-ignore
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
               >
+                {/* 전체 옵션 */}
+                <View
+                  height={48}
+                  borderRadius={8}
+                  backgroundColor={!selectedCollaborationType ? brandColors.primary : '#f5f5f5'}
+                  alignItems="center"
+                  justifyContent="center"
+                  cursor="pointer"
+                  onPress={() => {
+                    setSelectedCollaborationType(null);
+                    setShowCollaborationTypeModal(false);
+                  }}
+                >
+                  <XStack alignItems="center" gap={8}>
+                    <View
+                      width={20}
+                      height={20}
+                      borderRadius={10}
+                      borderWidth={2}
+                      borderColor={!selectedCollaborationType ? 'white' : '#ccc'}
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      {!selectedCollaborationType && (
+                        <View width={10} height={10} borderRadius={5} backgroundColor="white" />
+                      )}
+                    </View>
+                    <Text
+                      fontSize={14}
+                      fontWeight="600"
+                      color={!selectedCollaborationType ? 'white' : '#333'}
+                    >
+                      전체
+                    </Text>
+                  </XStack>
+                </View>
+
                 {COLLABORATION_TYPES.filter(type => type !== '원격').map((type) => {
                   const isSelected = selectedCollaborationType === type;
                   return (
