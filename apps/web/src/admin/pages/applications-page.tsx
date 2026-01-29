@@ -352,6 +352,7 @@ export function ApplicationsPage() {
               business_card_url: selectedApplication.profiles.business_card_url ?? null,
             } : undefined,
           }}
+          hideActions
         />
       )}
 
