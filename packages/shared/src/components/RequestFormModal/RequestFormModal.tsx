@@ -783,17 +783,17 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               {errors.title && <Text color="#ff4444" fontSize={14}>{errors.title.message}</Text>}
             </YStack>
 
-            {/* 기종 - 복합기/OA, 가전/설비일 때만 표시 */}
+            {/* 기종/증상 - 복합기/OA, 가전/설비일 때만 표시 */}
             {(watch('asType') === '복합기/OA' || watch('asType') === '가전/설비') && (
               <YStack gap="$2">
-                <Text fontSize={16} fontWeight="600" color="#000">기종</Text>
+                <Text fontSize={16} fontWeight="600" color="#000">기종/증상</Text>
                 <Controller
                   control={control}
                   name="model"
                   render={({ field: { onChange, value } }) => (
                     <Input
                       size="$4"
-                      placeholder="예: HP8710, 삼성 SL-M2020"
+                      placeholder="예: 삼성 SL-M2020 인쇄안됨"
                       value={value}
                       onChangeText={onChange}
                       backgroundColor="#f9f9f9"

@@ -539,7 +539,7 @@ export function RequestDetailCard({
                     <circle cx="12" cy="15" r="1" fill="white"/>
                     <circle cx="15" cy="15" r="1" fill="white"/>
                   </svg>
-                  <Text fontSize={16} color="#444" fontWeight="600">기종</Text>
+                  <Text fontSize={16} color="#444" fontWeight="600">기종/증상</Text>
                 </XStack>
                 <Text fontSize={16} color="#000" textAlign="right" fontWeight="600">{request.model}</Text>
               </XStack>
