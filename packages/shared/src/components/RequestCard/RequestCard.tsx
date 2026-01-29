@@ -169,7 +169,7 @@ export function RequestCard({
           {/* 제목 + AS 타입 */}
           <XStack alignItems="center" gap="$2" marginTop="$2" marginBottom={isRemote ? 0 : "$2.5"}>
             <Text fontSize={16} fontWeight="800" color="#333" flexShrink={0}>{asType}</Text>
-            <Text fontSize={16} fontWeight="600" color={isCompleted ? '#333' : '#000'} numberOfLines={1} flex={1}>
+            <Text fontSize={14} fontWeight="600" color={isCompleted ? '#333' : '#000'} numberOfLines={1} flex={1}>
               {title}
             </Text>
           </XStack>
