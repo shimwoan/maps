@@ -119,7 +119,7 @@ export function RequestListPanel({
         // 같은 상태 내에서는 거리순
         return a.distance - b.distance;
       });
-  }, [requests, currentLocation, selectedCollaborationType]);
+  }, [requests, currentLocation, selectedCollaborationType, filterPending, filterMy, currentUserId]);
 
   // 표시할 의뢰 목록
   const displayedRequests = useMemo(() => {
