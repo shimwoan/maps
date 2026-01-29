@@ -20,6 +20,7 @@ import { RequestFormModal } from '../components/RequestFormModal';
 import type { EditRequest } from '../components/RequestFormModal/types';
 import { formatCompletedDateTime } from '../utils/format';
 import { isAdminNickname } from '../constants/admin';
+import { sendSms, SmsTemplates } from '../lib/sendon';
 
 type TabType = 'myRequests' | 'myApplications';
 type PageMode = 'requests' | 'profile';
@@ -83,7 +84,6 @@ function MyRequestCard({
       isCompleted={isCompleted}
       isUrgent={request.is_urgent}
       onCardPress={onCardPress}
-      hidePendingBadge
       rightAction={
         <XStack alignItems="center" gap="$2" marginRight={-8} marginTop={-2}>
           {/* 신청자 수 표시 */}
@@ -190,7 +190,7 @@ function MyRequestCard({
             <Text fontSize={14} color={acceptedApp.completion_requested ? '#F59E0B' : '#22C55E'} fontWeight="600" flex={1}>
               {acceptedApp.completion_requested
                 ? `${acceptedApp.applicant_profile?.nickname || '수행자'}님이 작업 완료 요청`
-                : `${acceptedApp.applicant_profile?.nickname || '신청자'}님과 진행중`}
+                : `${acceptedApp.applicant_profile?.nickname || '신청자'}님과 매칭완료`}
             </Text>
             {acceptedApp.applicant_profile?.business_card_url && (
               <View
@@ -394,7 +394,6 @@ function MyApplicationCard({
       isCompleted={application.status === 'completed'}
       isUrgent={req.is_urgent}
       onCardPress={onCardPress}
-      hidePendingBadge
     >
       {/* 진행중인 경우 */}
       {application.status === 'accepted' && (
@@ -411,7 +410,7 @@ function MyApplicationCard({
             <Text fontSize={14} color={application.completion_requested ? '#F59E0B' : '#22C55E'} fontWeight="600" flex={1}>
               {application.completion_requested
                 ? `${application.requester_profile?.nickname || '협업 요청자'}님이 작업 완료 요청 대기중`
-                : `${application.requester_profile?.nickname || '협업 요청자'}님과 진행중`}
+                : `${application.requester_profile?.nickname || '협업 요청자'}님과 매칭완료`}
             </Text>
             {application.requester_profile?.business_card_url && (
               <View
@@ -657,6 +656,20 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
         message: `"${requestData.title}" 협업이 완료되었습니다.`,
         request_id: reqId,
       });
+
+      // SMS 발송 - 수행자에게
+      const { data: performerProfile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('user_id', acceptedApp.applicant_id)
+        .single();
+
+      if (performerProfile?.phone) {
+        sendSms({
+          to: performerProfile.phone,
+          message: SmsTemplates.workCompleted(requestData.title),
+        });
+      }
     }
 
     // 로컬 상태 업데이트

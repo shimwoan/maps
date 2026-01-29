@@ -24,7 +24,7 @@ const PAGE_SIZE = 20;
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'success' | 'warning' | 'destructive' | 'info' }> = {
   pending: { label: '대기중', variant: 'warning' },
   applied: { label: '신청있음', variant: 'info' },
-  accepted: { label: '진행중', variant: 'default' },
+  accepted: { label: '매칭완료', variant: 'default' },
   completed: { label: '완료', variant: 'success' },
   cancelled: { label: '취소', variant: 'destructive' },
 };

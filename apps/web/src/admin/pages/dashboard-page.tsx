@@ -78,10 +78,10 @@ export function DashboardPage() {
                 description="대기중 또는 신청있음"
               />
               <StatCard
-                title="진행중 의뢰"
+                title="매칭완료 의뢰"
                 value={stats.acceptedRequests}
                 icon={PlayCircle}
-                description="현재 진행중인 의뢰"
+                description="현재 매칭완료된 의뢰"
               />
               <StatCard
                 title="완료된 의뢰"
