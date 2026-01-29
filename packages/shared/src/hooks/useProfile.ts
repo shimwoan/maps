@@ -17,11 +17,11 @@ export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (): Promise<Profile | null> => {
     if (!user) {
       setProfile(null);
       setIsLoading(false);
-      return;
+      return null;
     }
 
     setIsLoading(true);
@@ -37,8 +37,10 @@ export function useProfile() {
         throw error;
       }
       setProfile(data);
+      return data;
     } catch (err) {
       console.error('Failed to fetch profile:', err);
+      return null;
     } finally {
       setIsLoading(false);
     }
