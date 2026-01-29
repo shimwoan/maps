@@ -221,6 +221,7 @@ function getAddressFromCoords(latitude: number, longitude: number): Address | nu
 }
 
 const MIN_ZOOM_FOR_ADDRESS = 13;
+const DEFAULT_ZOOM = 13; // 기본 줌 레벨
 
 // URL에서 쿼리 파라미터 읽기
 function getUrlParam(param: string): string | null {
@@ -246,7 +247,7 @@ export function HomeScreen() {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
   const [address, setAddress] = useState<Address | null>(null);
-  const [zoom, setZoom] = useState(11);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -648,7 +649,7 @@ export function HomeScreen() {
       setLocation(loc);
       if (granted) {
         setCurrentLocation(loc);
-        setZoom(11);
+        setZoom(DEFAULT_ZOOM);
       }
       setIsLocationLoading(false);
       // 초기 로딩 후 카메라 변경 시 중복 호출 방지
@@ -1211,8 +1212,8 @@ export function HomeScreen() {
             onPress={() => {
               skipAddressUpdateRef.current = true;
               setLocation(currentLocation);
-              setZoom(11);
-              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, 11);
+              setZoom(DEFAULT_ZOOM);
+              naverMapRef.current?.moveTo(currentLocation.latitude, currentLocation.longitude, DEFAULT_ZOOM);
               setAddress(getAddressFromCoords(currentLocation.latitude, currentLocation.longitude));
             }}
           >
