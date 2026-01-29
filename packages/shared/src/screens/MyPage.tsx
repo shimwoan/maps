@@ -83,6 +83,7 @@ function MyRequestCard({
       isCompleted={isCompleted}
       isUrgent={request.is_urgent}
       onCardPress={onCardPress}
+      hidePendingBadge
       rightAction={
         <XStack alignItems="center" gap="$2" marginRight={-8} marginTop={-2}>
           {/* 신청자 수 표시 */}
@@ -393,6 +394,7 @@ function MyApplicationCard({
       isCompleted={application.status === 'completed'}
       isUrgent={req.is_urgent}
       onCardPress={onCardPress}
+      hidePendingBadge
     >
       {/* 진행중인 경우 */}
       {application.status === 'accepted' && (
@@ -994,6 +996,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
             <XStack backgroundColor="white" padding="$3" gap="$2">
               <View
                 flex={1}
+                flexBasis={0}
                 paddingVertical="$2.5"
                 alignItems="center"
                 backgroundColor={activeTab === 'myRequests' ? brandColors.primary : '#f3f4f6'}
@@ -1030,6 +1033,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               </View>
               <View
                 flex={1}
+                flexBasis={0}
                 paddingVertical="$2.5"
                 alignItems="center"
                 backgroundColor={activeTab === 'myApplications' ? brandColors.primary : '#f3f4f6'}
