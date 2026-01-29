@@ -11,7 +11,7 @@ import { LoginModal } from '../LoginModal';
 import { ProfileSetupModal } from '../ProfileSetupModal';
 import { ConfirmationDialog } from '../ConfirmationDialog';
 import { BottomSheet } from '../BottomSheet';
-import { formatPrice, formatDate } from '../../utils/format';
+import { formatPrice, formatDate, formatTimeAgo } from '../../utils/format';
 import { AsTypeIcon } from '../AsTypeIcon';
 import { ImagePreviewModal } from '../ImagePreviewModal';
 import type { CollaborationType } from '../RequestFormModal/types';
@@ -358,9 +358,13 @@ export function RequestDetailCard({
                     fontWeight="600"
                     color={request.status === 'completed' ? '#9CA3AF' : '#F59E0B'}
                   >
-                    {request.status === 'completed' ? '완료' : '진행중'}
+                    {request.status === 'completed' ? '완료' : '매칭완료'}
                   </Text>
                 </View>
+              )}
+              {/* 긴급 사이렌 아이콘 */}
+              {request.is_urgent && request.status !== 'completed' && (
+                <img src="/siren.png" width={18} height={18} alt="긴급" style={{ marginLeft: 4 }} />
               )}
             </XStack>
             {/* 우측 버튼 영역 */}
@@ -455,10 +459,17 @@ export function RequestDetailCard({
             </XStack>
           </XStack>
 
-          {/* 제목 */}
-          <Text fontSize={18} fontWeight="700" color="#000" marginTop={-8}>
-            {request.title}
-          </Text>
+          {/* 제목 + 생성 시간 */}
+          <XStack alignItems="center" justifyContent="space-between" marginTop={-8}>
+            <Text fontSize={18} fontWeight="600" color="#000" flex={1}>
+              {request.title}
+            </Text>
+            {request.created_at && (
+              <Text fontSize={12} color="#999" flexShrink={0}>
+                {formatTimeAgo(request.created_at)}
+              </Text>
+            )}
+          </XStack>
 
           {/* 상세 정보 */}
           <YStack>
@@ -664,7 +675,7 @@ export function RequestDetailCard({
                   marginTop="$2"
                 >
                   <Text fontSize={16} color="#D97706" textAlign="center" fontWeight="600">
-                    이미 진행중인 협업입니다
+                    이미 매칭완료된 협업입니다
                   </Text>
                 </View>
               ) : alreadyApplied ? (
@@ -893,7 +904,7 @@ export function RequestDetailCard({
           }
         }}
         title="협업요청 취소"
-        message="진행중인 협업을 취소하시겠습니까?"
+        message="매칭완료된 협업을 취소하시겠습니까?"
         confirmText="예, 취소합니다"
         cancelText="아니오"
         isLoading={isProcessing}
