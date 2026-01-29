@@ -100,50 +100,49 @@ export function RequestCard({
           <img src="/siren.png" width={16} height={16} alt="긴급" />
         </View>
       )}
+      {/* rightAction - 오른쪽 상단 고정 */}
+      {rightAction && (
+        <View position="absolute" top={12} right={12} zIndex={10}>
+          {rightAction}
+        </View>
+      )}
       <YStack flex={1} minWidth={0}>
-        {/* AS 아이콘 + 협업 카테고리 배지 + 상태 배지 + rightAction */}
-        <XStack alignItems="flex-start" justifyContent="space-between" gap="$2">
-          <XStack alignItems="center" gap="$2" flex={1} flexWrap="wrap" minWidth={0}>
-            {/* 협업 카테고리 배지 - 원격은 주소 부분에 표시 */}
-            {collaborationType && collaborationType !== '원격' && (
-              <View
-                height={24}
-                backgroundColor={COLLABORATION_TYPE_COLORS[collaborationType]?.bg || '#F97316'}
-                paddingHorizontal={8}
-                borderRadius={6}
-                alignItems="center"
-                justifyContent="center"
+        {/* 협업 카테고리 배지 + 상태 배지 */}
+        <XStack alignItems="center" gap="$2" flexWrap="wrap" minWidth={0}>
+          {/* 협업 카테고리 배지 - 원격은 주소 부분에 표시 */}
+          {collaborationType && collaborationType !== '원격' && (
+            <View
+              height={24}
+              backgroundColor={COLLABORATION_TYPE_COLORS[collaborationType]?.bg || '#F97316'}
+              paddingHorizontal={8}
+              borderRadius={6}
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text
+                fontSize={12}
+                fontWeight="600"
+                color={COLLABORATION_TYPE_COLORS[collaborationType]?.text || '#fff'}
               >
-                <Text
-                  fontSize={12}
-                  fontWeight="600"
-                  color={COLLABORATION_TYPE_COLORS[collaborationType]?.text || '#fff'}
-                >
-                  {collaborationType}
-                </Text>
-              </View>
-            )}
-            {/* 상태 배지 - 아웃라인 스타일 */}
-            {showStatusBadge && (
-              <View
-                height={24}
-                backgroundColor="transparent"
-                paddingHorizontal={8}
-                borderRadius={6}
-                borderWidth={1.5}
-                borderColor={statusInfo.color}
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
-                  {statusInfo.label}
-                </Text>
-              </View>
-            )}
-          </XStack>
-          {rightAction && (
-            <View flexShrink={0} overflow="visible">
-              {rightAction}
+                {collaborationType}
+              </Text>
+            </View>
+          )}
+          {/* 상태 배지 - 아웃라인 스타일 */}
+          {showStatusBadge && (
+            <View
+              height={24}
+              backgroundColor="transparent"
+              paddingHorizontal={8}
+              borderRadius={6}
+              borderWidth={1.5}
+              borderColor={statusInfo.color}
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
+                {statusInfo.label}
+              </Text>
             </View>
           )}
         </XStack>
