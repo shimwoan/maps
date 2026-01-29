@@ -273,8 +273,8 @@ export function HomeScreen() {
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const [isListPanelOpen, setIsListPanelOpen] = useState(false); // 목록보기 패널
   const [listPanelInitialFilter, setListPanelInitialFilter] = useState<CollaborationType | null>(null); // 목록보기 패널 초기 필터
-  const [actionToast, setActionToast] = useState<{ type: 'completion' | 'application' | 'accepted'; message: string } | null>(null); // 액션 필요 토스트
-  const prevActionCountRef = useRef<{ completion: number; application: number; accepted: number }>({ completion: 0, application: 0, accepted: 0 }); // 이전 액션 카운트 추적
+  const [actionToast, setActionToast] = useState<{ type: 'completion' | 'application'; message: string } | null>(null); // 액션 필요 토스트
+  const prevActionCountRef = useRef<{ completion: number; application: number }>({ completion: 0, application: 0 }); // 이전 액션 카운트 추적
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -415,32 +415,26 @@ export function HomeScreen() {
       app => app.status === 'pending'
     ).length;
 
-    // 수락된 내 신청 수 (내가 신청한 것 중)
-    const acceptedCount = myApplications.filter(
-      app => app.status === 'accepted'
-    ).length;
-
     const prev = prevActionCountRef.current;
+
+    console.log('[Toast Debug]', { completionCount, applicationCount, prev });
 
     // 새로운 완료 요청이 들어왔을 때
     if (completionCount > prev.completion) {
+      console.log('[Toast] 완료 요청 toast 표시');
       setActionToast({ type: 'completion', message: '완료요청 확인해주세요!' });
       setTimeout(() => setActionToast(null), 3000);
     }
     // 새로운 신청이 들어왔을 때
     else if (applicationCount > prev.application) {
+      console.log('[Toast] 신청 toast 표시');
       setActionToast({ type: 'application', message: '협업 신청 확인해주세요!' });
-      setTimeout(() => setActionToast(null), 3000);
-    }
-    // 내 신청이 수락되었을 때
-    else if (acceptedCount > prev.accepted) {
-      setActionToast({ type: 'accepted', message: '협업 신청이 수락되었습니다!' });
       setTimeout(() => setActionToast(null), 3000);
     }
 
     // 이전 카운트 업데이트
-    prevActionCountRef.current = { completion: completionCount, application: applicationCount, accepted: acceptedCount };
-  }, [user, applicationsToMyRequests, myApplications]);
+    prevActionCountRef.current = { completion: completionCount, application: applicationCount };
+  }, [user, applicationsToMyRequests]);
 
   // 실시간 알림 추가 함수
   const addRealtimeNotification = useCallback((
@@ -1132,7 +1126,7 @@ export function HomeScreen() {
             cursor="pointer"
             onPress={() => {
               setActionToast(null);
-              setMyPageInitialTab(actionToast.type === 'accepted' ? 'myApplications' : 'myRequests');
+              setMyPageInitialTab('myRequests');
               setMyPageMode('requests');
               setIsMyPageOpen(true);
             }}
