@@ -273,13 +273,15 @@ export function HomeScreen() {
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const [isListPanelOpen, setIsListPanelOpen] = useState(false); // 목록보기 패널
   const [listPanelInitialFilter, setListPanelInitialFilter] = useState<CollaborationType | null>(null); // 목록보기 패널 초기 필터
+  const [actionToast, setActionToast] = useState<{ type: 'completion' | 'application' | 'accepted'; message: string } | null>(null); // 액션 필요 토스트
+  const prevActionCountRef = useRef<{ completion: number; application: number; accepted: number }>({ completion: 0, application: 0, accepted: 0 }); // 이전 액션 카운트 추적
   const skipAddressUpdateRef = useRef(false);
   const naverMapRef = useRef<NaverMapRef>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const { user } = useAuth();
   const { requests, refetch: refetchRequests } = useRequests();
-  const { myApplications, hasActiveWork, refetch: refetchApplications } = useRequestApplications();
+  const { myApplications, applicationsToMyRequests, hasActiveWork, refetch: refetchApplications } = useRequestApplications();
   useNotifications(); // 알림 컨텍스트 초기화
 
   // 내가 신청한 의뢰 ID 목록
@@ -398,6 +400,47 @@ export function HomeScreen() {
     injectOverscrollStyles();
     injectRealtimeStyles();
   }, []);
+
+  // 액션 필요 토스트 표시 (완료 요청, 신청 대기, 신청 수락) - 새로운 이벤트 발생 시
+  useEffect(() => {
+    if (!user || isMyPageOpen) return;
+
+    // 완료 요청 수 (내 의뢰에 대한)
+    const completionCount = applicationsToMyRequests.filter(
+      app => app.status === 'accepted' && app.completion_requested
+    ).length;
+
+    // 대기중인 신청 수 (내 의뢰에 대한)
+    const applicationCount = applicationsToMyRequests.filter(
+      app => app.status === 'pending'
+    ).length;
+
+    // 수락된 내 신청 수 (내가 신청한 것 중)
+    const acceptedCount = myApplications.filter(
+      app => app.status === 'accepted'
+    ).length;
+
+    const prev = prevActionCountRef.current;
+
+    // 새로운 완료 요청이 들어왔을 때
+    if (completionCount > prev.completion) {
+      setActionToast({ type: 'completion', message: '완료요청 확인해주세요!' });
+      setTimeout(() => setActionToast(null), 3000);
+    }
+    // 새로운 신청이 들어왔을 때
+    else if (applicationCount > prev.application) {
+      setActionToast({ type: 'application', message: '협업 신청 확인해주세요!' });
+      setTimeout(() => setActionToast(null), 3000);
+    }
+    // 내 신청이 수락되었을 때
+    else if (acceptedCount > prev.accepted) {
+      setActionToast({ type: 'accepted', message: '협업 신청이 수락되었습니다!' });
+      setTimeout(() => setActionToast(null), 3000);
+    }
+
+    // 이전 카운트 업데이트
+    prevActionCountRef.current = { completion: completionCount, application: applicationCount, accepted: acceptedCount };
+  }, [user, applicationsToMyRequests, myApplications, isMyPageOpen]);
 
   // 실시간 알림 추가 함수
   const addRealtimeNotification = useCallback((
@@ -1057,6 +1100,49 @@ export function HomeScreen() {
             setSelectedClusterKey(clusterKey); // 클러스터 선택
           }}
         />
+      )}
+
+      {/* 액션 필요 토스트 */}
+      {actionToast && !isMyPageOpen && (
+        <View
+          position="fixed"
+          top="40%"
+          left={0}
+          right={0}
+          alignItems="center"
+          zIndex={500}
+          pointerEvents="none"
+        >
+          <View
+            backgroundColor="white"
+            paddingLeft={6}
+            paddingRight={16}
+            paddingVertical={6}
+            borderRadius={12}
+            flexDirection="row"
+            alignItems="center"
+            gap={8}
+            shadowColor="#000"
+            shadowOffset={{ width: 0, height: 4 }}
+            shadowOpacity={0.15}
+            shadowRadius={12}
+            // @ts-ignore
+            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}
+            pointerEvents="auto"
+            cursor="pointer"
+            onPress={() => {
+              setActionToast(null);
+              setMyPageInitialTab(actionToast.type === 'accepted' ? 'myApplications' : 'myRequests');
+              setMyPageMode('requests');
+              setIsMyPageOpen(true);
+            }}
+          >
+            <img src={actionToast.type === 'completion' ? '/3d-man-2.png' : '/3d-man.png'} width={60} height={60} alt="" style={{ objectFit: 'contain' }} />
+            <Text fontSize={18} fontWeight="600" color="#333">
+              {actionToast.message}
+            </Text>
+          </View>
+        </View>
       )}
 
       {/* 지도 컨트롤 버튼들 - 홈에서만 표시 */}
