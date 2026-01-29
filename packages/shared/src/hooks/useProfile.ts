@@ -36,8 +36,8 @@ export function useProfile() {
         // PGRST116 = no rows found
         throw error;
       }
-      setProfile(data);
-      return data;
+      setProfile(data as Profile | null);
+      return data as Profile | null;
     } catch (err) {
       console.error('Failed to fetch profile:', err);
       return null;
