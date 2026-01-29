@@ -1,9 +1,7 @@
 /**
  * 센드온 SMS 발송 서비스
- * https://sdk.sendon.io
+ * Supabase Edge Function을 통해 발송
  */
-
-const SENDON_API_URL = 'https://api.sendon.io/v2/messages/sms';
 
 interface SendSmsParams {
   to: string; // 수신자 전화번호
@@ -17,46 +15,38 @@ interface SendSmsResponse {
 }
 
 /**
- * SMS 발송 함수
+ * SMS 발송 함수 (Edge Function 호출)
  */
 export async function sendSms({ to, message }: SendSmsParams): Promise<SendSmsResponse> {
-  const apiKey = import.meta.env.VITE_SENDON_API_KEY;
-  const fromNumber = import.meta.env.VITE_SENDON_FROM_NUMBER;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  if (!apiKey || !fromNumber) {
-    console.error('[Sendon] API 키 또는 발신번호가 설정되지 않았습니다.');
-    return { success: false, error: 'API 설정 오류' };
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[SMS] Supabase 설정이 없습니다.');
+    return { success: false, error: 'Supabase 설정 오류' };
   }
 
-  // 전화번호 형식 정리 (하이픈 제거)
-  const cleanPhone = to.replace(/-/g, '');
-
   try {
-    const response = await fetch(SENDON_API_URL, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      body: JSON.stringify({
-        type: 'SMS',
-        from: fromNumber,
-        to: [cleanPhone],
-        message,
-      }),
+      body: JSON.stringify({ to, message }),
     });
 
     const data = await response.json();
 
-    if (response.ok && data.code === 200) {
-      console.log('[Sendon] SMS 발송 성공:', data.data?.groupId);
-      return { success: true, groupId: data.data?.groupId };
+    if (data.success) {
+      console.log('[SMS] 발송 성공:', data.groupId);
+      return { success: true, groupId: data.groupId };
     } else {
-      console.error('[Sendon] SMS 발송 실패:', data);
-      return { success: false, error: data.message || '발송 실패' };
+      console.error('[SMS] 발송 실패:', data.error);
+      return { success: false, error: data.error || '발송 실패' };
     }
   } catch (error) {
-    console.error('[Sendon] SMS 발송 오류:', error);
+    console.error('[SMS] 발송 오류:', error);
     return { success: false, error: '네트워크 오류' };
   }
 }
