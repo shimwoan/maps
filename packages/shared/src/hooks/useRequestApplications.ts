@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { sendSms, SmsTemplates } from '../lib/sendon';
 
 export interface RequestApplication {
   id: string;
@@ -303,6 +304,20 @@ export function useRequestApplications() {
         message: `${applicantName}님이 "${requestData.title}" 협업을 신청했습니다.`,
         request_id: requestId,
       });
+
+      // SMS 발송 - 의뢰 작성자에게
+      const { data: requesterProfile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('user_id', requestData.user_id)
+        .single();
+
+      if (requesterProfile?.phone) {
+        sendSms({
+          to: requesterProfile.phone,
+          message: SmsTemplates.newApplication(applicantName, requestData.title),
+        });
+      }
     }
 
     await fetchAll();
@@ -369,6 +384,20 @@ export function useRequestApplications() {
         message: `"${requestData.title}"에 협업 신청이 수락되었습니다.`,
         request_id: requestId,
       });
+
+      // SMS 발송 - 신청자에게
+      const { data: applicantProfile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('user_id', appData.applicant_id)
+        .single();
+
+      if (applicantProfile?.phone) {
+        sendSms({
+          to: applicantProfile.phone,
+          message: SmsTemplates.applicationAccepted(requestData.title),
+        });
+      }
     }
 
     await fetchAll();
@@ -495,6 +524,20 @@ export function useRequestApplications() {
         message: `${applicantName}님이 "${requestData.title}" 협업에 작업 완료를 요청했습니다.`,
         request_id: requestId,
       });
+
+      // SMS 발송 - 의뢰 작성자에게
+      const { data: requesterProfile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('user_id', requestData.user_id)
+        .single();
+
+      if (requesterProfile?.phone) {
+        sendSms({
+          to: requesterProfile.phone,
+          message: SmsTemplates.completionRequested(applicantName, requestData.title),
+        });
+      }
     }
 
     await fetchAll();
