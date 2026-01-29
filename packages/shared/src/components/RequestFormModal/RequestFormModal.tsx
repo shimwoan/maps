@@ -805,28 +805,6 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
               </YStack>
             )}
 
-            {/* 증상 - 방문AS일 때만 표시 */}
-            {watch('collaborationType') === '방문AS' && (
-              <YStack gap="$2">
-                <Text fontSize={16} fontWeight="600" color="#000">증상</Text>
-                <Controller
-                  control={control}
-                  name="symptom"
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      size="$4"
-                      placeholder="예: 색 빠짐, 용지 걸림"
-                      value={value}
-                      onChangeText={onChange}
-                      backgroundColor="#f9f9f9"
-                      borderColor="#eee"
-                      color="#000"
-                      />
-                  )}
-                />
-              </YStack>
-            )}
-
             {/* 증상 이미지 - 방문AS일 때만 표시 */}
             {watch('collaborationType') === '방문AS' && (
               <YStack gap="$2">

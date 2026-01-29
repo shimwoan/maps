@@ -544,20 +544,7 @@ export function RequestDetailCard({
                 <Text fontSize={16} color="#000" textAlign="right" fontWeight="600">{request.model}</Text>
               </XStack>
             )}
-            {request.symptom && (
-              <XStack alignItems="flex-start" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
-                <XStack alignItems="center" gap="$1.5" flexShrink={0}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L2 22h20L12 2z" fill="#F59E0B"/>
-                    <path d="M12 9v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <circle cx="12" cy="17" r="1" fill="white"/>
-                  </svg>
-                  <Text fontSize={16} color="#444" fontWeight="600">증상</Text>
-                </XStack>
-                <Text fontSize={16} color="#000" textAlign="right" flex={1} fontWeight="600">{request.symptom}</Text>
-              </XStack>
-            )}
-            <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
+                        <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
               <XStack alignItems="center" gap="$1.5" flexShrink={0}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   {/* 달력 몸통 */}
