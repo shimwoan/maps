@@ -19,6 +19,8 @@ interface RequestListPanelProps {
   currentLocation: Location | null;
   onSelectRequest: (requestId: string) => void;
   initialCollaborationType?: CollaborationType | null;
+  initialFilterPending?: boolean;
+  initialFilterMy?: boolean;
   currentUserId?: string | null;
 }
 
@@ -54,6 +56,8 @@ export function RequestListPanel({
   currentLocation,
   onSelectRequest,
   initialCollaborationType = null,
+  initialFilterPending = false,
+  initialFilterMy = false,
   currentUserId = null,
 }: RequestListPanelProps) {
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
@@ -61,6 +65,8 @@ export function RequestListPanel({
   const [selectedCollaborationType, setSelectedCollaborationType] = useState<CollaborationType | null>(initialCollaborationType);
   const [showCollaborationTypeModal, setShowCollaborationTypeModal] = useState(false);
   const [showRemoteToast, setShowRemoteToast] = useState(false);
+  const [filterPending, setFilterPending] = useState(initialFilterPending);
+  const [filterMy, setFilterMy] = useState(initialFilterMy);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 필터링 및 거리순으로 정렬된 의뢰 목록
@@ -70,6 +76,16 @@ export function RequestListPanel({
     // 카테고리 필터
     if (selectedCollaborationType) {
       filtered = filtered.filter(r => r.collaboration_type === selectedCollaborationType);
+    }
+
+    // 대기중 필터
+    if (filterPending) {
+      filtered = filtered.filter(r => r.status === 'pending' || r.status === 'applied');
+    }
+
+    // MY 필터
+    if (filterMy && currentUserId) {
+      filtered = filtered.filter(r => r.user_id === currentUserId);
     }
 
     // 상태 정렬 우선순위: 대기중/신청함 → 진행중 → 완료
@@ -118,11 +134,13 @@ export function RequestListPanel({
     if (isOpen) {
       setDisplayCount(ITEMS_PER_PAGE);
       setSelectedCollaborationType(initialCollaborationType);
+      setFilterPending(initialFilterPending);
+      setFilterMy(initialFilterMy);
       if (scrollRef.current) {
         scrollRef.current.scrollTop = 0;
       }
     }
-  }, [isOpen, initialCollaborationType]);
+  }, [isOpen, initialCollaborationType, initialFilterPending, initialFilterMy]);
 
   // 스크롤 이벤트 핸들러
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -195,7 +213,7 @@ export function RequestListPanel({
                 onPress={() => setShowCollaborationTypeModal(true)}
               >
                 <Text fontSize={14} fontWeight="500" color={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#000'}>
-                  {selectedCollaborationType && selectedCollaborationType !== '원격' ? selectedCollaborationType : '카테고리 전체'}
+                  {selectedCollaborationType && selectedCollaborationType !== '원격' ? selectedCollaborationType : '카테고리'}
                 </Text>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                   <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -232,6 +250,44 @@ export function RequestListPanel({
                   원격
                 </Text>
               </XStack>
+
+              {/* 대기중 필터 버튼 */}
+              <XStack
+                paddingHorizontal={14}
+                height={34}
+                borderRadius={17}
+                backgroundColor={filterPending ? brandColors.primaryLight : 'white'}
+                borderWidth={1}
+                borderColor={filterPending ? brandColors.primary : '#ddd'}
+                cursor="pointer"
+                alignItems="center"
+                justifyContent="center"
+                onPress={() => setFilterPending(!filterPending)}
+              >
+                <Text fontSize={14} fontWeight="500" color={filterPending ? brandColors.primary : '#333'}>
+                  대기중
+                </Text>
+              </XStack>
+
+              {/* MY 필터 버튼 */}
+              {currentUserId && (
+                <XStack
+                  paddingHorizontal={14}
+                  height={34}
+                  borderRadius={17}
+                  backgroundColor={filterMy ? brandColors.primaryLight : 'white'}
+                  borderWidth={1}
+                  borderColor={filterMy ? brandColors.primary : '#ddd'}
+                  cursor="pointer"
+                  alignItems="center"
+                  justifyContent="center"
+                  onPress={() => setFilterMy(!filterMy)}
+                >
+                  <Text fontSize={14} fontWeight="500" color={filterMy ? brandColors.primary : '#333'}>
+                    MY
+                  </Text>
+                </XStack>
+              )}
 
               </XStack>
 
@@ -287,8 +343,8 @@ export function RequestListPanel({
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
                   isOwn={currentUserId === request.user_id}
-                  hidePendingBadge
                   distance={'distance' in request && currentLocation && (request as any).distance !== Infinity ? formatDistance((request as any).distance) : undefined}
+                  createdAt={request.created_at}
                   onCardPress={() => onSelectRequest(request.id)}
                 />
               ))
