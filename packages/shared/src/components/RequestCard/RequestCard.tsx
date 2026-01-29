@@ -57,17 +57,21 @@ export function RequestCard({
 
   return (
     <XStack
-      backgroundColor="white"
+      backgroundColor={isCompleted ? '#f5f5f5' : 'white'}
       borderRadius={12}
-      paddingHorizontal="$4"
-      paddingVertical="$3.5"
+      paddingHorizontal="$5"
+      paddingVertical="$5"
       shadowColor="#000"
       shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.12}
+      shadowOpacity={isCompleted ? 0.05 : 0.12}
       shadowRadius={8}
       // @ts-ignore - web shadow
-      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)', position: 'relative', overflow: 'hidden' }}
-      opacity={isCompleted ? 0.85 : 1}
+      style={{
+        boxShadow: isCompleted ? '0 1px 4px rgba(0,0,0,0.05)' : '0 2px 8px rgba(0,0,0,0.10)',
+        position: 'relative',
+        overflow: 'hidden',
+        filter: isCompleted ? 'grayscale(80%)' : 'none',
+      }}
       cursor={onCardPress ? "pointer" : "default"}
       onPress={onCardPress}
       alignItems={isRemote ? "center" : "stretch"}
@@ -90,12 +94,18 @@ export function RequestCard({
           <Text fontSize={10} fontWeight="700" color="white">MY</Text>
         </View>
       )}
+      {/* 긴급 사이렌 아이콘 - 왼쪽 상단 */}
+      {isUrgent && !isCompleted && (
+        <View position="absolute" top={6} left={6} zIndex={10}>
+          <img src="/siren.png" width={16} height={16} alt="긴급" />
+        </View>
+      )}
       <YStack flex={1} minWidth={0}>
         {/* AS 아이콘 + 협업 카테고리 배지 + 상태 배지 + rightAction */}
         <XStack alignItems="flex-start" justifyContent="space-between" gap="$2">
           <XStack alignItems="center" gap="$2" flex={1} flexWrap="wrap" minWidth={0}>
-            {/* 협업 카테고리 배지 */}
-            {collaborationType && (
+            {/* 협업 카테고리 배지 - 원격은 주소 부분에 표시 */}
+            {collaborationType && collaborationType !== '원격' && (
               <View
                 height={24}
                 backgroundColor={COLLABORATION_TYPE_COLORS[collaborationType]?.bg || '#F97316'}
@@ -113,27 +123,21 @@ export function RequestCard({
                 </Text>
               </View>
             )}
-            {/* 상태 배지 */}
+            {/* 상태 배지 - 아웃라인 스타일 */}
             {showStatusBadge && (
               <View
                 height={24}
-                backgroundColor={statusInfo.bgColor}
+                backgroundColor="transparent"
                 paddingHorizontal={8}
                 borderRadius={6}
-                borderWidth={statusInfo.bgColor === '#fff' ? 1.5 : 0}
-                borderColor="#e5e7eb"
+                borderWidth={1.5}
+                borderColor={statusInfo.color}
                 alignItems="center"
                 justifyContent="center"
               >
                 <Text fontSize={12} fontWeight="600" color={statusInfo.color}>
                   {statusInfo.label}
                 </Text>
-              </View>
-            )}
-            {/* 긴급 배지 - 완료 상태에서는 숨김 */}
-            {isUrgent && !isCompleted && (
-              <View height={24} paddingHorizontal={8} backgroundColor="#FEE2E2" borderRadius={6} alignItems="center" justifyContent="center">
-                <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
               </View>
             )}
           </XStack>
@@ -144,47 +148,55 @@ export function RequestCard({
           )}
         </XStack>
 
-        {/* 제목 + 프린터 아이콘 + 금액 */}
+        {/* 제목 + AS 타입 + 금액 */}
         <XStack alignItems="center" gap="$2" marginTop="$2" marginBottom={isRemote ? 0 : "$2.5"} justifyContent="space-between">
           <XStack alignItems="center" gap="$2" flex={1} minWidth={0}>
-            <img src="/print.png" width={20} height={20} style={{ flexShrink: 0 }} />
+            <Text fontSize={16} fontWeight="800" color="#333" flexShrink={0}>{asType}</Text>
             <Text fontSize={16} fontWeight="700" color={isCompleted ? '#333' : '#000'} numberOfLines={1} flex={1}>
               {title}
             </Text>
           </XStack>
           {!isRemote && (
-            <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="700" flexShrink={0}>
+            <Text fontSize={16} color={isCompleted ? '#999' : status === 'accepted' ? '#F59E0B' : brandColors.primary} fontWeight="700" flexShrink={0}>
               {formatPrice(expectedFee)}원
             </Text>
           )}
         </XStack>
 
-        {/* 주소 + 거리 */}
-        {address && (
+        {/* 주소 + 거리 (원격이면 "원격" 표시) */}
+        {(address || collaborationType === '원격') && (
           <XStack alignItems="center" gap="$1.5" marginTop="$1.5">
-            <svg width="16" height="16" viewBox="0 0 24 28" fill="none" style={{ flexShrink: 0 }}>
-              {/* 받침 타원 */}
-              <ellipse cx="12" cy="26" rx="6" ry="2" fill="#EF4444" opacity="0.6"/>
-              {/* 막대 */}
-              <rect x="10.5" y="10" width="3" height="14" fill="#D1D5DB"/>
-              {/* 빨간 원형 머리 */}
-              <circle cx="12" cy="7" r="6" fill="#EF4444"/>
-              {/* 하이라이트 */}
-              <path d="M9 5c0.5-1 1.5-2 3-2" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-            </svg>
-            <Text fontSize={14} color={isCompleted ? '#999' : '#333'} numberOfLines={1}>
-              {address}
-            </Text>
-            {distance && (
-              <XStack alignItems="center" gap={4} marginLeft="$2">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#000"/>
-                  <circle cx="12" cy="9" r="2" fill="white"/>
+            {collaborationType === '원격' ? (
+              <Text fontSize={14} fontWeight="600" color="#EC4899">
+                원격
+              </Text>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 28" fill="none" style={{ flexShrink: 0 }}>
+                  {/* 받침 타원 */}
+                  <ellipse cx="12" cy="26" rx="6" ry="2" fill="#EF4444" opacity="0.6"/>
+                  {/* 막대 */}
+                  <rect x="10.5" y="10" width="3" height="14" fill="#D1D5DB"/>
+                  {/* 빨간 원형 머리 */}
+                  <circle cx="12" cy="7" r="6" fill="#EF4444"/>
+                  {/* 하이라이트 */}
+                  <path d="M9 5c0.5-1 1.5-2 3-2" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
                 </svg>
-                <Text fontSize={12} color="#666">
-                  {distance}
+                <Text fontSize={14} color={isCompleted ? '#999' : '#333'} numberOfLines={1}>
+                  {address}
                 </Text>
-              </XStack>
+                {distance && (
+                  <XStack alignItems="center" gap={4} marginLeft="$2">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#000"/>
+                      <circle cx="12" cy="9" r="2" fill="white"/>
+                    </svg>
+                    <Text fontSize={12} color="#666">
+                      {distance}
+                    </Text>
+                  </XStack>
+                )}
+              </>
             )}
           </XStack>
         )}
@@ -202,7 +214,7 @@ export function RequestCard({
 
       {/* 원격일 때 금액을 오른쪽에 수직 정중앙으로 표시 */}
       {isRemote && (
-        <Text fontSize={18} color={isCompleted ? '#999' : brandColors.primary} fontWeight="700" flexShrink={0}>
+        <Text fontSize={16} color={isCompleted ? '#999' : status === 'accepted' ? '#F59E0B' : brandColors.primary} fontWeight="700" flexShrink={0}>
           {formatPrice(expectedFee)}원
         </Text>
       )}
