@@ -36,24 +36,17 @@ export function BottomSheet({
           ? `0 0 0 2px ${accentColor}, 0 -4px 15px ${accentColor}30`
           : '0 -4px 20px rgba(0, 0, 0, 0.15)',
       } as React.CSSProperties}>
-        {/* MY 띠 - 우측 상단 */}
+        {/* MY 텍스트 - 우측 상단 */}
         {showMyBadge && (
           <div
             style={{
               position: 'absolute',
-              top: 10,
-              right: -24,
-              width: 80,
-              height: 22,
-              backgroundColor: '#1D4ED8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              top: 8,
+              right: 16,
               zIndex: 100,
-              transform: 'rotate(45deg)',
             }}
           >
-            <span style={{ fontSize: 9, fontWeight: 700, color: 'white' }}>MY</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#1D4ED8' }}>MY</span>
           </div>
         )}
         <Sheet.Header>
