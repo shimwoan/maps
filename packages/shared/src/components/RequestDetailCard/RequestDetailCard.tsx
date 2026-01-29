@@ -264,10 +264,29 @@ export function RequestDetailCard({
     }
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     setShowLoginModal(false);
-    // 로그인 후 명함 체크
-    refetchProfile();
+    // 로그인 후 명함 체크 후 자동으로 흐름 이어가기
+    const profileData = await refetchProfile();
+
+    // 명함이 없으면 프로필 설정 모달 표시
+    if (!profileData?.business_card_url) {
+      setShowProfileModal(true);
+      return;
+    }
+
+    // 명함이 있으면 바로 신청 처리
+    setIsApplying(true);
+    setApplyError(null);
+    try {
+      await applyToRequest(request.id);
+      onAccept?.(request.id);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '신청 중 오류가 발생했습니다';
+      setApplyError(errorMessage);
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   const handleProfileSuccess = async () => {
