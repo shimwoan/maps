@@ -171,6 +171,8 @@ interface RequestDetailCardProps {
   onCancelWork?: (requestId: string) => Promise<void>;
   onCompleteRequest?: (requestId: string) => Promise<void>;
   completionRequested?: boolean;
+  // 관리자용
+  hideActions?: boolean;
 }
 
 export function RequestDetailCard({
@@ -185,6 +187,7 @@ export function RequestDetailCard({
   onCancelWork,
   onCompleteRequest,
   completionRequested,
+  hideActions = false,
 }: RequestDetailCardProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -327,52 +330,36 @@ export function RequestDetailCard({
         showMyBadge={!canAccept}
       >
         <YStack gap="$3" paddingBottom="$4">
-          {/* 상단: 아이콘+업종 + 협업 카테고리/상태 배지 + 긴급 태그 + 공유하기 */}
+          {/* 상단: 업종 + 협업 카테고리/상태 배지 + 공유하기 */}
           <XStack gap="$2" alignItems="center" justifyContent="space-between">
             <XStack gap="$2" alignItems="center" flex={1}>
-              {/* 프린터 아이콘 + 업종 */}
-              <XStack alignItems="center" gap="$1.5" flexShrink={1} minWidth={0}>
-                <img src="/print.png" width={20} height={20} style={{ flexShrink: 0 }} />
-                <Text fontSize={16} color="#222" fontWeight={600} flexShrink={0}>
-                  {request.as_type}
-                </Text>
-              </XStack>
-              {/* 협업 카테고리 배지 */}
-              {request.collaboration_type && (
+              {/* 업종 */}
+              <Text fontSize={16} fontWeight="800" color="#333" flexShrink={0}>
+                {request.as_type}
+              </Text>
+              {/* 협업 카테고리 배지 - 원격은 주소 부분에 표시 */}
+              {request.collaboration_type && request.collaboration_type !== '원격' && (
                 <CollaborationTypeBadge type={request.collaboration_type} />
               )}
-              {/* 상태 배지 (진행중/완료) - accepted 또는 completed 상태일 때만 표시 */}
+              {/* 상태 배지 (진행중/완료) - 아웃라인 스타일 */}
               {(request.status === 'accepted' || request.status === 'completed') && (
                 <View
                   height={24}
-                  backgroundColor={
-                    request.status === 'completed' ? '#9CA3AF' : '#F59E0B'
-                  }
+                  backgroundColor="transparent"
                   paddingHorizontal={8}
                   borderRadius={6}
+                  borderWidth={1.5}
+                  borderColor={request.status === 'completed' ? '#9CA3AF' : '#F59E0B'}
                   alignItems="center"
                   justifyContent="center"
                 >
                   <Text
                     fontSize={12}
                     fontWeight="600"
-                    color="#fff"
+                    color={request.status === 'completed' ? '#9CA3AF' : '#F59E0B'}
                   >
                     {request.status === 'completed' ? '완료' : '진행중'}
                   </Text>
-                </View>
-              )}
-              {/* 긴급 태그 - 완료 상태가 아닌 경우 표시 */}
-              {request.is_urgent && request.status !== 'completed' && (
-                <View
-                  height={24}
-                  backgroundColor="#FEE2E2"
-                  paddingHorizontal={8}
-                  borderRadius={6}
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Text fontSize={12} fontWeight="600" color="#DC2626">긴급</Text>
                 </View>
               )}
             </XStack>
@@ -489,9 +476,13 @@ export function RequestDetailCard({
                 </svg>
                 <Text fontSize={16} color="#444" fontWeight="600">주소</Text>
               </XStack>
-              <Text fontSize={16} color="#000" flex={1} textAlign="right" fontWeight="600">
-                {request.address}
-                {request.address_detail ? ` ${request.address_detail}` : ''}
+              <Text fontSize={16} color={request.collaboration_type === '원격' ? '#EC4899' : '#000'} flex={1} textAlign="right" fontWeight="600">
+                {request.collaboration_type === '원격' ? '원격' : (
+                  <>
+                    {request.address}
+                    {request.address_detail ? ` ${request.address_detail}` : ''}
+                  </>
+                )}
               </Text>
             </XStack>
             <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
@@ -718,7 +709,7 @@ export function RequestDetailCard({
           )}
 
           {/* 수행자용 버튼 - 내가 신청한 의뢰이고 진행중일 때 */}
-          {myApplication && myApplication.status === 'accepted' && (
+          {!hideActions && myApplication && myApplication.status === 'accepted' && (
             <YStack gap="$2" marginTop="$3">
               {/* 완료 요청 대기중 표시 */}
               {myApplication.completion_requested && (
@@ -769,7 +760,7 @@ export function RequestDetailCard({
           )}
 
           {/* 수행자용 버튼 - 내가 신청한 의뢰이고 대기중일 때 */}
-          {myApplication && myApplication.status === 'pending' && (
+          {!hideActions && myApplication && myApplication.status === 'pending' && (
             <Button
               size="$5"
               backgroundColor="#fee2e2"
