@@ -193,7 +193,7 @@ export function BottomNavigation({
             color={activeMode === 'requests' ? activeColor : textColor}
             marginTop={2}
           >
-            내가하고있는 일
+            내 작업
           </Text>
         </View>
 
