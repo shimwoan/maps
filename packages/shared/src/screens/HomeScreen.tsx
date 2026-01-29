@@ -266,6 +266,8 @@ export function HomeScreen() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedCollaborationType, setSelectedCollaborationType] = useState<CollaborationType | null>(null);
   const [selectedStatusFilters, setSelectedStatusFilters] = useState<('pending' | 'accepted' | 'completed')[]>([]);
+  const [filterPendingMap, setFilterPendingMap] = useState(false); // 지도 대기중 필터
+  const [filterMyMap, setFilterMyMap] = useState(false); // 지도 MY 필터
   const [showCollaborationTypeModal, setShowCollaborationTypeModal] = useState(false);
   const [realtimeNotifications, setRealtimeNotifications] = useState<RealtimeNotification[]>([]);
   const [clusterRequestIds, setClusterRequestIds] = useState<string[]>([]); // 클러스터 클릭 시 표시할 의뢰 ID 목록
@@ -273,6 +275,8 @@ export function HomeScreen() {
   const [selectedClusterKey, setSelectedClusterKey] = useState<string | null>(null); // 선택된 클러스터 키
   const [isListPanelOpen, setIsListPanelOpen] = useState(false); // 목록보기 패널
   const [listPanelInitialFilter, setListPanelInitialFilter] = useState<CollaborationType | null>(null); // 목록보기 패널 초기 필터
+  const [listPanelInitialPending, setListPanelInitialPending] = useState(false); // 목록보기 대기중 필터
+  const [listPanelInitialMy, setListPanelInitialMy] = useState(false); // 목록보기 MY 필터
   const [actionToast, setActionToast] = useState<{ type: 'completion' | 'application'; message: string } | null>(null); // 액션 필요 토스트
   const prevActionCountRef = useRef<{ completion: number; application: number }>({ completion: 0, application: 0 }); // 이전 액션 카운트 추적
   const skipAddressUpdateRef = useRef(false);
@@ -295,6 +299,8 @@ export function HomeScreen() {
       .filter(r => r.latitude && r.longitude)
       .filter(r => !selectedCollaborationType || r.collaboration_type === selectedCollaborationType)
       .filter(r => selectedStatusFilters.length === 0 || selectedStatusFilters.includes(r.status as 'pending' | 'accepted' | 'completed'))
+      .filter(r => !filterPendingMap || r.status === 'pending' || r.status === 'applied')
+      .filter(r => !filterMyMap || r.user_id === user?.id)
       .map(r => ({
         id: r.id,
         userId: r.user_id,
@@ -307,7 +313,7 @@ export function HomeScreen() {
         status: r.status,
         isUrgent: r.is_urgent,
       }));
-  }, [requests, selectedCollaborationType, selectedStatusFilters]);
+  }, [requests, selectedCollaborationType, selectedStatusFilters, filterPendingMap, filterMyMap, user?.id]);
 
   // 선택된 의뢰 정보
   const selectedRequest = useMemo(() => {
@@ -423,13 +429,13 @@ export function HomeScreen() {
     if (completionCount > prev.completion) {
       console.log('[Toast] 완료 요청 toast 표시');
       setActionToast({ type: 'completion', message: '완료요청 확인해주세요!' });
-      setTimeout(() => setActionToast(null), 3000);
+      setTimeout(() => setActionToast(null), 5000);
     }
     // 새로운 신청이 들어왔을 때
     else if (applicationCount > prev.application) {
       console.log('[Toast] 신청 toast 표시');
       setActionToast({ type: 'application', message: '협업 신청 확인해주세요!' });
-      setTimeout(() => setActionToast(null), 3000);
+      setTimeout(() => setActionToast(null), 5000);
     }
 
     // 이전 카운트 업데이트
@@ -805,7 +811,7 @@ export function HomeScreen() {
               onPress={() => setShowCollaborationTypeModal(true)}
             >
               <Text fontSize={14} fontWeight="500" color={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#000'}>
-                {selectedCollaborationType && selectedCollaborationType !== '원격' ? selectedCollaborationType : '카테고리 전체'}
+                {selectedCollaborationType && selectedCollaborationType !== '원격' ? selectedCollaborationType : '카테고리'}
               </Text>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M6 9l6 6 6-6" stroke={selectedCollaborationType && selectedCollaborationType !== '원격' ? brandColors.primary : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -826,6 +832,8 @@ export function HomeScreen() {
               gap={6}
               onPress={() => {
                 setListPanelInitialFilter('원격');
+                setListPanelInitialPending(false);
+                setListPanelInitialMy(false);
                 setIsListPanelOpen(true);
               }}
             >
@@ -837,6 +845,44 @@ export function HomeScreen() {
                 원격
               </Text>
             </XStack>
+
+            {/* 대기중 필터 버튼 */}
+            <XStack
+              paddingHorizontal={14}
+              height={34}
+              borderRadius={17}
+              backgroundColor={filterPendingMap ? brandColors.primaryLight : 'white'}
+              borderWidth={1}
+              borderColor={filterPendingMap ? brandColors.primary : '#ddd'}
+              cursor="pointer"
+              alignItems="center"
+              justifyContent="center"
+              onPress={() => setFilterPendingMap(!filterPendingMap)}
+            >
+              <Text fontSize={14} fontWeight="500" color={filterPendingMap ? brandColors.primary : '#333'}>
+                대기중
+              </Text>
+            </XStack>
+
+            {/* MY 필터 버튼 */}
+            {user && (
+              <XStack
+                paddingHorizontal={14}
+                height={34}
+                borderRadius={17}
+                backgroundColor={filterMyMap ? brandColors.primaryLight : 'white'}
+                borderWidth={1}
+                borderColor={filterMyMap ? brandColors.primary : '#ddd'}
+                cursor="pointer"
+                alignItems="center"
+                justifyContent="center"
+                onPress={() => setFilterMyMap(!filterMyMap)}
+              >
+                <Text fontSize={14} fontWeight="500" color={filterMyMap ? brandColors.primary : '#333'}>
+                  MY
+                </Text>
+              </XStack>
+            )}
 
           </XStack>
         </ScrollView>
@@ -1320,6 +1366,8 @@ export function HomeScreen() {
             pressStyle={{ scale: 0.95 }}
             onPress={() => {
               setListPanelInitialFilter(null);
+              setListPanelInitialPending(false);
+              setListPanelInitialMy(false);
               setIsListPanelOpen(true);
             }}
           >
@@ -1427,7 +1475,7 @@ export function HomeScreen() {
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
                   isOwn={user?.id === request.user_id}
-                  hidePendingBadge
+                  createdAt={request.created_at}
                   onCardPress={() => {
                     setClusterRequestIds([]);
                     setSelectedClusterKey(null);
@@ -1521,6 +1569,8 @@ export function HomeScreen() {
           setSelectedClusterKey(null);
         }}
         initialCollaborationType={listPanelInitialFilter}
+        initialFilterPending={listPanelInitialPending}
+        initialFilterMy={listPanelInitialMy}
       />
     </View>
   );
