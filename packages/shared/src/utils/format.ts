@@ -42,11 +42,11 @@ export function getStatusLabel(status: string): { label: string; color: string; 
     case 'applied':
       return { label: '대기중', color: '#3B82F6', bgColor: '#EFF6FF' };
     case 'accepted':
-      return { label: '진행중', color: '#fff', bgColor: '#F59E0B' };
+      return { label: '진행중', color: '#F59E0B', bgColor: '#F59E0B' };
     case 'rejected':
-      return { label: '다른작업자와 진행중', color: '#fff', bgColor: '#9CA3AF' };
+      return { label: '다른작업자와 진행중', color: '#9CA3AF', bgColor: '#9CA3AF' };
     case 'completed':
-      return { label: '완료', color: '#fff', bgColor: '#9CA3AF' };
+      return { label: '완료', color: '#9CA3AF', bgColor: '#9CA3AF' };
     default:
       return { label: status, color: '#333', bgColor: '#f0f0f0' };
   }
