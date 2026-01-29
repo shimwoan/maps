@@ -26,12 +26,12 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('SENDON_API_KEY');
     const userId = Deno.env.get('SENDON_USER_ID');
+    const apiKey = Deno.env.get('SENDON_API_KEY');
     const fromNumber = Deno.env.get('SENDON_FROM_NUMBER');
 
-    if (!apiKey || !userId || !fromNumber) {
-      console.error('[Sendon] 환경 변수 미설정:', { apiKey: !!apiKey, userId: !!userId, fromNumber: !!fromNumber });
+    if (!userId || !apiKey || !fromNumber) {
+      console.error('[Sendon] 환경 변수 미설정:', { userId: !!userId, apiKey: !!apiKey, fromNumber: !!fromNumber });
       return new Response(
         JSON.stringify({ success: false, error: 'SMS 설정 오류' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -41,37 +41,36 @@ serve(async (req) => {
     // 전화번호 형식 정리 (하이픈 제거)
     const cleanPhone = to.replace(/-/g, '');
 
-    // 센드온 API 호출
-    const response = await fetch('https://api.sendon.io/v2/messages/sms', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': userId,
-        'x-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        type: 'SMS',
-        from: fromNumber,
-        to: [cleanPhone],
-        message,
-      }),
+    // 센드온 SDK 동적 import
+    const sendonModule = await import('npm:@alipeople/sendon-sdk-typescript');
+    const Sendon = sendonModule.Sendon || sendonModule.default?.Sendon || sendonModule.default;
+
+    console.log('[Sendon] SDK 모듈:', Object.keys(sendonModule));
+
+    // 센드온 SDK 초기화
+    let sendon;
+    if (typeof Sendon?.getInstance === 'function') {
+      sendon = Sendon.getInstance(userId, apiKey);
+    } else if (typeof Sendon === 'function') {
+      sendon = new Sendon(userId, apiKey);
+    } else {
+      throw new Error('Sendon SDK를 초기화할 수 없습니다: ' + JSON.stringify(Object.keys(sendonModule)));
+    }
+
+    // SMS 발송
+    const result = await sendon.sms.send({
+      type: 'SMS',
+      from: fromNumber,
+      to: [cleanPhone],
+      message,
     });
 
-    const data = await response.json();
-    console.log('[Sendon] API 응답:', data);
+    console.log('[Sendon] SMS 발송 결과:', result);
 
-    if (response.ok && data.code === 200) {
-      return new Response(
-        JSON.stringify({ success: true, groupId: data.data?.groupId }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
-      console.error('[Sendon] SMS 발송 실패:', data);
-      return new Response(
-        JSON.stringify({ success: false, error: data.message || '발송 실패' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    return new Response(
+      JSON.stringify({ success: true, result }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('[Sendon] 오류:', error);
     return new Response(
