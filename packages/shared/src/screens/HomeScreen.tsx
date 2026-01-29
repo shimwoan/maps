@@ -403,7 +403,7 @@ export function HomeScreen() {
 
   // 액션 필요 토스트 표시 (완료 요청, 신청 대기, 신청 수락) - 새로운 이벤트 발생 시
   useEffect(() => {
-    if (!user || isMyPageOpen) return;
+    if (!user) return;
 
     // 완료 요청 수 (내 의뢰에 대한)
     const completionCount = applicationsToMyRequests.filter(
@@ -440,7 +440,7 @@ export function HomeScreen() {
 
     // 이전 카운트 업데이트
     prevActionCountRef.current = { completion: completionCount, application: applicationCount, accepted: acceptedCount };
-  }, [user, applicationsToMyRequests, myApplications, isMyPageOpen]);
+  }, [user, applicationsToMyRequests, myApplications]);
 
   // 실시간 알림 추가 함수
   const addRealtimeNotification = useCallback((
@@ -1102,15 +1102,15 @@ export function HomeScreen() {
         />
       )}
 
-      {/* 액션 필요 토스트 */}
-      {actionToast && !isMyPageOpen && (
+      {/* 액션 필요 토스트 - 항상 최상위에 표시 */}
+      {actionToast && (
         <View
           position="fixed"
           top="40%"
           left={0}
           right={0}
           alignItems="center"
-          zIndex={500}
+          zIndex={999999}
           pointerEvents="none"
         >
           <View
