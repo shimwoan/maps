@@ -348,8 +348,6 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         break;
       }
     }
-    // 스크롤을 맨 위로
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   // 명함 미등록 시 프로필 설정 모달 먼저 표시 (수정 모드에서는 체크 안함)
