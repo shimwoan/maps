@@ -1,25 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { YStack, XStack, Text, View, Spinner } from 'tamagui';
+import { YStack, Text, View, Spinner } from 'tamagui';
 import { Button } from '../Button';
 import { brandColors } from '@monorepo/ui/src/tamagui.config';
 import { useProfile } from '../../hooks/useProfile';
-import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
 import { BottomSheet } from '../BottomSheet';
-
-// 크롭 영역 스타일 커스터마이즈
-const cropStyles = `
-  .ReactCrop__crop-selection {
-    border: 2px solid #6B7CFF !important;
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
-  }
-  .ReactCrop__drag-handle {
-    background-color: #6B7CFF !important;
-    border: 2px solid white !important;
-    width: 12px !important;
-    height: 12px !important;
-  }
-`;
 
 interface ProfileSetupModalProps {
   isOpen: boolean;
@@ -28,72 +12,21 @@ interface ProfileSetupModalProps {
   isEdit?: boolean;
 }
 
-// 크롭된 이미지를 Blob으로 변환
-function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): Promise<Blob> {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) throw new Error('No 2d context');
-
-  const scaleX = image.naturalWidth / image.width;
-  const scaleY = image.naturalHeight / image.height;
-
-  canvas.width = crop.width * scaleX;
-  canvas.height = crop.height * scaleY;
-
-  ctx.drawImage(
-    image,
-    crop.x * scaleX,
-    crop.y * scaleY,
-    crop.width * scaleX,
-    crop.height * scaleY,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error('Canvas is empty'));
-    }, 'image/jpeg', 0.9);
-  });
-}
-
 export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }: ProfileSetupModalProps) {
   const { uploadBusinessCard, updateBusinessCard } = useProfile();
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState<Crop>({
-    unit: '%',
-    x: 5,
-    y: 5,
-    width: 90,
-    height: 90,
-  });
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isCropping, setIsCropping] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
 
   // 모달이 열릴 때 상태 초기화
   useEffect(() => {
     if (isOpen) {
-      setImageSrc(null);
-      setCompletedCrop(null);
+      setSelectedFile(null);
+      setPreviewUrl(null);
       setIsUploading(false);
       setError(null);
-      setIsCropping(false);
-      setCrop({
-        unit: '%',
-        x: 5,
-        y: 5,
-        width: 90,
-        height: 90,
-      });
-      // 파일 인풋도 초기화
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -115,20 +48,12 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
     }
 
     setError(null);
-    const url = URL.createObjectURL(file);
-    setImageSrc(url);
-    setIsCropping(true);
-    setCrop({
-      unit: '%',
-      x: 5,
-      y: 5,
-      width: 90,
-      height: 90,
-    });
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleCropAndUpload = async () => {
-    if (!imgRef.current || !completedCrop) {
+  const handleUpload = async () => {
+    if (!selectedFile) {
       setError('이미지를 선택해주세요.');
       return;
     }
@@ -137,9 +62,7 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
     setError(null);
 
     try {
-      const blob = await getCroppedImg(imgRef.current, completedCrop);
-      const file = new File([blob], 'business_card.jpg', { type: 'image/jpeg' });
-      const publicUrl = await uploadBusinessCard(file);
+      const publicUrl = await uploadBusinessCard(selectedFile);
       await updateBusinessCard(publicUrl);
       if (onSuccess) {
         onSuccess();
@@ -159,9 +82,9 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
     fileInputRef.current?.click();
   };
 
-  const handleCancelCrop = () => {
-    setIsCropping(false);
-    setImageSrc(null);
+  const handleCancelSelect = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
     setError(null);
   };
 
@@ -172,10 +95,9 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
       zIndex={100001}
       title={isEdit ? '명함 or 사업자 등록증 수정' : '명함 or 사업자 등록증 등록'}
     >
-      {isCropping && imageSrc ? (
-        // 크롭 모드
+      {previewUrl ? (
+        // 미리보기 모드
         <YStack gap="$3">
-          <style dangerouslySetInnerHTML={{ __html: cropStyles }} />
           <View
             borderRadius={12}
             overflow="hidden"
@@ -184,76 +106,34 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
             justifyContent="center"
             padding="$2"
           >
-            <ReactCrop
-              crop={crop}
-              onChange={(c) => setCrop(c)}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={9 / 5}
-              style={{ maxHeight: 300 }}
-            >
-              <img
-                ref={imgRef}
-                src={imageSrc}
-                alt="crop"
-                style={{ maxHeight: 300, maxWidth: '100%' }}
-                onLoad={(e) => {
-                  const img = e.currentTarget;
-                  const aspect = 9 / 5;
-                  // 이미지에 맞춰 최대 크기의 9:5 크롭 영역 계산
-                  let cropWidth = img.width * 0.9;
-                  let cropHeight = cropWidth / aspect;
-                  if (cropHeight > img.height * 0.9) {
-                    cropHeight = img.height * 0.9;
-                    cropWidth = cropHeight * aspect;
-                  }
-                  const initialCrop: PixelCrop = {
-                    unit: 'px',
-                    x: (img.width - cropWidth) / 2,
-                    y: (img.height - cropHeight) / 2,
-                    width: cropWidth,
-                    height: cropHeight,
-                  };
-                  setCompletedCrop(initialCrop);
-                  setCrop({
-                    unit: 'px',
-                    x: initialCrop.x,
-                    y: initialCrop.y,
-                    width: initialCrop.width,
-                    height: initialCrop.height,
-                  });
-                }}
-              />
-            </ReactCrop>
+            <img
+              src={previewUrl}
+              alt="preview"
+              style={{ maxHeight: 300, maxWidth: '100%', borderRadius: 8 }}
+            />
           </View>
 
-          <Text fontSize={14} color="#000" textAlign="center">
-            모서리나 테두리를 드래그하여 영역을 조절하세요
-          </Text>
+          <Button
+            size="$4"
+            backgroundColor={brandColors.primary}
+            color="white"
+            onPress={handleUpload}
+            disabled={isUploading}
+            hoverStyle={{ backgroundColor: brandColors.primaryHover }}
+          >
+            {isUploading ? <Spinner size="small" color="white" /> : '등록하기'}
+          </Button>
 
-          <XStack gap="$2">
-            <Button
-              flex={1}
-              size="$4"
-              backgroundColor="#f0f0f0"
-              color="#000"
-              onPress={handleCancelCrop}
-              disabled={isUploading}
-              hoverStyle={{ backgroundColor: '#e8e8e8' }}
-            >
-              취소
-            </Button>
-            <Button
-              flex={1}
-              size="$4"
-              backgroundColor={brandColors.primary}
-              color="white"
-              onPress={handleCropAndUpload}
-              disabled={isUploading}
-              hoverStyle={{ backgroundColor: brandColors.primaryHover }}
-            >
-              {isUploading ? <Spinner size="small" color="white" /> : '등록하기'}
-            </Button>
-          </XStack>
+          <Button
+            size="$4"
+            backgroundColor="#f0f0f0"
+            color="#000"
+            onPress={handleCancelSelect}
+            disabled={isUploading}
+            hoverStyle={{ backgroundColor: '#e8e8e8' }}
+          >
+            다시 선택
+          </Button>
 
           {error && (
             <Text fontSize={14} color="#ff4444" textAlign="center">
@@ -301,6 +181,10 @@ export function ProfileSetupModal({ isOpen, onClose, onSuccess, isEdit = false }
               </Text>
             </YStack>
           </View>
+
+          <Text fontSize={13} color="#F59E0B" textAlign="center" fontWeight="500">
+            💡 가로 비율의 이미지를 권장합니다
+          </Text>
 
           <input
             ref={fileInputRef}
