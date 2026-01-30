@@ -108,6 +108,20 @@ const getMarkerSize = (zoom: number) => {
   };
 };
 
+// asType에 따른 마커 아이콘 생성
+const getMarkerIconContent = (asType: string, size: number): string => {
+  switch (asType) {
+    case 'PC': {
+      const pcSize = Math.round(size * 1.1);
+      const offset = Math.round((pcSize - size) / 2);
+      return `<img src="/pc.png" width="${pcSize}" height="${pcSize}" style="margin-left: -${offset}px; margin-top: -${offset}px;" />`;
+    }
+    case '복합기/OA':
+    default:
+      return `<img src="/print.png" width="${size}" height="${size}" />`;
+  }
+};
+
 // 마커 HTML 생성
 const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: boolean, zoom: number): string => {
   const isInProgress = marker.status === 'accepted';
@@ -125,6 +139,7 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
     '설치이관': '#10B981',
     '인력지원': '#8B5CF6',
     '원격': '#EC4899',
+    '납품': '#F97316',
   };
 
   // 배지 스타일
@@ -226,12 +241,16 @@ const createMarkerContent = (marker: RequestMarker, isOwn: boolean, isApplied: b
           <!-- 흰색 원형 배경 -->
           <circle cx="26" cy="24" r="20" fill="white" />
         </svg>
-        <img src="/print.png" width="${iconSize}" height="${iconSize}" style="
+        <div style="
           position: absolute;
           top: ${Math.round(12 * size.scale)}px;
           left: 50%;
           transform: translateX(-50%);
-        " />
+          width: ${iconSize}px;
+          height: ${iconSize}px;
+        ">
+          ${getMarkerIconContent(marker.asType, iconSize)}
+        </div>
         ${topBadges}
         ${myBadge}
       </div>

@@ -11,6 +11,10 @@ export function AsTypeIcon({ type, size = 14 }: AsTypeIconProps) {
       return (
         <img src="/print.png" alt="복합기/OA" width={size} height={size} style={{ objectFit: 'contain' }} />
       );
+    case 'PC':
+      return (
+        <img src="/pc.png" alt="PC" width={size * 1.3} height={size * 1.3} style={{ objectFit: 'contain' }} />
+      );
     case '전기/통신':
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
