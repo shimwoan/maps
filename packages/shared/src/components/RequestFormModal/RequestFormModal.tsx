@@ -259,6 +259,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       duration: '2시간',
       scheduleDate: new Date().toISOString().split('T')[0],
       scheduleTime: '17:00',
+      isTimeNegotiable: false,
       requiredPersonnel: 1,
       description: '',
       isUrgent: false,
@@ -284,6 +285,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         duration: editRequest.duration || '2시간',
         scheduleDate: editRequest.schedule_date || new Date().toISOString().split('T')[0],
         scheduleTime: editRequest.schedule_time || '17:00',
+        isTimeNegotiable: editRequest.is_time_negotiable || false,
         requiredPersonnel: editRequest.required_personnel || 1,
         description: editRequest.description || '',
         isUrgent: editRequest.is_urgent || false,
@@ -434,6 +436,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         duration: data.duration,
         schedule_date: data.scheduleDate,
         schedule_time: data.scheduleTime,
+        is_time_negotiable: data.isTimeNegotiable,
         required_personnel: data.requiredPersonnel,
         description: data.description,
         is_urgent: data.isUrgent,
@@ -480,6 +483,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         duration: '2시간',
         scheduleDate: new Date().toISOString().split('T')[0],
         scheduleTime: '17:00',
+        isTimeNegotiable: false,
         requiredPersonnel: 1,
         description: '',
         isUrgent: false,
@@ -713,7 +717,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                         color={value === type ? 'white' : '#000'}
                         borderWidth={0}
                         onPress={() => {
-                          if (type === '복합기/OA') {
+                          if (type === '복합기/OA' || type === 'PC') {
                             onChange(type);
                           } else {
                             setToastMessage('서비스 준비중입니다.');
@@ -784,7 +788,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
             </YStack>
 
             {/* 기종/증상 - 복합기/OA, 가전/설비일 때만 표시 */}
-            {(watch('asType') === '복합기/OA' || watch('asType') === '가전/설비') && (
+            {(watch('asType') === '복합기/OA' || watch('asType') === 'PC' || watch('asType') === '가전/설비') && (
               <YStack gap="$2">
                 <Text fontSize={16} fontWeight="600" color="#000">기종/증상</Text>
                 <Controller
@@ -990,43 +994,81 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
 
             {/* 처리 일정 */}
             <YStack gap="$2">
-              <RequiredLabel>처리 요청 시간</RequiredLabel>
-              <XStack gap="$2">
-                <Controller
-                  control={control}
-                  name="scheduleDate"
-                  rules={{ required: '날짜를 선택해주세요' }}
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      flex={1}
-                      size="$4"
-                      placeholder="YYYY-MM-DD"
-                      value={value}
-                      onChangeText={onChange}
-                      backgroundColor="#f9f9f9"
-                      borderColor={errors.scheduleDate ? '#ff4444' : '#eee'}
-                      color="#000"
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name="scheduleTime"
-                  rules={{ required: '시간을 선택해주세요' }}
-                  render={({ field: { onChange, value } }) => (
-                    <TimePicker
-                      value={value}
-                      onChange={onChange}
-                      hasError={!!errors.scheduleTime}
-                    />
-                  )}
-                />
+              <XStack alignItems="center" justifyContent="space-between">
+                <RequiredLabel>처리 요청 시간</RequiredLabel>
               </XStack>
-              {(errors.scheduleDate || errors.scheduleTime) && (
-                <Text color="#ff4444" fontSize={14}>
-                  {errors.scheduleDate?.message || errors.scheduleTime?.message}
-                </Text>
+              {!watch('isTimeNegotiable') && (
+                <>
+                  <XStack gap="$2">
+                    <Controller
+                      control={control}
+                      name="scheduleDate"
+                      rules={{ required: !watch('isTimeNegotiable') ? '날짜를 선택해주세요' : false }}
+                      render={({ field: { onChange, value } }) => (
+                        <Input
+                          flex={1}
+                          size="$4"
+                          placeholder="YYYY-MM-DD"
+                          value={value}
+                          onChangeText={onChange}
+                          backgroundColor="#f9f9f9"
+                          borderColor={errors.scheduleDate ? '#ff4444' : '#eee'}
+                          color="#000"
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="scheduleTime"
+                      rules={{ required: !watch('isTimeNegotiable') ? '시간을 선택해주세요' : false }}
+                      render={({ field: { onChange, value } }) => (
+                        <TimePicker
+                          value={value}
+                          onChange={onChange}
+                          hasError={!!errors.scheduleTime}
+                        />
+                      )}
+                    />
+                  </XStack>
+                  {(errors.scheduleDate || errors.scheduleTime) && (
+                    <Text color="#ff4444" fontSize={14}>
+                      {errors.scheduleDate?.message || errors.scheduleTime?.message}
+                    </Text>
+                  )}
+                </>
               )}
+              {/* 시간 협의 체크박스 */}
+              <Controller
+                control={control}
+                name="isTimeNegotiable"
+                render={({ field: { onChange, value } }) => (
+                  <XStack
+                    alignItems="center"
+                    cursor="pointer"
+                    gap="$2"
+                    onPress={() => onChange(!value)}
+                    marginTop="$1"
+                  >
+                    <View
+                      width={22}
+                      height={22}
+                      borderRadius={4}
+                      borderWidth={2}
+                      borderColor={value ? brandColors.primary : '#ccc'}
+                      backgroundColor={value ? brandColors.primary : 'white'}
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      {value && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </View>
+                    <Text fontSize={15} color="#333" fontWeight="500">시간 협의</Text>
+                  </XStack>
+                )}
+              />
             </YStack>
 
             {/* 필요 인원 - 원격 제외 */}
