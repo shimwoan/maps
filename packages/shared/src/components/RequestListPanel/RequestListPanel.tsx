@@ -342,6 +342,7 @@ export function RequestListPanel({
                   collaborationType={request.collaboration_type}
                   isCompleted={request.status === 'completed'}
                   isUrgent={request.is_urgent}
+                  isTimeNegotiable={request.is_time_negotiable}
                   isOwn={currentUserId === request.user_id}
                   distance={'distance' in request && currentLocation && (request as any).distance !== Infinity ? formatDistance((request as any).distance) : undefined}
                   createdAt={request.created_at}

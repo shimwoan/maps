@@ -78,6 +78,7 @@ function MyRequestCard({
       status={request.status}
       scheduleDate={request.schedule_date}
       scheduleTime={request.schedule_time}
+      isTimeNegotiable={request.is_time_negotiable}
       expectedFee={request.expected_fee}
       address={request.address}
       collaborationType={request.collaboration_type}
@@ -388,6 +389,7 @@ function MyApplicationCard({
       status={application.status}
       scheduleDate={req.schedule_date}
       scheduleTime={req.schedule_time}
+      isTimeNegotiable={req.is_time_negotiable}
       expectedFee={req.expected_fee}
       address={req.address}
       collaborationType={req.collaboration_type}

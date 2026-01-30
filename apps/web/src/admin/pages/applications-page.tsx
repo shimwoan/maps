@@ -244,6 +244,7 @@ export function ApplicationsPage() {
                       status={application.status}
                       scheduleDate={application.requests?.schedule_date || ''}
                       scheduleTime={application.requests?.schedule_time || ''}
+                      isTimeNegotiable={application.requests?.is_time_negotiable}
                       expectedFee={application.requests?.expected_fee || 0}
                       address={application.requests?.address}
                       collaborationType={application.requests?.collaboration_type}
