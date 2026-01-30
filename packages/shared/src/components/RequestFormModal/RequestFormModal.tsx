@@ -77,10 +77,10 @@ function SuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
               <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
                 협업요청이 성공적으로 등록되었습니다.
               </Text>
-              <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
+              {/* <Text fontSize={16} color="#000" textAlign="center" lineHeight={22}>
                 전문가가 협업을 수락하면{'\n'}
                 <Text color={brandColors.primary} fontWeight="600">등록된 연락처로 문자를 발송해 드립니다.</Text>
-              </Text>
+              </Text> */}
             </YStack>
 
             {/* 확인 버튼 */}
@@ -590,7 +590,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         {currentStep === 2 && (
           <YStack padding="$4" gap="$4" flex={1}>
             {/* 안내 문구 */}
-            <View
+            {/* <View
               backgroundColor="#FEF3C7"
               padding="$3"
               borderRadius={8}
@@ -604,7 +604,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                   전문가가 협업을 신청하면 등록된 연락처로 문자를 발송해 드립니다.
                 </Text>
               </XStack>
-            </View>
+            </View> */}
 
             {/* 연락처 입력 */}
             <YStack gap="$2">

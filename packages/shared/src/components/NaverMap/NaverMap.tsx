@@ -31,12 +31,13 @@ interface MarkerCluster {
 }
 
 // 줌 레벨에 따른 클러스터링 정밀도 (소수점 자릿수)
+// 정밀도가 높을수록 더 가까운 마커만 클러스터링됨
 const getClusterPrecision = (zoom: number): number => {
-  if (zoom >= 17) return 4;  // 약 10m
-  if (zoom >= 15) return 3;  // 약 100m
-  if (zoom >= 13) return 2;  // 약 1km
-  if (zoom >= 11) return 1;  // 약 10km
-  return 1;
+  if (zoom >= 17) return 5;  // 약 1m
+  if (zoom >= 15) return 4;  // 약 10m
+  if (zoom >= 13) return 4;  // 약 10m
+  if (zoom >= 11) return 3;  // 약 100m
+  return 3;  // 약 100m (멀리 떨어진 마커는 클러스터링 안함)
 };
 
 // 같은 위치의 마커들을 그룹화하여 클러스터 생성 (줌 레벨에 따라 클러스터링 범위 조절)
