@@ -31,6 +31,7 @@ export interface RequestApplication {
     symptom_images?: string[];
     description?: string;
     is_urgent?: boolean;
+    is_time_negotiable?: boolean;
     latitude?: number;
     longitude?: number;
   };
