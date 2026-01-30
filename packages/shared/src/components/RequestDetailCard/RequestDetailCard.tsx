@@ -606,7 +606,7 @@ export function RequestDetailCard({
               <Text fontSize={18} fontWeight="700" color="#F59E0B">{request.required_personnel}명</Text>
             </XStack>
             {request.description && (
-              <Text fontSize={15} color="#444" lineHeight={24} fontWeight="500" paddingVertical={8}>{request.description}</Text>
+              <Text fontSize={16} color="#444" lineHeight={24} fontWeight="500" paddingVertical={8}>{request.description}</Text>
             )}
           </YStack>
 
