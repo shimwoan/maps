@@ -18,6 +18,7 @@ export interface Request {
   duration: string;
   schedule_date: string;
   schedule_time: string;
+  is_time_negotiable: boolean;
   required_personnel: number;
   description: string | null;
   status: string;
