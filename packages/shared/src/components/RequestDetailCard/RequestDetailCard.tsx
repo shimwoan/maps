@@ -22,6 +22,7 @@ const COLLABORATION_TYPE_COLORS: Record<CollaborationType, { bg: string; text: s
   '설치이관': { bg: '#10B981', text: '#fff' },
   '인력지원': { bg: '#8B5CF6', text: '#fff' },
   '원격': { bg: '#EC4899', text: '#fff' },
+  '납품': { bg: '#F97316', text: '#fff' },
 };
 
 // 협업 카테고리 뱃지 컴포넌트
@@ -548,7 +549,7 @@ export function RequestDetailCard({
                 </View>
               </XStack>
             </XStack>
-            {request.model && (request.as_type === '복합기/OA' || request.as_type === '가전/설비') && (
+            {request.model && (request.as_type === '복합기/OA' || request.as_type === 'PC' || request.as_type === '가전/설비') && (
               <XStack alignItems="center" paddingVertical={8} borderBottomWidth={1} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
                 <XStack alignItems="center" gap="$1.5" flexShrink={0}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -580,9 +581,15 @@ export function RequestDetailCard({
                 </svg>
                 <Text fontSize={16} color="#444" fontWeight="600">처리일정</Text>
               </XStack>
-              <Text fontSize={18} fontWeight="700" color="#F59E0B">
-                {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
-              </Text>
+              {request.is_time_negotiable ? (
+                <Text fontSize={18} fontWeight="700" color="#8B5CF6">
+                  시간 협의
+                </Text>
+              ) : (
+                <Text fontSize={18} fontWeight="700" color="#F59E0B">
+                  {formatDate(request.schedule_date)} {request.schedule_time.slice(0, 5)}
+                </Text>
+              )}
             </XStack>
             <XStack alignItems="center" paddingVertical={8} borderBottomWidth={request.description ? 1 : 0} borderBottomColor="#f0f0f0" justifyContent="space-between" gap={12}>
               <XStack alignItems="center" gap="$1.5" flexShrink={0}>
@@ -599,16 +606,7 @@ export function RequestDetailCard({
               <Text fontSize={18} fontWeight="700" color="#F59E0B">{request.required_personnel}명</Text>
             </XStack>
             {request.description && (
-              <XStack alignItems="flex-start" paddingVertical={8} justifyContent="space-between" gap={12}>
-                <XStack alignItems="center" gap="$1.5" flexShrink={0}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="18" height="18" rx="2" fill="#6B7280"/>
-                    <path d="M7 8h10M7 12h10M7 16h6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                  <Text fontSize={16} color="#444" fontWeight="600">상세설명</Text>
-                </XStack>
-                <Text fontSize={16} color="#000" lineHeight={24} flex={1} textAlign="right" fontWeight="600">{request.description}</Text>
-              </XStack>
+              <Text fontSize={15} color="#444" lineHeight={24} fontWeight="500" paddingVertical={8}>{request.description}</Text>
             )}
           </YStack>
 
