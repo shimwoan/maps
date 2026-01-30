@@ -10,6 +10,7 @@ const COLLABORATION_TYPE_COLORS: Record<string, { bg: string; text: string }> = 
   '설치이관': { bg: '#10B981', text: '#fff' },
   '인력지원': { bg: '#8B5CF6', text: '#fff' },
   '원격': { bg: '#EC4899', text: '#fff' },
+  '납품': { bg: '#F97316', text: '#fff' },
 };
 
 interface RequestCardProps {
@@ -18,6 +19,7 @@ interface RequestCardProps {
   status: string;
   scheduleDate?: string;
   scheduleTime?: string;
+  isTimeNegotiable?: boolean;
   expectedFee: number;
   address?: string;
   collaborationType?: string;
@@ -38,6 +40,7 @@ export function RequestCard({
   status,
   scheduleDate,
   scheduleTime,
+  isTimeNegotiable = false,
   expectedFee,
   address,
   collaborationType,
@@ -213,7 +216,11 @@ export function RequestCard({
           )}
 
           {/* 날짜/시간 */}
-          {scheduleDate && scheduleTime && (
+          {isTimeNegotiable ? (
+            <Text fontSize={14} color={isCompleted ? '#999' : '#8B5CF6'} fontWeight="600" marginTop="$2">
+              시간 협의
+            </Text>
+          ) : scheduleDate && scheduleTime && (
             <Text fontSize={14} color={isCompleted ? '#999' : '#444'} marginTop="$2">
               {formatDate(scheduleDate)} {scheduleTime.slice(0, 5)}
             </Text>
