@@ -18,3 +18,14 @@
 .react-modal-sheet-drag-indicator {
   display: none !important;
 }
+
+/* PC에서 가운데 정렬 */
+@media (min-width: 768px) {
+  .react-modal-sheet-container {
+    max-width: 600px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    border-radius: 20px !important;
+    margin-bottom: 20px !important;
+  }
+}
