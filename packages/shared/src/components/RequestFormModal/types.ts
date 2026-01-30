@@ -24,6 +24,7 @@ export interface RequestFormData {
   scheduleDate: string;
   scheduleTime: string;
   isTimeNegotiable: boolean;
+  timeNegotiableText: string;
   requiredPersonnel: number;
   description: string;
   isUrgent: boolean;
@@ -47,6 +48,7 @@ export interface EditRequest {
   schedule_date: string;
   schedule_time: string;
   is_time_negotiable?: boolean;
+  time_negotiable_text?: string;
   required_personnel: number;
   description?: string | null;
   is_urgent?: boolean;

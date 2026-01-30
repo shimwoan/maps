@@ -583,7 +583,7 @@ export function RequestDetailCard({
               </XStack>
               {request.is_time_negotiable ? (
                 <Text fontSize={18} fontWeight="700" color="#8B5CF6">
-                  시간 협의
+                  {request.time_negotiable_text || '시간 협의'}
                 </Text>
               ) : (
                 <Text fontSize={18} fontWeight="700" color="#F59E0B">

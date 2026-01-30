@@ -260,6 +260,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
       scheduleDate: new Date().toISOString().split('T')[0],
       scheduleTime: '17:00',
       isTimeNegotiable: false,
+      timeNegotiableText: '',
       requiredPersonnel: 1,
       description: '',
       isUrgent: false,
@@ -286,6 +287,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         scheduleDate: editRequest.schedule_date || new Date().toISOString().split('T')[0],
         scheduleTime: editRequest.schedule_time || '17:00',
         isTimeNegotiable: editRequest.is_time_negotiable || false,
+        timeNegotiableText: editRequest.time_negotiable_text || '',
         requiredPersonnel: editRequest.required_personnel || 1,
         description: editRequest.description || '',
         isUrgent: editRequest.is_urgent || false,
@@ -435,6 +437,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         schedule_date: data.scheduleDate,
         schedule_time: data.scheduleTime,
         is_time_negotiable: data.isTimeNegotiable,
+        time_negotiable_text: data.isTimeNegotiable ? data.timeNegotiableText : null,
         required_personnel: data.requiredPersonnel,
         description: data.description,
         is_urgent: data.isUrgent,
@@ -482,6 +485,7 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
         scheduleDate: new Date().toISOString().split('T')[0],
         scheduleTime: '17:00',
         isTimeNegotiable: false,
+        timeNegotiableText: '',
         requiredPersonnel: 1,
         description: '',
         isUrgent: false,
@@ -1035,38 +1039,58 @@ export function RequestFormModal({ isOpen, onClose, onSuccess, defaultAddress = 
                   )}
                 </>
               )}
-              {/* 시간 협의 체크박스 */}
-              <Controller
-                control={control}
-                name="isTimeNegotiable"
-                render={({ field: { onChange, value } }) => (
-                  <XStack
-                    alignItems="center"
-                    cursor="pointer"
-                    gap="$2"
-                    onPress={() => onChange(!value)}
-                    marginTop="$1"
-                  >
-                    <View
-                      width={22}
-                      height={22}
-                      borderRadius={4}
-                      borderWidth={2}
-                      borderColor={value ? brandColors.primary : '#ccc'}
-                      backgroundColor={value ? brandColors.primary : 'white'}
+              {/* 시간 협의 체크박스 + 입력 필드 */}
+              <XStack alignItems="center" gap="$2" marginTop="$1">
+                <Controller
+                  control={control}
+                  name="isTimeNegotiable"
+                  render={({ field: { onChange, value } }) => (
+                    <XStack
                       alignItems="center"
-                      justifyContent="center"
+                      cursor="pointer"
+                      gap="$2"
+                      onPress={() => onChange(!value)}
+                      flexShrink={0}
                     >
-                      {value && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
-                    </View>
-                    <Text fontSize={15} color="#333" fontWeight="500">시간 협의</Text>
-                  </XStack>
+                      <View
+                        width={22}
+                        height={22}
+                        borderRadius={4}
+                        borderWidth={2}
+                        borderColor={value ? brandColors.primary : '#ccc'}
+                        backgroundColor={value ? brandColors.primary : 'white'}
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        {value && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </View>
+                      <Text fontSize={15} color="#333" fontWeight="500">시간 협의</Text>
+                    </XStack>
+                  )}
+                />
+                {watch('isTimeNegotiable') && (
+                  <Controller
+                    control={control}
+                    name="timeNegotiableText"
+                    render={({ field: { onChange, value } }) => (
+                      <Input
+                        flex={1}
+                        size="$3"
+                        placeholder="예: 내일 오후1~3시 사이"
+                        value={value}
+                        onChangeText={onChange}
+                        backgroundColor="#f9f9f9"
+                        borderColor="#eee"
+                        color="#000"
+                      />
+                    )}
+                  />
                 )}
-              />
+              </XStack>
             </YStack>
 
             {/* 필요 인원 - 원격 제외 */}

@@ -32,6 +32,7 @@ export interface RequestApplication {
     description?: string;
     is_urgent?: boolean;
     is_time_negotiable?: boolean;
+    time_negotiable_text?: string;
     latitude?: number;
     longitude?: number;
   };
