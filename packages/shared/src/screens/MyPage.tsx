@@ -57,6 +57,10 @@ function MyRequestCard({
   onComplete?: (requestId: string) => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCancelWorkDialog, setShowCancelWorkDialog] = useState(false);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const pendingApps = applications.filter(a => a.status === 'pending');
   const acceptedApp = applications.find(a => a.status === 'accepted' || a.status === 'completed');
   const isCompleted = request.status === 'completed';
@@ -72,6 +76,7 @@ function MyRequestCard({
   }, [showMenu]);
 
   return (
+    <>
     <RequestCard
       title={request.title}
       asType={request.as_type}
@@ -164,7 +169,7 @@ function MyRequestCard({
                     onPress={(e: any) => {
                       e.stopPropagation();
                       setShowMenu(false);
-                      onDelete?.(request.id);
+                      setShowDeleteDialog(true);
                     }}
                   >
                     <Text fontSize={14} fontWeight="600" color="#dc2626">삭제</Text>
@@ -215,20 +220,23 @@ function MyRequestCard({
           </XStack>
           {/* 액션 버튼 */}
           <XStack gap="$2" onClick={(e: any) => e.stopPropagation()}>
-            {!acceptedApp.completion_requested &&   <Button
-              flex={1}
-              flexBasis={0}
-              size="$4"
-              backgroundColor="#fee2e2"
-              color="#dc2626"
-              fontWeight="500"
-              onPress={() => onCancelWork?.(request.id)}
-              hoverStyle={{ backgroundColor: '#fecaca' }}
-              pressStyle={{ backgroundColor: '#fca5a5' }}
-            >
-              협업요청 취소
-            </Button> }
-         
+            {!acceptedApp.completion_requested && (
+              <Button
+                flex={1}
+                flexBasis={0}
+                size="$4"
+                backgroundColor="#fee2e2"
+                color="#dc2626"
+                fontWeight="500"
+                onPress={() => setShowCancelWorkDialog(true)}
+                disabled={isProcessing}
+                hoverStyle={{ backgroundColor: '#fecaca' }}
+                pressStyle={{ backgroundColor: '#fca5a5' }}
+              >
+                협업요청 취소
+              </Button>
+            )}
+
             {acceptedApp.completion_requested && (
               <Button
                 flex={1}
@@ -237,7 +245,8 @@ function MyRequestCard({
                 backgroundColor="#22C55E"
                 color="white"
                 fontWeight="500"
-                onPress={() => onComplete?.(request.id)}
+                onPress={() => setShowCompleteDialog(true)}
+                disabled={isProcessing}
                 hoverStyle={{ backgroundColor: '#16A34A' }}
                 pressStyle={{ backgroundColor: '#15803D' }}
               >
@@ -358,6 +367,69 @@ function MyRequestCard({
       )}
 
     </RequestCard>
+
+    {/* 삭제 확인 다이얼로그 */}
+    <ConfirmationDialog
+      isOpen={showDeleteDialog}
+      onClose={() => setShowDeleteDialog(false)}
+      onConfirm={async () => {
+        setIsProcessing(true);
+        try {
+          await onDelete?.(request.id);
+          setShowDeleteDialog(false);
+        } finally {
+          setIsProcessing(false);
+        }
+      }}
+      title="삭제"
+      message="정말로 삭제하시겠습니까?"
+      confirmText="예, 삭제합니다"
+      cancelText="아니오"
+      isLoading={isProcessing}
+      variant="danger"
+    />
+
+    {/* 협업요청 취소 확인 다이얼로그 */}
+    <ConfirmationDialog
+      isOpen={showCancelWorkDialog}
+      onClose={() => setShowCancelWorkDialog(false)}
+      onConfirm={async () => {
+        setIsProcessing(true);
+        try {
+          await onCancelWork?.(request.id);
+          setShowCancelWorkDialog(false);
+        } finally {
+          setIsProcessing(false);
+        }
+      }}
+      title="협업요청 취소"
+      message="매칭완료된 협업을 취소하시겠습니까?"
+      confirmText="예, 취소합니다"
+      cancelText="아니오"
+      isLoading={isProcessing}
+      variant="danger"
+    />
+
+    {/* 작업 완료 확인 다이얼로그 */}
+    <ConfirmationDialog
+      isOpen={showCompleteDialog}
+      onClose={() => setShowCompleteDialog(false)}
+      onConfirm={async () => {
+        setIsProcessing(true);
+        try {
+          await onComplete?.(request.id);
+          setShowCompleteDialog(false);
+        } finally {
+          setIsProcessing(false);
+        }
+      }}
+      title="작업 완료"
+      message="작업을 완료 처리하시겠습니까?"
+      confirmText="예, 완료합니다"
+      cancelText="아니오"
+      isLoading={isProcessing}
+    />
+  </>
   );
 }
 
@@ -376,6 +448,8 @@ function MyApplicationCard({
   onRequestCompletion?: (appId: string, reqId: string) => Promise<void>;
 }) {
   const [isCanceling, setIsCanceling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCompletionRequestDialog, setShowCompletionRequestDialog] = useState(false);
   const req = application.request;
 
   if (!req) return null;
@@ -444,7 +518,8 @@ function MyApplicationCard({
                 backgroundColor={brandColors.primary}
                 color="white"
                 fontWeight="500"
-                onPress={() => onRequestCompletion?.(application.id, application.request_id)}
+                onPress={() => setShowCompletionRequestDialog(true)}
+                disabled={isCanceling}
                 hoverStyle={{ backgroundColor: brandColors.primaryHover }}
                 pressStyle={{ backgroundColor: brandColors.primaryPressed }}
               >
@@ -457,16 +532,7 @@ function MyApplicationCard({
                 backgroundColor="#fee2e2"
                 color="#dc2626"
                 fontWeight="500"
-                onPress={async () => {
-                  setIsCanceling(true);
-                  try {
-                    await onCancel(application.id, application.request_id);
-                  } catch (err) {
-                    console.error('Failed to cancel:', err);
-                  } finally {
-                    setIsCanceling(false);
-                  }
-                }}
+                onPress={() => setShowCancelDialog(true)}
                 disabled={isCanceling}
                 hoverStyle={{ backgroundColor: '#fecaca' }}
                 pressStyle={{ backgroundColor: '#fca5a5' }}
@@ -487,16 +553,7 @@ function MyApplicationCard({
             backgroundColor="#fee2e2"
             color="#dc2626"
             fontWeight="500"
-            onPress={async () => {
-              setIsCanceling(true);
-              try {
-                await onCancel(application.id, application.request_id);
-              } catch (err) {
-                console.error('Failed to cancel:', err);
-              } finally {
-                setIsCanceling(false);
-              }
-            }}
+            onPress={() => setShowCancelDialog(true)}
             disabled={isCanceling}
             hoverStyle={{ backgroundColor: '#fecaca' }}
             pressStyle={{ backgroundColor: '#fca5a5' }}
@@ -540,6 +597,51 @@ function MyApplicationCard({
         </XStack>
       )}
     </RequestCard>
+
+    {/* 신청/작업 취소 확인 다이얼로그 */}
+    <ConfirmationDialog
+      isOpen={showCancelDialog}
+      onClose={() => setShowCancelDialog(false)}
+      onConfirm={async () => {
+        setIsCanceling(true);
+        try {
+          await onCancel(application.id, application.request_id);
+          setShowCancelDialog(false);
+        } catch (err) {
+          console.error('Failed to cancel:', err);
+        } finally {
+          setIsCanceling(false);
+        }
+      }}
+      title={application.status === 'pending' ? '신청 취소' : '작업 취소'}
+      message={application.status === 'pending' ? '정말로 신청을 취소하시겠습니까?' : '정말로 작업을 취소하시겠습니까?'}
+      confirmText="예, 취소합니다"
+      cancelText="아니오"
+      isLoading={isCanceling}
+      variant="danger"
+    />
+
+    {/* 작업 완료 요청 확인 다이얼로그 */}
+    <ConfirmationDialog
+      isOpen={showCompletionRequestDialog}
+      onClose={() => setShowCompletionRequestDialog(false)}
+      onConfirm={async () => {
+        setIsCanceling(true);
+        try {
+          await onRequestCompletion?.(application.id, application.request_id);
+          setShowCompletionRequestDialog(false);
+        } catch (err) {
+          console.error('Failed to request completion:', err);
+        } finally {
+          setIsCanceling(false);
+        }
+      }}
+      title="작업 완료 요청"
+      message="협업 요청자에게 작업 완료 요청을 보내시겠습니까?"
+      confirmText="예, 요청합니다"
+      cancelText="아니오"
+      isLoading={isCanceling}
+    />
     </>
   );
 }
@@ -850,7 +952,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
               </svg>
             </View>
             <Text fontSize={18} fontWeight="600" color="#000">
-              {mode === 'profile' ? 'MY' : '실시간 현황'}
+              {mode === 'profile' ? 'MY' : '내 작업'}
             </Text>
           </XStack>
           <HeaderActions
@@ -861,7 +963,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
         {/* 프로필 섹션 - MY 모드에서만 표시 */}
         {mode === 'profile' && (
-          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51}>
+          <YStack backgroundColor="white" borderBottomWidth={1} borderBottomColor="#eee" marginTop={51} maxWidth={768} width="100%" alignSelf="center">
             {/* 프로필 정보 */}
             <XStack padding="$4" justifyContent="space-between" alignItems="flex-start">
               <YStack gap="$1">
@@ -1006,7 +1108,7 @@ export function MyPage({ onBack, onNavigate, initialTab = 'myRequests', mode = '
 
         {/* 탭 + 콘텐츠 래퍼 - requests 모드에서만 표시 */}
         {mode === 'requests' && (
-          <View flex={1} marginTop={51} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <View flex={1} marginTop={51} maxWidth={768} width="100%" alignSelf="center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* 탭 - Fill 버튼 스타일 */}
             <XStack backgroundColor="white" padding="$3" gap="$2">
               <View
